@@ -569,7 +569,7 @@
       }
     </script>
 	<script type="text/javascript">
-	$("#footer-contact #contact").submit(function(e){
+	$("#footer-contact, #contact").submit(function(e){
 		e.preventDefault();
 		var action = $(this).attr("action");
 		$.ajax({
