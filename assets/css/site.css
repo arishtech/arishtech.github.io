@@ -560,7 +560,7 @@ ul.slick-dots {
 /* Services */
 
 .services {
-	margin-top: 140px;
+	margin-top: 50px;
 }
 .service-item {
 padding-bottom: 15px;
@@ -591,13 +591,13 @@ padding-bottom: 15px;
 /* Fun Facts */
 
 .fun-facts {
-	margin-top: 140px;
+	margin-top: 5px;
 	background-image: url(../images/fun-facts-bg.jpg);
 	background-position: center center;
 	background-repeat: no-repeat;
 	background-size: cover;
 	background-attachment: fixed;
-	padding: 140px 0px;
+	padding: 50px 0px;
 	color: #fff;
 }
 
@@ -655,7 +655,7 @@ padding-bottom: 15px;
 /* More Info */
 
 .more-info {
-	margin-top: 140px;
+	margin-top: 50px;
 }
 
 .more-info .left-image img {
@@ -714,7 +714,7 @@ padding-bottom: 15px;
 .testimonials {
 	margin-top: 50px;
 	background-color: #f7f7f7;
-	padding: 140px 0px;
+	padding: 50px 0px;
 }
 .testimonial-item .inner-content {
 	text-align: center;
@@ -758,7 +758,7 @@ padding-bottom: 15px;
 
 .contact-us {
 	background-color: #f7f7f7;
-	padding: 140px 0px;
+	padding: 50px 0px;
 }
 
 .contact-us .contact-form {
@@ -767,7 +767,8 @@ padding-bottom: 15px;
 }
 
 .callback-form {
-	margin-top: 140px;
+	margin-top: 50px;
+	padding-bottom: 50px;
 }
 
 .callback-form .contact-form {
@@ -1203,7 +1204,7 @@ footer .contact-form button.filled-button:hover {
 /* Contact Information */
 
 .contact-information {
-	margin-top: 140px;
+	margin-top: 50px;
 }
 
 .contact-information .contact-item {
