@@ -1,10 +1,3 @@
-/* 
-
-TemplateMo - Finance Business
-
-https://templatemo.com/tm-545-finance-business
-
-*/
 
 body {
   font-family: 'Poppins', sans-serif;
@@ -569,7 +562,9 @@ ul.slick-dots {
 .services {
 	margin-top: 140px;
 }
-
+.service-item {
+padding-bottom: 15px;
+}
 .service-item img {
 	width: 100%;
 	overflow: hidden;
@@ -717,7 +712,7 @@ ul.slick-dots {
 }
 
 .testimonials {
-	margin-top: 140px;
+	margin-top: 50px;
 	background-color: #f7f7f7;
 	padding: 140px 0px;
 }
