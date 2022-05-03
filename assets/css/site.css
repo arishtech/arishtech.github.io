@@ -409,10 +409,24 @@ header .navbar {
 }
 @media only screen and (orientation:portrait)
 {
-	.img-fill{
+	.Modern-Slider .dotnet .img-fill{
 		background-image: none;	
 	}
-		
+	.Modern-Slider .java .img-fill{
+		background-image: none;	
+	}
+	.Modern-Slider .aiml .img-fill{
+		background-image: none;	
+	}
+	.Modern-Slider .cloudcomp .img-fill{
+		background-image: none;	
+	}
+	.Modern-Slider .atlassiansupp .img-fill{
+		background-image: none;	
+	}
+	.Modern-Slider .webdesign .img-fill{
+		background-image: none;	
+	}		
 }
 .Modern-Slider .NextArrow{
   position:absolute;
