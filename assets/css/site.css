@@ -378,13 +378,7 @@ header .navbar {
 	background-repeat: no-repeat;
 	height:95vh;
 }
-@media only screen and (orientation:portrait)
-{
-	.img-fill{
-		background-image: none;	
-	}
-		
-}
+
 .Modern-Slider .dotnet .img-fill {
 	background-image: url(../images/DotNet.png);	
 	background-size: 700px 350px;
@@ -413,7 +407,13 @@ header .navbar {
 	background-image: url(../images/Web_Design.png);
 	background-size: 700px 350px;
 }
-
+@media only screen and (orientation:portrait)
+{
+	.img-fill{
+		background-image: none;	
+	}
+		
+}
 .Modern-Slider .NextArrow{
   position:absolute;
   top:50%;
