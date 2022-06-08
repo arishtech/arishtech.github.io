@@ -610,7 +610,7 @@
       }
     </script>
 	<script type="text/javascript">
-	$("#footer-contact, #contact").submit(function(e){
+	$("#footer-contact, #contact, #form-submit").submit(function(e){
 		e.preventDefault();
 		var data = new FormData(this);
 		if(data.get('email').endsWith('.de') || data.get('email').endsWith('.se') || data.get('message').indexOf("leads") > 0 || data.get('message').indexOf("robot") > 0)	{
