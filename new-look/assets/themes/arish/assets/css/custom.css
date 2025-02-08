@@ -1,0 +1,1639 @@
+@import url('https://fonts.googleapis.com/css2?family=Gugi&amp;display=swap');
+
+/* rapid development start */
+.rapid-development {font-family: "Roboto", sans-serif;}
+.rapid-development .section-padding {padding: 80px 0;}
+.rapid-development mark {padding: 0; background: none; font-family: 'Gugi', cursive; color: #ef3734; text-transform: uppercase; font-weight: 700;}
+
+.rapid-development h2 {font-size: 45px; font-weight: 700; position: relative; padding-bottom: 10px;}
+.rapid-development h2::before {position: absolute; bottom: 0; left: 50%; width: 180px; margin-left: -90px; height: 2px; background-color: #ef3734; content: ' ';}
+.rapid-development .lead-text {font-size: 18px; font-weight: 500; margin-top: 20px;}
+.rapid-development .arrow-list li {position: relative; padding-left: 15px; margin-bottom: 10px;}
+.rapid-development .arrow-list li:last-child {margin-bottom: 0;}
+.rapid-development .arrow-list li::before {font-family: 'Font Awesome 5 Pro'; font-weight: 900; content: "\f0da"; position: absolute; top: 0; left: 0;}
+.rapid-development h2 {font-size: 45px; }
+
+.rapid-development .rapid-banner {position: relative;}
+.rapid-development .rapid-banner picture {width: 100%; display: block;}
+.rapid-development .rapid-banner picture img {width: 100%;}
+.rapid-development .rapid-banner .banner-content {position: absolute; top: 80px; left: 50%; transform: translate(-50%, 0);}
+.rapid-development .rapid-banner h1 {font-size: 52px; color: #fff; font-weight: 500; line-height: 1.1; margin-bottom: 25px;}
+.rapid-development .rapid-banner .arrow-list li {color: #fff; font-size: 20px;}
+.rapid-development .rapid-banner .header-form-col {position: absolute; top: 0; right: 0; background: url(../images/rapid-development/grey-dotts.png) no-repeat 100% 100%; padding-bottom: 40px;}
+.rapid-development .rapid-banner .header-form {background: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 20px;}
+.rapid-development .rapid-banner .header-form h3 {font-size: 22px; font-weight: 500; margin-bottom: 20px;}
+.rapid-development .rapid-banner .rapid-header-form {height: 520px;}
+
+.rapid-development .rapid-banner .container2 {margin-top: 25px;}
+.rapid-development .rapid-banner .container2 p {font-size: 18px; font-weight: 600;}
+
+@media screen and (min-width:1400px) {
+    .rapid-development .rapid-banner .banner-content {top: 50px;}
+    .rapid-development .rapid-banner .container2 {margin-top: 75px;}
+    .rapid-development .rapid-banner .rapid-header-form {height: 540px;}
+	.rapid-development section#contactus iframe {
+		height: 595px;
+	}
+}
+
+/* section 2 start */
+.rapid-development .section-2 .section-header {text-align: center;}
+.rapid-development .section-2 .section-body {margin-top: 60px;}
+.rapid-development .section-2 .lead-text {font-size: 24px; font-weight: 700;}
+.rapid-development .section-2 .red-card-wrapper {position: relative; padding-bottom: 230px;}
+.rapid-development .section-2 .red-card {background: url(../images/rapid-development/red-color.jpg) no-repeat; padding: 30px 0 0 30px;}
+.rapid-development .section-2 .red-card .card-inner {background-color: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 30px; margin-right: 40px;}
+.rapid-development .section-2 .red-card .card-inner p {font-size: 18px;}
+.rapid-development .section-2 .red-card-wrapper img {position: absolute; bottom: 0; left: 0; z-index: -1;}
+
+.rapid-development .section-2 .grey-dotted-card {background: url(../images/rapid-development/grey-dotts.png) no-repeat 100% 0; padding: 30px 0 0 0; margin-top: 80px;}
+.rapid-development .section-2 .grey-dotted-card .card-inner .title {color: #3d6af1; font-family: 'Poppins', sans-serif; font-weight: 600;}
+.rapid-development .section-2 .grey-dotted-card .card-inner {background-color: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 30px; margin-left: 40px;}
+
+.rapid-development .section-2 .section-footer {text-align: center; margin-top: 60px;}
+.rapid-development .section-2 .section-footer .cta-btn {display: inline-block; background: #ef3734; padding: 10px 30px; border-radius: 6px; font-size: 22px; color: #fff;}
+.rapid-development .section-2 .section-footer .cta-btn span {background: url(../images/rapid-development/cta-arrow.png) no-repeat 100% 50%; display: inline-block; padding-right: 35px; font-weight: 600;}
+.rapid-development .section-2 .section-footer .cta-btn:hover {background: #b5120f;}
+/* section 2 end */
+
+/* section 3 start */
+.rapid-development .section-3.section-padding {background: #232830; padding-bottom: 210px;}
+.rapid-development .section-3 .section-header {text-align: center;}
+.rapid-development .section-3 .section-header h2 {color: #fff;}
+.rapid-development .section-3 .section-header .lead-text {color: #fff;}
+.rapid-development .section-3 .section-body {margin-top: 60px; position: relative; padding-left: 45px; padding-right: 45px;}
+
+.rapid-development .section-3 .section-body .list-group {flex-direction: row; justify-content: space-between;}
+.rapid-development .section-3 .section-body .list-group .arrow-list {flex: 0 0 30%; max-width: 30%; font-size: 18px;}
+
+.rapid-development .section-3 .section-body .title-wrapper {background: rgb(162,48,246); background: linear-gradient(125deg, rgba(162,48,246,1) 0%, rgba(6,68,245,1) 100%); padding: 50px 25px;}
+.rapid-development .section-3 .section-body .color-card .title {color: #fff; font-family: 'Poppins', sans-serif; font-size: 22px; font-weight: 700;}
+.rapid-development .section-3 .section-body .card-content {background: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 25px; position: absolute; left: 250px; top: 30px; width: calc(75% - 6px);}
+.rapid-development .section-3 .section-body .card-content .title {font-size: 18px; font-weight: 700; color: #0644f5;}
+
+.rapid-development .section-3 .section-body .card-content-web {background: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 25px;}
+.rapid-development .section-3 .section-body .card-content-web .list-group .arrow-list {flex: 0 0 100%; max-width: 100%;}
+.rapid-development .section-3 .section-body .card-content-web .title {font-size: 18px; font-weight: 700; color: #0644f5;}
+
+.rapid-development .section-3 .section-body1 .card-content {margin-right: 15px; width: calc(50% - 15px); height: 275px;}
+.rapid-development .section-3 .section-body1 .card-content-web {position: absolute; right: 40px; top: 30px; height: 275px;}
+.rapid-development .section-3 .section-body1 {background: url(../images/rapid-development/orange-dotts.png) no-repeat 100% 0;}
+.rapid-development .section-3 .section-body1 .list-group .arrow-list {flex: 0 0 48%; max-width: 48%; font-size: 16px;}
+
+.rapid-development .section-3 .section-body2 {margin-top: 120px;}
+.rapid-development .section-3 .section-body2 .title-wrapper {background: rgb(236,90,54); background: linear-gradient(-29deg, rgba(236,90,54,1) 0%, rgba(187,38,26,1) 100%);}
+
+.rapid-development .section-3 .section-body3 .title-wrapper {background: rgb(162,48,246); background: linear-gradient(125deg, rgba(162,48,246,1) 0%, rgba(6,68,245,1) 100%); padding: 25px;}
+.rapid-development .section-3 .section-body4 .title-wrapper {background: rgb(236,90,54); background: linear-gradient(-29deg, rgba(236,90,54,1) 0%, rgba(187,38,26,1) 100%);}
+.rapid-development .section-3 .section-body4 .list-unstyled {display: flex; flex-wrap: wrap;}
+.rapid-development .section-3 .section-body4 .list-unstyled li {flex: 0 0 25%; max-width: 25%; text-align: center; margin: 5px 0;}
+
+.rapid-development .section-3 .section-body5 {margin-top: 150px;}
+.rapid-development .section-3 .section-body5 .title-wrapper {background: rgb(162,48,246); background: linear-gradient(125deg, rgba(162,48,246,1) 0%, rgba(6,68,245,1) 100%); padding: 25px;}
+.rapid-development .section-3 .section-body5 .list-unstyled {display: flex; flex-wrap: wrap; justify-content: space-between;}
+.rapid-development .section-3 .section-body5 .list-unstyled li {flex: 0 0 18%; max-width: 18%; text-align: center; margin: 5px 0;}
+
+.rapid-development .section-3 .container {position: relative;}
+.rapid-development .section-3 .container .section-3-arrow1 {position: absolute; right: -20px; top: 510px;}
+.rapid-development .section-3 .container .section-3-arrow2 {position: absolute; left: 0; top: 760px;}
+.rapid-development .section-3 .container .section-3-arrow3 {position: absolute; right: -20px; top: 975px;}
+.rapid-development .section-3 .container .section-3-arrow4 {position: absolute; left: 0; top: 1215px;}
+
+/* section 3 end */
+
+/* section 4 start */
+.rapid-development .section-4 .section-header {text-align: center;}
+.rapid-development .section-4 .section-body {margin-top: 60px; position: relative;}
+
+.rapid-development .section-4 img {border-radius: 8px;}
+.rapid-development .section-4 .section-body1 {background: url(../images/rapid-development/grey-dotts-section-4.png) no-repeat 100% 100%; padding-bottom: 80px;}
+.rapid-development .section-4 .section-body1 .col-md-8 {position: absolute; top: 70px; right: 0; background-color: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 30px; border-radius: 8px; margin-right: 45px;}
+
+.rapid-development .section-4 .title {font-size: 22px; font-weight: 700; color: #0644f5;}
+.rapid-development .section-4 .sub-title {font-size: 17px; font-weight: 700; margin-bottom: 0;}
+.rapid-development .section-4 .arrow-list li {font-size: 17px; margin-bottom: 4px;}
+
+.rapid-development .section-4 .section-body2 {background: url(../images/rapid-development/grey-dotts-section-4.png) no-repeat 0 100%; padding-bottom: 45px;}
+.rapid-development .section-4 .section-body2 .col-md-5 {position: absolute; top: 30px; right: 0; border-radius: 8px; z-index: -1;}
+.rapid-development .section-4 .section-body2 .col-md-8 {background-color: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 30px; border-radius: 8px; margin-left: 45px; margin-top: 105px;}
+
+@media screen and (min-width:1400px) {
+    .rapid-development .section-4 .section-body2 .col-md-8 {margin-top: 200px;}
+}
+/* section 4 end */
+
+/* section 5 start */
+.rapid-development .section-5.section-padding {background-color: #f6f6f6; padding-bottom: 130px;}
+.rapid-development .section-5 h2::before {left: 0; margin-left: 0;}
+.rapid-development .section-5 p {font-size: 18px; font-weight: 700; margin-top: 30px; padding-right: 140px;}
+.rapid-development .section-5 .col-md-6 {position: relative;}
+.rapid-development .section-5 .col-md-6 img {float: right;}
+.rapid-development .section-5 .red-card {background: url(../images/rapid-development/grey-dotts-section-4.png) no-repeat 100% 100%; padding-bottom: 45px; padding-right: 45px; position: absolute; bottom: -80px; left: 0;}
+.rapid-development .section-5 .red-card-inner {background-color: #eb332d; padding: 30px; border-radius: 8px; width: 500px;}
+.rapid-development .section-5 .red-card-inner .arrow-list li {font-size: 17px; color: #fff; margin-bottom: 4px; border-radius: 8px;}
+
+@media screen and (min-width:1200px) {
+    .rapid-development .section-5.section-padding .row {display: flex; align-items: center;}
+}
+/* section 5 end */
+
+/* section 6 start */
+.rapid-development .section-6 .section-header {text-align: center;}
+.rapid-development .section-6 .section-body {margin-top: 60px; padding: 0 50px; background-image:  url(../images/rapid-development/grey-dotts-section-4.png), url(../images/rapid-development/grey-dotts-section-4.png); background-position: 100% 0, 0 50%; background-repeat: no-repeat;}
+.rapid-development .section-6 .section-body .col-md-12 {display: flex; flex-wrap: wrap; justify-content: space-between;}
+.rapid-development .section-6 .section-body .section-body-content {background-color: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 15px; flex: 0 0 48%; max-width: 48%; margin-top: 15px;}
+.rapid-development .section-6 .section-body .section-body-content p {font-size: 18px;}
+.rapid-development .section-6 .section-body .section-body-content b span {color: #eb332d; font-size: 20px;}
+
+.rapid-development .section-6 .section-footer {margin-top: 60px; text-align: center;}
+.rapid-development .section-6 .section-footer p {font-size: 18px; color: #a230f6; font-style: italic; font-weight: 700; font-family: 'Poppins', sans-serif; }
+/* section 6 end */
+
+
+/* section 7 start */
+.rapid-development .section-7.section-padding {padding: 0; background: #f1f1f1; padding-bottom: 80px;}
+.rapid-development .section-7-inner {background: url(../images/rapid-development/our-experts.jpg) no-repeat 50% 50%; background-size: cover;}
+.rapid-development .section-7-top {background: #fff;}
+.rapid-development .section-7 .row {align-items: center; height: 350px;}
+.rapid-development .section-7 h2 {color: #fff;}
+.rapid-development .section-7 h2::before {display: none;}
+.rapid-development .section-7 .container {position: relative;}
+.rapid-development .section-7 .experts-form-wrapper {position: absolute; top: -30px; right: 0;}
+.rapid-development .section-7 .experts-form {background: #fff; box-shadow: 0px 6px 75px 0px rgba(122, 122, 122, 0.27); padding: 20px;}
+.rapid-development .section-7 .experts-form .rapid-footer-form {height: 430px;}
+/* section 7 end */
+
+@media screen and (min-width:1400px) {
+    .rapid-development .section-3 .section-body .card-content {width: calc(79% - 13px);}
+    .rapid-development .section-3 .section-body1 .card-content {width: calc(53% - 15px);}
+}
+
+@media screen and (min-width:768px) {
+    .d-md-bock {display: block;}
+}
+
+@media (min-width:992px) and (max-width:1200px) {
+    .rapid-development .arrow-list li {margin-bottom: 0;}
+    .rapid-development .rapid-banner .banner-content {top: 30px;}
+    .rapid-development .rapid-banner h1 {font-size: 42px;}
+    .rapid-development .rapid-banner .arrow-list li {font-size: 18px;}
+    .rapid-development .section-3 .section-body .title-wrapper {padding: 25px 15px;}
+    .rapid-development .section-3 .section-body .color-card .title {font-size: 18px;}
+    .rapid-development .section-3 .section-body .card-content {left: 200px; padding: 15px;}
+    .rapid-development .section-3 .section-body .card-content .title {margin: 0;}
+    .rapid-development .section-3 .section-body .card-content-web .title {margin: 0;}
+    .rapid-development .section-3 .section-body .card-content-web .arrow-list li:not(:last-child) {margin-bottom: 2px;}
+    .rapid-development .section-3 .section-body2 {margin-top: 180px;}
+    .rapid-development .section-3 .section-body3 {margin-top: 70px;}
+    .rapid-development .section-3 .section-body4 {margin-top: 30px;}
+    .rapid-development .section-3 .section-body5 {margin-top: 160px;}
+    .rapid-development .section-3 .container .section-3-arrow1 {top: 530px;}
+    .rapid-development .section-3 .container .section-3-arrow2 {top: 670px;}
+    .rapid-development .section-3 .container .section-3-arrow3 {top: 805px;}
+    .rapid-development .section-3 .container .section-3-arrow4 {top: 1033px;}
+}
+
+@media (min-width:768px) and (max-width:991px) {
+    .rapid-development .section-padding {padding: 40px 0;}
+    .rapid-development h2 {font-size: 36px;}
+    .rapid-development .rapid-banner h1 {font-size: 30px; margin-bottom: 10px;}
+    .rapid-development .rapid-banner .arrow-list li {font-size: 14px; margin-bottom: 0;}
+    .rapid-development .rapid-banner .container2 p {font-size: 16px;}
+    .rapid-development .rapid-banner .header-form h3 {font-size: 18px;}
+    .rapid-development .rapid-banner .banner-content {top: 50px;}
+
+    .rapid-development .section-2 {margin-top: 130px;}
+    .rapid-development .section-2 .section-body {align-items: flex-start; margin-top: 40px;}
+    .rapid-development .section-2 .red-card-wrapper {padding-bottom: 110px;}
+    .rapid-development .section-2 .red-card-wrapper img {left: 15px;}
+    .rapid-development .section-2 .red-card .card-inner {margin-right: 0;}
+    .rapid-development .section-2 .red-card .card-inner p {font-size: 16px;}
+    .rapid-development .section-2 .arrow-list li {font-size: 16px; line-height: 1.3;}
+
+    .rapid-development .section-3 .section-body1 {margin-top: 20px;}
+    .rapid-development .section-3 .section-body .title-wrapper {padding: 10px;}
+    .rapid-development .section-3 .section-body .color-card .title {font-size: 14px; margin: 0;}
+    .rapid-development .section-3 .section-body .card-content {left: 165px;}
+    .rapid-development .section-3 .section-body .card-content .title {margin: 0;}
+    .rapid-development .section-3 .section-body .card-content-web .title {margin: 0;}
+    .rapid-development .section-3 .arrow-list li {font-size: 15px; line-height: 1.3;}
+    .rapid-development .section-3 .section-body2 {margin-top: 240px;}
+    .rapid-development .section-3 .section-body1 .card-content-web {right: 25px;}
+    .rapid-development .section-3 .card-content-web .arrow-list li {font-size: 14px; margin-bottom: 9px;}
+
+    .rapid-development .section-3 .section-body {padding-left: 30px; padding-right: 30px;}
+
+    .rapid-development .section-3 .section-body4 .title-wrapper {padding: 40px 10px;}
+    .rapid-development .section-3 .section-body5 {margin-top: 125px;}
+
+    .rapid-development .section-3 .container .section-3-arrow1,
+    .rapid-development .section-3 .container .section-3-arrow2,
+    .rapid-development .section-3 .container .section-3-arrow3 {width: 35px;}
+
+    .rapid-development .section-3 .container .section-3-arrow2 {width: 54px; height: 220px; left: -15px;}
+    .rapid-development .section-3 .container .section-3-arrow1 {top: 510px;}
+    .rapid-development .section-3 .container .section-3-arrow2 {top: 604px;}
+    .rapid-development .section-3 .container .section-3-arrow3 {top: 915px;}
+    .rapid-development .section-3 .container .section-3-arrow4 {left: -14px; top: 1055px;}
+    
+    .rapid-development .section-3 .section-body3 {margin-top: 160px;}
+    .rapid-development .section-3 .section-body4 {margin-top: 100px;}
+    .rapid-development .section-3.section-padding {padding-bottom: 190px;}
+
+    .rapid-development .section-4 .section-body {margin-top: 40px;}
+    .rapid-development .section-4 .section-body1 .col-md-8 {padding: 20px;}
+    .rapid-development .section-4 .title {font-size: 18px;}
+    .rapid-development .section-4 .arrow-list li {font-size: 15px; line-height: 1.4;}
+    .rapid-development .section-4 .section-body {margin-top: 150px;}
+
+    .rapid-development .section-5.section-padding {padding-bottom: 330px;}
+    .rapid-development .section-5 h2 {font-size: 30px;}
+    .rapid-development .section-5 p {padding-right: 40px;}
+    .rapid-development .section-5 .red-card {bottom: -300px;}
+    .rapid-development .section-5 .red-card-inner {width: 320px;}
+}
+
+@media screen and (max-width:767px) {
+	.btn-style-one .btn-title {
+		font-size: 18px;
+	}
+    .rapid-development .section-padding {padding: 20px 0;}
+    .rapid-development h2 {font-size: 25px!important;}
+    .rapid-development .lead-text {font-size: 16px;}
+
+    .rapid-development .rapid-banner {background: url(../images/rapid-development/banner.jpg) no-repeat 50% 50%; background-size: cover; padding: 30px 0;}
+    .rapid-development .rapid-banner picture {display: none;}
+    .rapid-development .rapid-banner .banner-content {position: inherit; top: inherit; left: inherit; transform: inherit;}
+    .rapid-development .rapid-banner .header-form-col {position: inherit; top: inherit; left: inherit;}
+    .rapid-development .rapid-banner h1 {font-size: 34px;}
+    .rapid-development .rapid-banner .arrow-list {margin-bottom: 20px;}
+    .rapid-development .rapid-banner .container2 p {color: #fff;}
+
+    .rapid-development .section-2 .grey-dotted-card {padding: 0 15px;}
+
+    .rapid-development .section-2 .section-body {margin-top: 20px;}
+    .rapid-development .section-2 .red-card {padding: 0;}
+    .rapid-development .section-2 .red-card .card-inner {margin-right: 0; padding: 15px;}
+    .rapid-development .section-2 .red-card .card-inner p {font-size: 16px;}
+    .rapid-development .section-2 .red-card-wrapper img {display: none;}
+    .rapid-development .section-2 .grey-dotted-card .card-inner {margin: 0;}
+    .rapid-development .section-2 .red-card-wrapper {padding-bottom: 0;}
+    .rapid-development .section-2 .grey-dotted-card {margin-top: 20px; background: none; padding-top: 0;}
+    .rapid-development .section-2 .section-footer {margin-top: 20px;}
+
+    .rapid-development .section-3.section-padding {padding-bottom: 20px;}
+    .rapid-development .section-3 .section-body {margin-top: 30px; padding-left: 15px; padding-right: 15px; position: inherit; background: none;}
+    .rapid-development .section-3 .section-body .color-card {padding-left: 0; padding-right: 0;}
+    .rapid-development .section-3 .section-body .title-wrapper {padding: 15px; text-align: center;}
+    .rapid-development .section-3 .section-body .color-card .title {margin: 0;}
+    .rapid-development .section-3 .section-body .card-content {padding: 15px; position: inherit; top: inherit; left: inherit; width: 100%; margin: 0; height: auto;}
+    .rapid-development .section-3 .section-body1 .card-content-web {padding: 15px; position: inherit; top: inherit; left: inherit; right: inherit; width: 100%; margin: 0; height: auto;}
+    .rapid-development .section-3 .section-body2,
+    .rapid-development .section-3 .section-body3,
+    .rapid-development .section-3 .section-body4 {margin-top: 30px;}
+
+    .rapid-development .section-3 .section-body .list-group {display: block;}
+    .rapid-development .section-3 .section-body .list-group .arrow-list {flex: 0 0 100%; max-width: 100%; font-size: 16px; margin-bottom: 10px;}
+
+    .rapid-development .section-4 .section-body {margin-top: 20px; position: inherit;}
+    .rapid-development .section-4 .section-body1 {background: none; padding-bottom: 0;}
+    .rapid-development .section-4 .section-body1 .col-md-8 {padding: 15px; position: inherit; top: inherit; left: inherit; right: inherit; margin: 0;}
+    .rapid-development .section-4 .arrow-list li {font-size: 16px;}
+    .rapid-development .section-4 .section-body2 .col-md-8 {margin-top: 20px; margin-left: 0;}
+    .rapid-development .section-4 .section-body2 .col-md-5 {position: inherit; top: inherit; left: inherit; right: inherit;}
+    .rapid-development .section-4 .section-body2 .col-md-8 {padding: 0 15px;}
+
+    .rapid-development .section-5.section-padding {padding-bottom: 20px;}
+    .rapid-development .section-5 p {padding-right: 0; font-size: 16px; margin-top: 15px;}
+    .rapid-development .section-5 .col-md-6 img {float: none;}
+    .rapid-development .section-5 .red-card {position: inherit; top: inherit; left: inherit; right: inherit; bottom: inherit; margin: 0; padding: 0;}
+    .rapid-development .section-5 .red-card-inner {width: auto; padding: 15px; border-top-left-radius: 0; border-top-right-radius: 0;}
+
+    .rapid-development .section-6 .section-body .section-body-content {flex: 0 0 100%; max-width: 100%;}
+    .rapid-development .section-6 .section-body {margin-top: 20px; padding: 0 15px;}
+    .rapid-development .section-6 .section-footer {margin-top: 20px;}
+    
+    .rapid-development .section-7.section-padding {padding-bottom: 20px;}
+    .rapid-development .section-7-inner {padding: 40px 0;}
+    .rapid-development .section-7 h2 {text-align: center; margin-bottom: 20px;}
+    .rapid-development .section-7-top {display: none;}
+    .rapid-development .section-7 .row {height: auto;}
+    .rapid-development .section-7 .experts-form-wrapper {position: inherit; top: inherit; left: inherit;}
+
+    .rapid-development .section-3 .container .section-3-arrow1,
+    .rapid-development .section-3 .container .section-3-arrow2,
+    .rapid-development .section-3 .container .section-3-arrow3,
+    .rapid-development .section-3 .container .section-3-arrow4 {display: none;}
+
+}
+/* rapid development end */
+
+
+/* damco omnius start */
+.damco-omnius p, .damco-omnius .para {font-family: "Roboto", sans-serif;padding-bottom: 10px!important;}
+.damco-omnius h2 {font-family: 'Poppins', sans-serif;}
+.damco-omnius .section-padding {padding: 80px 0;}
+.damco-omnius mark {padding: 0; background: none; font-family: 'Gugi', cursive; color: #ef3734; text-transform: uppercase; font-weight: 700;}
+
+.damco-omnius h2 {font-size: 45px; font-weight: 700; position: relative; padding-bottom: 20px;}
+.damco-omnius h2::before {position: absolute; bottom: 0; left: 50%; width: 180px; margin-left: -90px; height: 2px; background-color: #ef3734; content: ' ';}
+.damco-omnius .lead-text {font-size: 18px; font-weight: 500; margin-top: 20px;}
+.damco-omnius .arrow-list li {position: relative; padding-left: 15px; margin-bottom: 10px;}
+.damco-omnius .arrow-list li:last-child {margin-bottom: 0;}
+.damco-omnius .arrow-list li::before {font-family: 'Font Awesome 5 Pro'; font-weight: 900; content: "\f0da"; position: absolute; top: 0; left: 0;}
+.damco-omnius h2 {font-size: 45px; margin-bottom: 30px;}
+
+.damco-omnius .omnius-banner {position: relative;}
+.damco-omnius .omnius-banner picture {width: 100%; display: block;}
+.damco-omnius .omnius-banner picture img {width: 100%;}
+.damco-omnius .omnius-banner .banner-content {position: absolute; /*top: 110px;*/ top: 17%; left: 50%; transform: translate(-50%, 0);}
+.damco-omnius .omnius-banner h1 {font-size: 3.8vw; color: #fff; font-weight: 700; line-height: 1.1; margin-bottom: 20px;}
+.damco-omnius .omnius-banner .subheading {font-size: 1.8vw!important;; font-weight: 400; color: #fff; font-family: 'Poppins', sans-serif; line-height: 1.2;}
+.damco-omnius .omnius-banner p {font-size: 20px; color: #fff; font-weight: 700;}
+.damco-omnius .omnius-banner .arrow-list li {color: #fff; font-size: 20px;}
+.damco-omnius .omnius-banner .header-form-col {position: absolute; top: 0; right: 0; background: url(../../images/damco-omnius/grey-dotts.png) no-repeat 100% 100%; padding-bottom: 40px;}
+.damco-omnius .omnius-banner .header-form {background: #fff; box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding: 20px; height: auto;}
+.damco-omnius .omnius-banner .header-form h3 {font-size: 22px; font-weight: 700; margin-bottom: 20px; color: #24282d;}
+.damco-omnius .omnius-banner .omnius-header-form {height: 500px;}
+
+.damco-omnius .omnius-banner .container2 {margin-top: 50px;}
+.damco-omnius .omnius-banner .container2 h2 {font-size: 16px; font-family: "Roboto", sans-serif;}
+.damco-omnius .omnius-banner .container2 h2::before {display: none;}
+.damco-omnius .omnius-banner .container2 p {font-size: 16px; font-weight: 400; color: #1e232a;}
+
+/* section intro */
+.damco-omnius .section-intro .section-header {text-align: center;}
+.damco-omnius .section-intro .section-body {margin-top: 30px;}
+.damco-omnius .section-intro .section-body p {font-size: 18px; font-weight: 500;}
+/* section intro end */
+
+/* section 2 start */
+.damco-omnius .section-2 .section-header {text-align: center;}
+.damco-omnius .section-2 .section-body {margin-top: 60px;}
+.damco-omnius .section-2 .section-body {align-items: center; display: flex;}
+.damco-omnius .section-2 .section-body .img-dotted {background: url(../../images/damco-omnius/grey-dotts.png) no-repeat 20px 0; padding-top: 25px;}
+.damco-omnius .section-2 .section-body .img-dotted-inner {background: url(../../images/damco-omnius/blue-dotts.png) no-repeat 100% 50%; padding-right: 40px;}
+/* section 2 end */
+
+/* section 3 start */
+.damco-omnius .section-3 {background: #f3f9ff;}
+.damco-omnius .section-3 .section-header {text-align: center;}
+.damco-omnius .section-3 .section-body {margin-top: 60px; align-items: center; display: flex;}
+.damco-omnius .section-3 .section-body .img-dotted {background: url(../../images/damco-omnius/section-3-gery-bots.png) no-repeat 100% 50%; padding-right: 32px;}
+.damco-omnius .section-3 .section-body .img-dotted-inner {background: url(../../images/damco-omnius/section-3-gery-bots.png) no-repeat 20px 100%; padding-bottom: 40px;}
+.damco-omnius .section-3 .section-body .img-dotted-inner .img-responsive {display: block; width: 100%; box-shadow: 0px 18px 13.28px 2.72px rgba(222, 233, 243, 1);}
+
+.damco-omnius .section-3 .icon-card-row {display: flex;}
+.damco-omnius .section-3 .icon {width: 86px; height: 86px; background-color: #fff; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex: 0 0 86px;}
+.damco-omnius .section-3 .icon span {background: url(../../images/damco-omnius/AI-solution-icon.png) no-repeat 50% 0; display: block; width: 46px; height: 50px;}
+.damco-omnius .section-3 .icon-card-row:nth-child(2) .icon span {background-position-y: -62px;}
+.damco-omnius .section-3 .icon-card-row:nth-child(3) .icon span {background-position-y: -130px;}
+
+.damco-omnius .section-3 .icon-card-content {margin-left: 15px;}
+.damco-omnius .section-3 .icon-card-content .title {font-size: 24px; font-weight: 600; margin-bottom: 0; font-family: 'Poppins', sans-serif; color: #24282d;}
+.damco-omnius .section-3 .icon-card-content p {font-size: 18px;}
+/* section 3 end */
+
+/* section 4 start */
+.damco-omnius .section-4.section-padding {background: #f9f9f9; padding-bottom: 140px;}
+.damco-omnius .section-4 h2 {margin-bottom: 40px;}
+.damco-omnius .section-4 h2::before {left: 0; margin-left: 0;}
+.damco-omnius .section-4 .cta-btn {display: inline-block; font-size: 20px; color: #fff; background: #ef3734; padding: 10px 30px; border-radius: 6px; margin-top: 20px;}
+.damco-omnius .section-4 .cta-btn:hover {background: #b5120f;}
+
+.damco-omnius .section-4 .card-box-wrapper {position: relative;}
+.damco-omnius .section-4 .card-box-wrapper .card-box {position: absolute; width: 255px; height: 210px;}
+.damco-omnius .section-4 .card-box-wrapper .inner-card {background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0px 0px 43px 0px rgba(226, 226, 226, 1);}
+.damco-omnius .section-4 .card-box-wrapper .card-box .title {font-size: 36px; color: #0a41f0; font-weight: 700; font-family: 'Poppins', sans-serif;}
+.damco-omnius .section-4 .card-box-wrapper .card-box p {margin-bottom: 0;}
+
+
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(1) {top: 0; left: 0;}
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(2) {top: 110px; right: 0;}
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(3) {top: 300px; left: 0;}
+
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(1) {padding-left: 30px;}
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(2) {background: url(../../images/damco-omnius/pink-dots.png) no-repeat 100% 0; padding-right: 30px; padding-top: 30px;}
+.damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(3) {background: url(../../images/damco-omnius/section-3-gery-bots.png) no-repeat 0 100%; padding-bottom: 20px; padding-left: 30px;}
+
+/* section 4 end */
+
+/* section 5 start */
+.damco-omnius .section-5 .section-header {text-align: center;}
+.damco-omnius .section-5 .section-body {margin-top: 60px; display: flex; flex-wrap: wrap;}
+.damco-omnius .section-5 .section-body p {margin-bottom: 0;}
+.damco-omnius .section-5 .card-box {display: flex; background: #fff; box-shadow: 0px 0px 43px 0px rgba(226, 226, 226, 1); border-radius: 8px; margin-top: 30px;}
+.damco-omnius .section-5 .card-box .card-content {flex: 0 0 80%; padding: 17px;}
+.damco-omnius .section-5 .card-box .card-content .title {font-size: 24px; font-weight: 700; font-family: 'Poppins', sans-serif; color: #24282d;line-height:36px;}
+.damco-omnius .section-5 .card-box img {border-top-right-radius: 8px; border-bottom-right-radius: 8px; flex: 0 0 20%; max-width: 100%;}
+/* section 5 end */
+
+
+/* section 6 start */
+.damco-omnius .contactus h2::before {display: none;}
+.damco-omnius .section-6.section-padding {padding: 0; background: #f1f1f1; padding-bottom: 80px;}
+.damco-omnius .section-6-inner {background: url(../../images/damco-omnius/our-experts.jpg) no-repeat 50% 50%; background-size: cover;}
+.damco-omnius .section-6-top {background: #fff;}
+.damco-omnius .section-6 .row {align-items: center; height: 350px;}
+.damco-omnius .section-6 h2 {color: #fff;}
+.damco-omnius .section-6 h2::before {display: none;}
+.damco-omnius .section-6 .container {position: relative;}
+.damco-omnius .section-6 .experts-form-wrapper {position: absolute; top: -30px; right: 0;}
+.damco-omnius .section-6 .experts-form {background: #fff; box-shadow: 0px 6px 75px 0px rgba(122, 122, 122, 0.27); padding: 20px;}
+.damco-omnius .section-6 .experts-form .omnius-footer-form {height: 430px;}
+/* section 7 end */
+
+@media screen and (min-width:768px) {
+    .d-md-block {display: block;}
+}
+
+@media screen and (min-width:1200px) {
+    .d-md-block {display: block;}
+}
+
+@media (min-width:992px) and (max-width:1200px) {
+    .damco-omnius {padding-left: 15px; padding-right: 15px;}
+    .damco-omnius .row {margin-left: -15px; margin-right: -15px;}
+    .damco-omnius .col-md-6 {width: 50%; padding-left: 15px; padding-right: 15px; float: left;}
+
+    .damco-omnius h2 {font-size: 34px;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box {width: 210px;}
+    .damco-omnius .section-3 .icon-card-content .title {font-size: 20px;}
+    .damco-omnius .section-5 .card-box .card-content .title {font-size: 20px;}
+
+    .damco-omnius .omnius-banner .banner-content {top: 70px;}
+    .damco-omnius .omnius-banner h1 {font-size: 42px; margin-bottom: 10px;}
+    .damco-omnius .omnius-banner .subheading {font-size: 26px;}
+}
+
+@media (min-width:768px) and (max-width:991px) {
+    .damco-omnius {padding-left: 15px; padding-right: 15px;}
+    .damco-omnius .row {margin-left: -15px; margin-right: -15px;}
+    .damco-omnius .col-md-6 {width: 50%; padding-left: 15px; padding-right: 15px; float: left;}
+    .damco-omnius .section-padding {padding: 40px 0;}
+    .damco-omnius h2 {font-size: 26px;}
+    .damco-omnius .omnius-banner h1 {font-size: 30px; margin-bottom: 10px;}
+    .damco-omnius .omnius-banner .subheading {font-size: 18px;}
+    .damco-omnius .omnius-banner p {font-size: 18px;}
+
+    .damco-omnius .omnius-banner .container2 p {font-size: 16px;}
+    .damco-omnius .omnius-banner .header-form h3 {font-size: 18px;}
+    .damco-omnius .omnius-banner .banner-content {top: 50px;}
+
+    .damco-omnius .section-2 {margin-top: 20px;}
+    .damco-omnius .section-2 .section-body {align-items: flex-start; margin-top: 40px;}
+
+    .damco-omnius .section-3 .icon-card-content .title {font-size: 18px;}
+    .damco-omnius .section-3 .icon-card-content p {font-size: 16px;}
+    
+    .damco-omnius .section-4.section-padding {padding-bottom: 210px;}
+    .damco-omnius .section-4 .section-body {margin-top: 40px;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(2) {top: 130px;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(3) {top: 345px;}
+
+    .damco-omnius .section-5 .section-body {margin-top: 20px;}
+    .damco-omnius .section-5 .col-md-6 {margin-top: 30px;}
+    .damco-omnius .section-5 .card-box {height: 100%; margin: 0;}
+    .damco-omnius .section-5 .card-box .card-content .title {font-size: 20px; line-height: 1.2;}
+    .damco-omnius .section-5 .card-box .card-content {flex: 0 0 70%; max-width: 70%;}
+    .damco-omnius .section-5 .card-box img {flex: 0 0 30%; max-width: 30%;}
+
+    .damco-omnius .section-6.section-padding {padding-bottom: 90px;}
+    .damco-omnius .section-6-top {height: 40px;}
+    .damco-omnius .section-6 .experts-form .omnius-footer-form {height: 460px;}
+}
+
+@media screen and (max-width:767px) {
+    .damco-omnius {padding-left: 0px; padding-right: 0px;}
+    .damco-omnius p, .damco-omnius .para {line-height: 1.5;}
+    
+    .damco-omnius .section-2 .section-body,
+    .damco-omnius .section-3 .section-body {display: block;}
+
+    .damco-omnius .section-4 h2::before {left: 50%; margin-left: -90px;}
+
+    .damco-omnius .section-padding {padding: 20px 0;}
+    .damco-omnius h2 {font-size: 26px;}
+    .damco-omnius .lead-text {font-size: 16px; line-height: 1.5;}
+
+    .damco-omnius .omnius-banner {background: url(../../images/damco-omnius/banner.jpg) no-repeat 50% 50%; background-size: cover; padding: 30px 0;}
+    .damco-omnius .omnius-banner picture {display: none;}
+    .damco-omnius .omnius-banner .banner-content {position: inherit; top: inherit; left: inherit; transform: inherit;}
+    .damco-omnius .omnius-banner .header-form-col {position: inherit; top: inherit; left: inherit;}
+    .damco-omnius .omnius-banner h1 {font-size: 34px; margin-bottom: 10px;}
+    .damco-omnius .omnius-banner .subheading {font-size: 20px!important; margin-bottom: 20px; margin-top: 15px;}
+    .damco-omnius .omnius-banner p {font-size: 18px; line-height: 1.6; font-weight: normal;}
+    .damco-omnius .omnius-banner .header-form h3 {font-weight: 700; font-size: 20px;}
+    .damco-omnius .omnius-banner .container2 p {color: #fff; font-size: 18px; font-weight: 700; padding: 0; text-align: center;}
+
+    .damco-omnius .omnius-banner .container2 {margin-top: 20px;}
+    .damco-omnius .section-2 .section-body {margin-top: 20px; text-align: center;}
+
+    .damco-omnius .section-2 .section-body .img-dotted,
+    .damco-omnius .section-2 .section-body .img-dotted-inner {background: none; padding: 0;}
+
+    .damco-omnius .section-3 .section-body {margin-top: 20px;}
+    .damco-omnius .section-3 .section-body .img-dotted {padding-right: 0;}
+    .damco-omnius .section-3 .section-body .img-dotted-inner {padding-bottom: 0;}
+    .damco-omnius .section-3 .section-body .icon-card {margin-top: 20px;}
+    
+
+    .damco-omnius .section-4.section-padding {padding-bottom: 30px;}
+    .damco-omnius .section-4 {text-align: center;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box {position: inherit; width: 100%; height: auto; margin-top: 25px;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(1) {padding-left: 0; top: inherit; left: inherit;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(2) {padding-right: 0; top: inherit; right: inherit; padding-top: 0;}
+    .damco-omnius .section-4 .card-box-wrapper .card-box:nth-child(3) {padding-left: 0; padding-bottom: 0; top: inherit; right: inherit;}
+
+    .damco-omnius .section-5 .section-body {margin-top: 0;}
+	.damco-omnius .section-5 .card-box .card-content .title {font-size: 24px; font-weight: 700; font-family: 'Poppins', sans-serif; color: #24282d;line-height:27px;}
+    
+    .damco-omnius .section-6.section-padding {padding-bottom: 20px;}
+    .damco-omnius .section-6-inner {padding: 40px 0;}
+    .damco-omnius .section-6 h2 {text-align: center; margin-bottom: 20px;}
+    .damco-omnius .section-6-top {display: none;}
+    .damco-omnius .section-6 .row {height: auto;}
+    .damco-omnius .section-6 .experts-form-wrapper {position: inherit; top: inherit; left: inherit;}
+    .damco-omnius .section-6 .experts-form .omnius-footer-form {height: 450px;}
+
+    .damco-omnius .section-3 .icon-card-content .title {font-size: 18px;}
+    .damco-omnius .section-3 .icon-card-content p {font-size: 16px; line-height: 1.5;}
+    .damco-omnius .section-4 p {line-height: 1.4;}
+    .damco-omnius .section-5 .card-box .card-content .title {font-size: 18px;}
+    .damco-omnius .section-5 .section-body p {line-height: 1.4;}
+
+}
+/* damco omnius end */
+
+.breadcrumbs-outer {background:#f9f8f8;}
+.breadcrumbs-outer .container {max-width: 1250px;}
+.breadcrumb{margin-bottom:0;background:#f9f8f8;padding:0 0 2px;}
+.breadcrumb p {margin: 0;}
+.breadcrumCoes .breadcrumb span{color:#494949;}
+.breadcrumb #breadcrumbs {font-size: 12px; font-weight: 700;}
+.breadcrumb #breadcrumbs a {font-size: 12px; font-weight: 400;}
+
+.casestudy-template a.btn-style-one {color: #fff;}
+.casestudy-template a {color: #337ab7;}
+.casestudy-template a:hover {color: #f00b0b;}
+
+.casestudy-template a.btn-danger {color: #fff; background-color: #ff031a; border-color: #ff031a;}
+.casestudy-template a.btn-danger:hover {background-color: #c40214; border-color: #c40214;}
+
+.casestudy-template a.btn-outline-danger {border-color: #dc3545; color: #dc3545;}
+.casestudy-template a.btn-outline-danger:hover {color: #fff; background-color: #dc3545;}
+
+
+/* casestudy start */
+
+.casestudy-template .section-padding-small {
+    padding: 80px 0 0 0;
+}
+.section-padding-small p.lead-text {
+    margin-bottom: 0;
+}
+.client-success-template-default section#contactus iframe.services-connect-form {height: 325px;}
+.casestudy-template h2, .casestudy-template .h2 {font-weight: 600; color: #1f2329; position: relative; padding-bottom: 20px;}
+.casestudy-template h2.with-lead-text, .casestudy-template .h2.with-lead-text {margin-bottom: 20px;}
+.casestudy-template h2:after, .casestudy-template .h2:after {content: ' '; position: absolute; left: 50%; bottom: 0; width: 124px; height: 2px; margin-left: -62px; background-color: #eb332d;}
+.casestudy-template h2.without-underline, .casestudy-template .h2.without-underline {padding-bottom: 0;}
+.casestudy-template h2.without-underline:after, .casestudy-template .h2.without-underline:after {display: none;}
+.casestudy-template h2.left-underline:after, .casestudy-template .h2.left-underline:after {left: 0; margin-left: 0;}
+.casestudy-template .lead-text {font-size: 16px; font-weight: 400;}
+.casestudy-template .lead-text a {color: #337ab7;}
+.casestudy-template .lead-text a:hover {color: #f00b0b;}
+.casestudy-template .section-header {text-align: center;}
+
+
+@media screen and (min-width:991px) {
+    .casestudy-template h2, .casestudy-template .h2 {font-size: 30px;}
+    .casestudy-template h3, .casestudy-template .h3 {font-size: 24px; font-weight: 600;}
+    .casestudy-template .section-body-margin {margin-top: 10px;}
+    .casestudy-template .section-padding {padding-top: 80px; padding-bottom: 10px;}
+}
+
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template h2, .casestudy-template .h2 {font-size: 24px;}
+    .casestudy-template h3, .casestudy-template .h3 {font-size: 20px; font-weight: 600;}
+    .casestudy-template .section-padding {padding-top: 40px; padding-bottom: 10px;}
+    .casestudy-template .mb-without-lead {margin-bottom: 40px;}
+    .casestudy-template .section-body-margin {margin-top: 10px;}
+}
+
+
+@media screen and (max-width:767px) {
+    .casestudy-template h2, .casestudy-template .h2 {font-size: 24px;}
+    .casestudy-template h3, .casestudy-template .h3 {font-size: 20px; font-weight: 600;}
+    .casestudy-template .section-padding {padding-top: 30px; padding-bottom: 10px;}
+    .casestudy-template .section-body-margin {margin-top: 10px;}
+    .casestudy-template .lead-text {font-size: 16px; font-weight: 500;}
+    .casestudy-template .mb-without-lead {margin-bottom: 20px;}
+}
+
+
+.casestudy-banner {position: relative; padding: 30px 0;}
+.casestudy-banner:before {content: ' '; background: #3118f0 url('../images/casestudy/banner-pattern.png') repeat-x 0 50%; width: 3200px; height: 100%; display: block; margin-left: -3100px; position: absolute; top: 0; left: 50%; z-index: -1;}
+.casestudy-banner .banner-text {background-color: #3118f0;}
+.casestudy-banner .small-text {color: #1ccaff; font-size: 21px; font-family: "Poppins", sans-serif;}
+.casestudy-banner h1 {color: #fff; font-weight: 700; margin-bottom: 20px;}
+.casestudy-banner .banner-lead {color: #fff; font-size: 20px; font-family: "Poppins", sans-serif;}
+.casestudy-banner .img-fluid {border-radius: 8px;}
+.embed-responsive-4by3::before {padding-top: 57%;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-banner h1 {font-size: 32px;}
+}
+
+@media screen and (max-width:767px) {
+    .casestudy-banner {padding: 20px 0;}
+    .casestudy-banner:before {margin-left: 0; left: 0;}
+    .casestudy-banner h1 {font-size: 26px;}
+}
+
+.casestudy-template .section-2 {background: #f8fdff;}
+.casestudy-template .section-2 .section-body {align-items: center;}
+.casestudy-template .section-2 .card-wrapper {background: url('../images/casestudy/section-2-card-inner.png') no-repeat 0 100%; padding: 0 0 30px 20px;}
+.casestudy-template .section-2 .card-text {font-size: 65px; color: #ecf9fe; font-weight: 900; margin-bottom: 0; text-align: center; text-transform: uppercase; line-height: 36px; font-family: "Poppins", sans-serif;}
+.casestudy-template .section-2 .card-inner {display: flex; justify-content: space-between; flex-wrap: wrap;}
+.casestudy-template .section-2 .card-box {flex: 0 0 48%; max-width: 48%; background: #fff; margin-bottom: 20px; border-bottom: 4px solid #c6d8fa; padding: 20px; color: #0644f5; box-shadow: 0px 6px 43px 0px rgba(133, 201, 231, 0.22);}
+.casestudy-template .section-2 .card-box p {margin-bottom: 0; font-size: 18px; font-weight: 600;}
+.casestudy-template .section-2 .card-box .icon {background: url('../images/casestudy/nbfc-india/challenges-sprite.png') no-repeat 50% 0; width: 62px; height: 66px;}
+
+.casestudy-template .section-2 .card-box:nth-child(2) {border-color: #f2bdb0; color: #ec5a36;}
+.casestudy-template .section-2 .card-box:nth-child(3) {border-color: #d4affa; color: #a130f6;}
+.casestudy-template .section-2 .card-box:nth-child(4) {border-color: #c6d8fa;}
+.casestudy-template .section-2 .card-box:nth-child(5) {border-color: #f2bdb0; color: #ec5a36;}
+.casestudy-template .section-2 .card-box:nth-child(6) {border-color: #d4affa; color: #a130f6;}
+
+.casestudy-template .section-2 .card-box:nth-child(2) .icon {background-position-y: -73px;} 
+.casestudy-template .section-2 .card-box:nth-child(3) .icon {background-position-y: -144px;}
+.casestudy-template .section-2 .card-box:nth-child(4) .icon {background-position-y: -225px;}
+.casestudy-template .section-2 .card-box:nth-child(5) .icon {background-position-y: -318px;}
+.casestudy-template .section-2 .card-box:nth-child(6) .icon {background-position-y: -412px;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template .section-2 .card-text {font-size: 44px; line-height: 30px;}
+    .casestudy-template .section-2 .card-box {padding: 5px;}
+    .casestudy-template .section-2 .card-box p {font-size: 16px;}
+}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .section-2 .card-wrapper {padding-left: 0;}
+    .casestudy-template .section-2 .card-text {font-size: 44px; line-height: 30px;}
+    .casestudy-template .section-2 .card-box p {font-size: 16px;}
+}
+
+.casestudy-template.nbfc-casestudy .section-3 .section-body {/*box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1);*/ padding-top: 40px; padding-bottom: 40px;}
+.casestudy-template.nbfc-casestudy .section-3 .section-body .col-md-3 {text-align: center;}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .section-3 .section-body .col-md-3 {margin-bottom: 20px;}
+}
+
+
+.casestudy-template .section-4 {background-color: #f4fbfe; background-image: url('../images/casestudy/red-dots.png'), url('../images/casestudy/blue-dots.png'); background-repeat: no-repeat; background-position: 105% 50%, -65px 50%;}
+.casestudy-template .section-4 .blockquote .quote-icon {text-align: center; font-size: 30px; color: #253ca1;}
+.casestudy-template .section-4 .blockquote-text {text-align: center; font-size: 16px;}
+.casestudy-template .section-4 .blockquote-footer {margin-top: 30px; display: flex; justify-content: center; align-items: center;}
+.casestudy-template .section-4 .blockquote-footer::before {display: none;}
+.casestudy-template .section-4 .blockquote-footer .rounded-circle {border: 5px solid #829efa; margin-right: 20px;}
+.casestudy-template .section-4 .blockquote-footer p {margin: 0;}
+.casestudy-template .section-4 .blockquote-footer .name {font-weight: 700; margin-bottom: 0; color: #000;}
+.casestudy-template .section-4 .carousel {padding-bottom: 30px;}
+.casestudy-template .section-4 .carousel-indicators li {background-color: #000}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .section-4 {background-image: none;}
+}
+
+.casestudy-template .section-5 {background: url('../images/casestudy/book-demo.jpg') no-repeat; background-size: cover; padding: 60px 0;}
+.casestudy-template .section-5 .col {display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;}
+.casestudy-template .section-5 .h2 {color: #fff; font-family: "Poppins", sans-serif; font-weight: 700; margin: 0;}
+.casestudy-template .section-5 span {display: block;}
+.casestudy-template .section-5.book-btn-wrapper .h2 {flex: 0 0 60%; max-width: 60%;}
+.casestudy-template .section-5.book-btn-wrapper .btn-box {margin: 0; flex: 0 0 40% 0; max-width: 40%; text-align: right;}
+
+.casestudy-template .section-2 .vertical-card .card-box {flex: 0 0 100%; max-width: 100%; display: flex; align-items: center; margin-bottom: 10px; padding: 10px; border-bottom: none; border-right: 5px solid #eedbff;}
+.casestudy-template .section-2 .vertical-card .card-box .icon {margin-right: 5px; width: 62px; height: 66px; flex: 0 0 62px;}
+.casestudy-template .section-2 .vertical-card .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.casestudy-template.eminent-investment .section-2 .card-box .icon {background: url('../images/casestudy/eminent-investment/challenges-sprite.png') no-repeat 50% 0;}
+.casestudy-template.eminent-investment .section-2 .card-box:nth-child(1) .icon {background-position-y: 5px;}
+.casestudy-template.eminent-investment .section-2 .card-box:nth-child(2) .icon {background-position-y: -88px;}
+.casestudy-template.eminent-investment .section-2 .card-box:nth-child(3) .icon {background-position-y: -180px;}
+.casestudy-template.eminent-investment .section-2 .card-box:nth-child(4) .icon {background-position-y: -276px;}
+
+.casestudy-template.leading-boutique-branding .section-2 .card-box .icon {background: url('../images/casestudy/leading-boutique-branding/challenges-sprite.png') no-repeat 50% 0;}
+.casestudy-template.leading-boutique-branding .section-2 .card-box:nth-child(1) .icon {background-position-y: 10px;}
+.casestudy-template.leading-boutique-branding .section-2 .card-box:nth-child(2) .icon {background-position-y: -88px;}
+.casestudy-template.leading-boutique-branding .section-2 .card-box:nth-child(3) .icon {background-position-y: -178px;}
+.casestudy-template.leading-boutique-branding .section-2 .card-box:nth-child(4) .icon {background-position-y: -276px;}
+.casestudy-template.leading-boutique-branding .section-2 .card-box:nth-child(5) .icon {background-position-y: -374px;}
+
+.casestudy-template.renowned-civic .section-2 .card-box .icon {background: url('../images/casestudy/renowned-civic/challenges-sprite.png') no-repeat 50% 0;}
+.casestudy-template.renowned-civic .section-2 .card-box:nth-child(1) .icon {background-position-y: 10px;}
+.casestudy-template.renowned-civic .section-2 .card-box:nth-child(2) .icon {background-position-y: -98px;}
+.casestudy-template.renowned-civic .section-2 .card-box:nth-child(3) .icon {background-position-y: -198px;}
+.casestudy-template.renowned-civic .section-2 .card-box:nth-child(4) .icon {background-position-y: -300px;}
+
+.casestudy-template.nbfc-casestudy .section-2 .card-box .icon {background: url('../images/casestudy/nbfc-india/challenges-sprite.png') no-repeat 50% 0;}
+.casestudy-template.nbfc-casestudy .section-2 .card-box:nth-child(1) .icon {background-position-y: 5px;}
+.casestudy-template.nbfc-casestudy .section-2 .card-box:nth-child(2) .icon {background-position-y: -77px;}
+.casestudy-template.nbfc-casestudy .section-2 .card-box:nth-child(3) .icon {background-position-y: -162px;}
+.casestudy-template.nbfc-casestudy .section-2 .card-box:nth-child(4) .icon {background-position-y: -243px;}
+
+.casestudy-template.airport-retailer .section-2 .card-box .icon {background: url('../images/casestudy/airport-retailer/Icons.png') no-repeat 50% 0;}
+.casestudy-template.airport-retailer .section-2 .card-box:nth-child(1) .icon {background-position-y: 5px;}
+.casestudy-template.airport-retailer .section-2 .card-box:nth-child(2) .icon {background-position-y: -80px;}
+.casestudy-template.airport-retailer .section-2 .card-box:nth-child(3) .icon {background-position-y: -175px;}
+.casestudy-template.airport-retailer .section-2 .card-box:nth-child(4) .icon {background-position-y: -265px;}
+
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template .section-5.book-btn-wrapper .h2 {flex: 0 0 70%; max-width: 70%;}
+    .casestudy-template .section-5.book-btn-wrapper .btn-box {margin: 0; flex: 0 0 30%; max-width: 30%;}
+}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .section-5 .col {display: block; text-align: center;}
+    .casestudy-template .section-5 .h2 {margin-bottom: 15px;}
+    .casestudy-template .section-5 span {display: inline;}
+    .casestudy-template .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%; margin-bottom: 15px;}
+    .casestudy-template .section-5.book-btn-wrapper .btn-box {flex: 0 0 100%; max-width: 100%;}
+}
+
+.casestudy-template .section-6 .section-body {align-items: center;}
+.casestudy-template .section-6 .section-body p {font-size: 18px;}
+.casestudy-template .section-6 .arrow-list {font-size: 18px;}
+.casestudy-template .section-6 .img-dots {background: url('../images/casestudy/red-dots.png') no-repeat 100% 60px; padding-right: 35px; float: right;}
+.casestudy-template .section-6 .img-dots-inner {background: url('../images/casestudy/blue-dots.png') no-repeat 60px 100%; padding-bottom: 35px;}
+.casestudy-template .section-6 img {box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1);}
+.casestudy-template .section-6 .section-footer {margin-top: 50px; text-align: center; margin-bottom: 40px;}
+.casestudy-template .section-6 .section-footer .title {font-size: 18px;}
+.casestudy-template .section-6 .btn-group-box {margin-top: 30px;}
+.casestudy-template .section-6 .btn-group-box .btn {margin: 0 10px;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template .section-6 .arrow-list {font-size: 16px;}
+}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .section-6 .img-dots {padding-right: 15px;}
+    .casestudy-template .section-6 .img-dots-inner {padding-bottom: 0;}
+    .casestudy-template .section-6 .btn-group-box .btn {margin: 5px 0; display: block;} 
+}
+
+/* orlando casestudy */
+.orlando-casestudy .section-2 .card-box {flex: 0 0 100%; max-width: 100%; display: flex; align-items: center; margin-bottom: 10px; padding: 10px; border-bottom: none; border-right: 5px solid #eedbff;}
+.orlando-casestudy .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/healthcare/challenges-sprite.png') no-repeat 50% 0; width: 62px; height: 66px;}
+.orlando-casestudy .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.orlando-casestudy .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.orlando-casestudy .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.orlando-casestudy .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+.orlando-casestudy .section-2 .card-box:nth-child(5) {border-color: #ffb1ae;}
+.orlando-casestudy .section-2 .card-box:nth-child(6) {border-color: #becfff;}
+
+.orlando-casestudy .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.orlando-casestudy .section-2 .card-box:nth-child(2) .icon {background-position-y: -69px;} 
+.orlando-casestudy .section-2 .card-box:nth-child(3) .icon {background-position-y: -146px;}
+.orlando-casestudy .section-2 .card-box:nth-child(4) .icon {background-position-y: -232px;}
+.orlando-casestudy .section-2 .card-box:nth-child(5) .icon {background-position-y: -312px;}
+.orlando-casestudy .section-2 .card-box:nth-child(6) .icon {background-position-y: -392px;}
+
+.orlando-casestudy .section-3 .section-body .col-md-4 {padding-right: 0;}
+.orlando-casestudy .section-3 .section-body .solution-box {background: #0a41f0; padding: 60px;}
+.orlando-casestudy .section-3 .section-body:nth-child(3) .solution-box {background: #a230f6;}
+.orlando-casestudy .section-3 .section-body .solution-box p {color: #fff; font-family: "Poppins", sans-serif; margin-bottom: 0; font-size: 18px;}
+.orlando-casestudy .section-3 .section-body .col-md-8 {box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding-left: 0; border-bottom-right-radius: 8px;}
+.orlando-casestudy .section-3 .section-body .solution-content {padding: 40px;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .orlando-casestudy .section-3 .section-body .solution-box {padding: 40px;}
+    .orlando-casestudy .section-3 .section-body .solution-content {padding: 20px;}
+    .casestudy-template .section-6 .section-body p {font-size: 16px;}
+}
+
+@media screen and (max-width:767px) {
+    .orlando-casestudy .section-3 .section-body .col-md-4 {padding-right: 15px;}
+    .orlando-casestudy .section-3 .section-body .solution-box {padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;}
+    .orlando-casestudy .section-3 .section-body .col-md-8 {padding-left: 15px; border-bottom-left-radius: 8px;}
+    .orlando-casestudy .section-3 .section-body .solution-content {padding: 15px;}
+}
+
+
+/* home section 11 (footer form) */
+.casestudy-template .casestudy-footer-form {background: #101529; border-bottom: 1px solid #383e57;}
+.casestudy-template .casestudy-footer-form .h2 {color: #fff; margin-bottom: 60px;}
+
+.casestudy-template .footer-form-title-outer {background: url('../img/footer-form-dotted-grey.html') no-repeat 100% 100%; padding-bottom: 60px;}
+.casestudy-template .footer-form-content {background: url('../img/footer-form-dotted-red.html') no-repeat; padding-top: 22px;}
+.casestudy-template .footer-form-title {background: #eb332d url('../img/form-dotted-bg.html') no-repeat 20px 20px; padding: 49px 30px; margin-left: 30px;}
+.casestudy-template .footer-form-title p {color: #fff; margin: 0; font-weight: 700;}
+.casestudy-template .footer-form-title p a {color: #fff; text-decoration: underline; display: block;}
+.casestudy-template .footer-form-title p:last-child {margin-top: 15px;}
+
+.casestudy-template .footer-form-wrapper .row {margin-bottom: 15px;}
+.casestudy-template form .error {color: #ff656e;}
+.casestudy-template form .form-control.error {background-color: #fddcde; border: 1px solid #ff656e;}
+.casestudy-template .footer-form-wrapper .form-control {border-radius: 0; border:none; padding:20px 10px; height: 60px;}
+.casestudy-template .footer-form-wrapper textarea.form-control {height: 150px;}
+.casestudy-template .form-check-input {width: 18px; height: 18px;}
+.casestudy-template .form-check-label {color: #6d7074; margin-left: 10px;}
+.casestudy-template .footer-form-wrapper .btn-primary {background-color: #219cfd; font-size: 18px; padding: 10px 30px;}
+.casestudy-template .footer-form-wrapper .btn-primary:hover {background-color: #037bda;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template .footer-form-title-outer,
+    .casestudy-template .footer-form-title {height: 100%;}
+    .casestudy-template .footer-form-title {padding: 20px; align-items: center;}
+    .casestudy-template .footer-form-title p {font-size: 16px;}
+}
+
+@media screen and (max-width:767px) {
+    .casestudy-template .footer-form-title {margin-left: 0; padding: 15px;}
+    .casestudy-template .footer-form-wrapper .row {margin-bottom: 0;}
+    .casestudy-template .footer-form-wrapper .form-control {margin-bottom: 15px;}
+    .casestudy-template .submit-btn-row {margin-top: 20px; text-align: center;}
+}
+/* casestudy end */
+
+
+
+/* Freemans Casestudy */
+.freemans-casestudy .casestudy-banner:before {
+	content: ' '; 
+	/*background: #0b336f url('../images/casestudy/freemans-casestudy/banner-design.png') repeat-x 100% 100%; */
+	background: #3118f0; 
+	background: -moz-linear-gradient(left,  #3118f0 0%, #0644f5 100%); 
+	background: -webkit-linear-gradient(left,  #3118f0 0%,#0644f5 100%); 
+	background: linear-gradient(to right,  #3118f0 0%,#0644f5 100%); 
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3118f0', endColorstr='#0644f5',GradientType=1 ); 
+	width: 3200px; 
+	height: 100%; 
+	display: block; 
+	margin-left: -3100px; 
+	position: absolute; 
+	top: 0; 
+	left: 50%; 
+	z-index: -1;
+	}
+.freemans-casestudy .casestudy-banner .banner-text {background-color: transparent;}
+
+.freemans-casestudy .section-2 .card-box {flex: 0 0 100%; max-width: 100%; display: flex; align-items: center; margin-bottom: 10px; padding: 10px; border-bottom: none; border-right: 5px solid #eedbff;}
+.freemans-casestudy .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/freemans-casestudy/challenges-sprite.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+.freemans-casestudy .section-2 .card-box:nth-child(5) {border-color: #ffb1ae;}
+.freemans-casestudy .section-2 .card-box:nth-child(6) {border-color: #becfff;}
+
+.freemans-casestudy .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.freemans-casestudy .section-2 .card-box:nth-child(2) .icon {background-position-y: -69px;} 
+.freemans-casestudy .section-2 .card-box:nth-child(3) .icon {background-position-y: -146px;}
+.freemans-casestudy .section-2 .card-box:nth-child(4) .icon {background-position-y: -232px;}
+.freemans-casestudy .section-2 .card-box:nth-child(5) .icon {background-position-y: -312px;}
+.freemans-casestudy .section-2 .card-box:nth-child(6) .icon {background-position-y: -392px;}
+
+.freemans-casestudy .section-3 .section-body .col-md-4 {padding-right: 0;}
+.freemans-casestudy .section-3 .section-body .solution-box {background: #0a41f0; padding: 90px 60px;}
+.freemans-casestudy .section-3 .section-body:nth-child(3) .solution-box {background: #a230f6;}
+.freemans-casestudy .section-3 .section-body .solution-box p {color: #fff; font-family: "Poppins", sans-serif; margin-bottom: 0; font-size: 18px;}
+.freemans-casestudy .section-3 .section-body .col-md-8 {box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding-left: 0; border-bottom-right-radius: 8px;}
+.freemans-casestudy .section-3 .section-body .solution-content {padding: 40px;}
+.freemans-casestudy .section-3 .section-body:nth-child(5) .solution-box {background: #a230f6;}
+.freemans-casestudy .section-3 .section-body:nth-child(7) .solution-box {background: #a230f6;}
+.freemans-casestudy .embed-responsive-4by3::before {
+    padding-top: 58%;
+}
+
+
+@media (min-width:768px) and (max-width:991px) {
+    .freemans-casestudy .section-3 .section-body .solution-box {padding: 40px;}
+    .freemans-casestudy .section-3 .section-body .solution-content {padding: 20px;}
+    .casestudy-template .section-6 .section-body p {font-size: 16px;}
+}
+
+@media screen and (max-width:767px) {
+    .freemans-casestudy .section-3 .section-body .col-md-4 {padding-right: 15px;}
+    .freemans-casestudy .section-3 .section-body .solution-box {padding: 20px; border-top-left-radius: 8px; border-top-right-radius: 8px;}
+    /*.freemans-casestudy .section-3 .section-body .col-md-8 {padding-left: 15px; border-bottom-left-radius: 8px; margin: 0 15px;}*/
+	.freemans-casestudy .section-3 .section-body .col-md-8 {
+		padding-left: 0;
+		border-bottom-left-radius: 8px;
+		margin: 0;
+	}
+    .freemans-casestudy .section-3 .section-body .solution-content {padding: 15px;}
+	.freemans-casestudy .casestudy-banner:before{display:none;}
+	.freemans-casestudy .casestudy-banner {
+		padding: 20px 0;
+		/*background:#0b336f url(../images/casestudy/freemans-casestudy/banner-design.png) repeat 0 50%;*/
+		background: #3118f0; 
+	background: -moz-linear-gradient(left,  #3118f0 0%, #0644f5 100%); 
+	background: -webkit-linear-gradient(left,  #3118f0 0%,#0644f5 100%); 
+	background: linear-gradient(to right,  #3118f0 0%,#0644f5 100%); 
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3118f0', endColorstr='#0644f5',GradientType=1 ); /
+	}
+	
+}
+
+.freemans-casestudy.casestudy-template .section-5 {
+	/*background: url('../images/casestudy/freemans-casestudy/book-demo.jpg') no-repeat;*/
+	
+background: #0644f5; 
+background: -moz-linear-gradient(top,  #0644f5 0%, #a230f6 100%); 
+background: -webkit-linear-gradient(top,  #0644f5 0%,#a230f6 100%); 
+background: linear-gradient(to bottom,  #0644f5 0%,#a230f6 100%); 
+filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0644f5', endColorstr='#a230f6',GradientType=0 ); 
+
+	background-size: cover;
+	}
+	.freemans-casestudy.casestudy-template .section-5 .col p {text-align:center;}
+.freemans-casestudy.casestudy-template .section-5 .col {justify-content: center; flex-wrap: wrap;}
+
+/*.freemans-casestudy.casestudy-template .section-5 .h2 {flex: 0 0 100%; max-width: 100%; text-align: center; margin-bottom: 20px;}*/
+.freemans-casestudy.casestudy-template .section-5 .para {flex: 0 0 100%; max-width: 100%; text-align: center;}
+.freemans-casestudy.casestudy-template .section-5 .btn-danger {font-size: 22px;}
+/* Freemans Casestudy end */
+
+/* nft marketplace case study */
+.freemans-casestudy.nft-casestudy .section-3 .section-body .solution-box {background: #0a41f0; padding: 122px 60px;}
+.freemans-casestudy.nft-casestudy .section-3 .section-body:nth-child(3) .solution-box {background: #a230f6;padding: 92px 60px;}
+.freemans-casestudy.nft-casestudy .section-3 .section-body:nth-child(4) .solution-box {padding: 42px 60px;}
+.freemans-casestudy.nft-casestudy .embed-responsive img {border-radius:0;}
+.casestudy-template.freemans-casestudy.nft-casestudy .section-5{background : url(../images/casestudy/insurance-claim/book-demo.jpg) no-repeat}
+.casestudy-template.freemans-casestudy.nft-casestudy .section-5.book-btn-wrapper .h2 { flex: 0 0 60%; max-width: 60%;text-align:left; }
+.casestudy-template.freemans-casestudy.nft-casestudy .section-5.book-btn-wrapper .btn-box {
+    margin: 0;
+    flex: 0 0 40%;
+    max-width: 40%;
+    text-align: right;
+}
+.casestudy-template.freemans-casestudy.nft-casestudy .embed-responsive img {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+}
+@media screen and (min-width:991px) {
+   
+    .casestudy-template.nft-casestudy .section-body-margin {margin-top: 30px;}
+    .casestudy-template.nft-casestudy .section-padding {padding-top: 60px; padding-bottom: 30px;}
+}
+.mitutoyo-corporation .section-5.sf1 {
+    background: url(../images/casestudy/book-demo.jpg) no-repeat!important;
+    background-size:cover !important;
+    padding: 60px 0;
+}
+.mitutoyo-corporation .section-5 .h2 {max-width: 100%; text-align: left;}
+.mitutoyo-corporation .section-5 .col {
+    display: flex;
+    align-content: space-between;
+flex-direction: column-reverse;}
+.salesforce-goodville .section-5.sf1 {
+    background: url(../images/casestudy/book-demo.jpg) no-repeat!important;
+    background-size:cover !important;
+    padding: 60px 0;
+}
+.salesforce-goodville .section-5 .h2 {max-width: 100%; text-align: left;}
+.salesforce-goodville .section-5 .col {
+    display: flex;
+    align-content: space-between;
+flex-direction: column-reverse;}
+
+/* nft case study end */
+
+.arrow-list li {position: relative; padding-left: 15px; margin-bottom: 15px;}
+.arrow-list li:not(:last-child) {margin-bottom: 10px;}
+.arrow-list li:before {content: '\f0da'; position: absolute; top: 0; left: 0; font-family: "Font Awesome 5 Pro"; font-weight: 900;}
+
+.read-more-single-arrow {position: relative; padding-right: 10px; font-weight: 700;}
+.read-more-single-arrow:after {font-family: FontAwesome; content:"\f105"; font-family: "Font Awesome 5 Pro"; font-weight: 900; position: absolute; top: -2px; right: 0;}
+.read-more-single-arrow:hover {color: #f00b0b;}
+
+.page-template-template-thankyou-video .breadcrumbs-outer {display: none;}
+.template-thankyouVideo .banner {background: url('../images/thankyou-video/banner.jpg') no-repeat; background-size: cover; padding: 80px 0;}
+.template-thankyouVideo .banner h1 {font-size: 44px; color: #fff; font-weight: 700; font-family: "Poppins", sans-serif; text-align: center; margin-bottom: 30px;}
+.template-thankyouVideo .banner h1 span {display: block; font-weight: 500;}
+
+.template-thankyouVideo .banner .banner-btn {text-align: center; margin-top: 30px;}
+.template-thankyouVideo .banner a {display: inline-block; background: #ef3734; padding: 15px 40px; border-radius: 8px; font-size: 24px; color: #fff; font-weight: 700;}
+.template-thankyouVideo .banner a:hover {background-color: #ff031a;}
+
+.template-thankyouVideo .about-thankyou {padding: 80px 0;}
+.template-thankyouVideo .about-thankyou h2 {font-size: 44px; font-weight: 700; font-family: "Poppins", sans-serif; padding-bottom: 20px;}
+.template-thankyouVideo .about-thankyou h2:after {content: ' '; position: absolute; left: 50%; bottom: 0; width: 124px; height: 2px; margin-left: -62px; background-color: #eb332d;}
+.template-thankyouVideo .section-header {text-align: center;}
+.template-thankyouVideo .section-body {margin-top: 60px;}
+.template-thankyouVideo .about-thankyou .section-body {display: flex; align-items: center;}
+.template-thankyouVideo .about-thankyou .section-body p {font-size: 18px;}
+.template-thankyouVideo .about-thankyou .about-img {background: url('../images/thankyou-video/grey-bg.png') no-repeat 100% 0; padding: 30px 30px 0 0;}
+.template-thankyouVideo .about-thankyou .about-img span {background: url('../images/thankyou-video/red-bg.png') no-repeat 0 100%; padding: 0 0 30px 30px; display: block;}
+.template-thankyouVideo .about-thankyou .about-img span img {width: 100%;}
+.hightech-pe-form {height: 400px;}
+/* .template-thankyouVideo .video-wrapper {display: none;} */
+
+@media (min-width:768px) and (max-width:991px) {
+    .template-thankyouVideo .about-thankyou {padding: 40px 0;}
+    .template-thankyouVideo .about-thankyou h2, .template-thankyouVideo .banner h1 {font-size: 36px;}
+    .template-thankyouVideo .section-body {margin-top: 30px;}
+}
+
+@media screen and (max-width:767px) {
+    .template-thankyouVideo .about-thankyou {padding: 20px 0;}
+    .template-thankyouVideo .about-thankyou h2, .template-thankyouVideo .banner h1 {font-size: 26px;}
+    .template-thankyouVideo .section-body {margin-top: 20px;}
+    .template-thankyouVideo .about-thankyou .about-img {margin-bottom: 20px;}
+}
+
+
+.embed-responsive {position: relative; display: block; width: 100%; padding: 0; overflow: hidden;}
+.embed-responsive::before {display: block; content: "";}
+.embed-responsive .embed-responsive-item, .embed-responsive iframe, .embed-responsive embed, .embed-responsive object, .embed-responsive video {position: absolute; top: 0; bottom: 0; left: 0; width: 100%; height: 100%; border: 0;}
+.embed-responsive-21by9::before {padding-top: 42.8571428571%;}
+.embed-responsive-16by9::before {padding-top: 56.25%;}
+.embed-responsive-4by3::before {padding-top: 75%;}
+.embed-responsive-1by1::before {padding-top: 100%;}
+
+.casestudy-template .casestudy-solution-img img {margin-bottom: 20px;}
+
+
+
+/* multiline casestudy */
+.multiline-casestudy .casestudy-banner:before {background: #2c1ae2 url('../images/casestudy/multi-line/banner.jpg') repeat-x 0 50%;}
+.multiline-casestudy .casestudy-banner .banner-text {background: transparent;}
+
+.multiline-casestudy .section-2 .card-box .icon {background: url('../images/casestudy/multi-line/challenges-sprite.png') no-repeat 50% 0;}
+.multiline-casestudy .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.multiline-casestudy .section-2 .card-box:nth-child(2) .icon {background-position-y: -69px;} 
+.multiline-casestudy .section-2 .card-box:nth-child(3) .icon {background-position-y: -146px;}
+.multiline-casestudy .section-2 .card-box:nth-child(4) .icon {background-position-y: -232px;}
+
+.multiline-casestudy .section-5.book-btn-wrapper .h2 {flex: 0 0 60%; max-width: 60%;}
+.multiline-casestudy .section-5.book-btn-wrapper .btn-box {flex: 0 0 40%; max-width: 40%; text-align: right;}
+.multiline-casestudy .book-btn-wrapper,
+.life-insurance-casestudy .book-btn-wrapper {background: url('../images/casestudy/strip-image.png') no-repeat; background-size: cover;}
+
+.casestudy-solution-color .section-body .solution-box {background: #0a41f0; padding: 40px; display: flex; align-items: center; width: 100%;}
+.casestudy-solution-color .section-body:nth-child(odd) .solution-box {background: #a230f6;}
+.casestudy-solution-color .section-body .solution-box p {color: #fff; font-family: "Poppins", sans-serif; margin-bottom: 0; font-size: 18px;}
+
+.casestudy-template .section-body-margin {margin-top: 40px;}
+.casestudy-template .section-body-margin.align-items-center {align-items: stretch!important;}
+.casestudy-solution-color .section-body .col-md-4 {padding-right: 0; display: flex;}
+.casestudy-solution-color .section-body .col-md-8 {box-shadow: 0px 27px 43px 0px rgba(32, 94, 171, 0.1); padding-left: 0; border-bottom-right-radius: 8px; display: flex;}
+.casestudy-solution-color .section-body .solution-content {padding: 40px; display: flex; flex-wrap: wrap; align-items: center;}
+
+.casestudy-template .btn-style-one span.btn-title {font-size: 22px; font-family: "Roboto", sans-serif; padding: 10px 40px; font-weight: 700; text-transform: initial;}
+
+.casestudy-template .arrow-list li:before {font-family: "Font Awesome 5 Pro";}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-solution-color .section-body .solution-box {padding: 15px;}
+    .casestudy-solution-color .section-body .solution-content {padding: 15px;}
+    .casestudy-template .btn-style-one span.btn-title {font-size:20px;}
+}
+
+
+@media screen and (max-width:767px) {
+    .casestudy-solution-color .section-body .solution-box {margin-bottom: 10px; padding: 10px;}
+    .multiline-casestudy .book-btn-wrapper, .life-insurance-casestudy .book-btn-wrapper {padding: 15px;}
+    .casestudy-template .section-6 .img-dots {float: none;}
+    .casestudy-template .section-6 img {width: 100%;}
+    .casestudy-template .btn-style-one {display: block;}
+    .casestudy-template .btn-style-one span.btn-title {display: block; font-size: 18px; text-align: center;padding: 10px 20px;}
+    .casestudy-template .row.section-footer.text-center {margin-top: 25px;}
+
+    .casestudy-template .casestudy-banner .btn-box {margin-bottom: 20px; width: fit-content;}
+    .multiline-casestudy .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%;}
+    .multiline-casestudy .section-5.book-btn-wrapper .btn-box {flex: 0 0 100%; max-width: 100%; text-align: center;}
+
+    .casestudy-solution-color .section-body .solution-content {padding: 15px;}
+}
+
+/* life insurance casestudy */
+.life-insurance-casestudy .casestudy-banner:before {background: #2721c1 url('../images/casestudy/life-insurance/banner.jpg') repeat-x 0 50%;}
+.life-insurance-casestudy .casestudy-banner .banner-text {background: transparent;}
+.life-insurance-casestudy .section-2 .card-box .icon {background: url('../images/casestudy/life-insurance/challenges-sprite.png') no-repeat 50% 0;}
+
+/* cloud migration */
+/*.cloud-migration .casestudy-banner:before {background: #2721c1 url('../images/casestudy/cloud-migration/banner.jpg') repeat-x 0 50%;}*/
+.cloud-migration .casestudy-banner .banner-text {background: transparent;}
+.cloud-migration .section-2 .card-box .icon {background: url('../images/casestudy/cloud-migration/challenges-sprite.png') no-repeat 50% 0;}
+.cloud-migration.casestudy-template .section-5 {background: url('../images/casestudy/cloud-migration/book-demo.jpg') no-repeat; background-size: cover;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .casestudy-template .section-5 .col {text-align: center;}
+    .cloud-migration .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%;}
+    .cloud-migration .section-5.book-btn-wrapper .btn-box {margin: 25px 0 0 0; flex: 0 0 100%; max-width: 100%; text-align: center;}
+}
+
+/* data centers */
+/*.cloud-migration .casestudy-banner:before {background: #2721c1 url('../images/casestudy/data-centers/banner.jpg') repeat-x 0 50%;}*/
+.data-centers .casestudy-banner .banner-text {background: transparent;}
+.data-centers .section-2 .card-box .icon {background: url('../images/casestudy/data-centers/challenges-sprite.png') no-repeat 50% 0;}
+.data-centers.casestudy-template .section-5 {background: url('../images/casestudy/cloud-migration/book-demo.jpg') no-repeat;}
+.data-centers .section-5.book-btn-wrapper .h2 {flex: 0 0 60%; max-width: 60%;}
+.data-centers .section-5.book-btn-wrapper .btn-box {flex: 0 0 40%; max-width: 40%; text-align: right;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .data-centers.casestudy-template .section-5 {padding: 20px 0;}
+    .data-centers.casestudy-template .section-5 .col {text-align: center;}
+    .data-centers .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%; margin-bottom: 15px;}
+    .data-centers .section-5.book-btn-wrapper .btn-box {flex: 0 0 100%; max-width: 100%; text-align: center;}
+    .data-centers.casestudy-template .section-5 .d-md-block {display: initial;}
+    .mitutoyo-corporation .section-5 .col h2 {
+    text-align: center;
+}
+.mitutoyo-corporation .section-5 .col {
+    display: block;
+}
+.casestudy-template .section-5.book-btn-wrapper .h2 {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 30px;
+}
+}
+
+@media screen and (max-width:767px) {
+ .mitutoyo-corporation .section-5 .col h2 {
+    text-align: center;
+}
+.mitutoyo-corporation .section-5 .col {
+    display: block;
+}   
+    .data-centers.casestudy-template .section-5 {padding: 20px 0;}
+    .data-centers.casestudy-template .section-5 .col {text-align: center;}
+    .data-centers .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%; margin-bottom: 15px;}
+    .data-centers .section-5.book-btn-wrapper .btn-box {flex: 0 0 100%; max-width: 100%; text-align: center;}
+    .data-centers.casestudy-template .section-5 .d-md-block {display: initial;}
+}
+
+
+/* insurance claim */
+.insurance-claim .casestudy-banner:before {background: #3118f0 url('../images/casestudy/insurance-claim/banner.jpg') repeat-x 0 50%;}
+.insurance-claim .casestudy-banner .banner-text {background: transparent;}
+.insurance-claim .section-2 .card-box .icon {background: url('../images/casestudy/insurance-claim/challenges-sprite.png') no-repeat 50% 0;}
+.insurance-claim.casestudy-template .section-5 {background: url('../images/casestudy/insurance-claim/book-demo.jpg') no-repeat;}
+.insurance-claim .section-2 .card-box:nth-child(4) .icon {background-position-y: -207px;}
+
+@media (min-width:768px) and (max-width:991px) {
+    .insurance-claim.casestudy-template .section-5 {padding: 20px 0;}
+    .insurance-claim.casestudy-template .section-5 .col {text-align: center;}
+    .insurance-claim .section-5.book-btn-wrapper .h2 {flex: 0 0 100%; max-width: 100%; margin-bottom: 15px;}
+    .insurance-claim .section-5.book-btn-wrapper .btn-box {flex: 0 0 100%; max-width: 100%; text-align: center;}
+    .insurance-claim.casestudy-template .section-5 .d-md-block {display: initial;}
+}
+
+/* wealth management company */
+.wealth-management-company .section-2 .card-box .icon {background: url('../images/casestudy/wealth-management-company/challenges-sprite.png') no-repeat 50% 0;}
+.wealth-management-company.casestudy-template .section-5 {background: url('../images/casestudy/wealth-management-company/book-demo.jpg') no-repeat;background-size: cover;}
+
+/* Auto Finance Company case study */
+.auto-finance .section-2 .card-box .icon {background: url('../images/casestudy/auto-finance/challenges-sprite.png') no-repeat 50% 0;}
+
+/* salesforce crisil case study */
+.salesforce-crisil .section-2 .card-box .icon {background: url('../images/casestudy/salesforce-crisil/challenges-sprite.png') no-repeat 50% 0;}
+
+/* salesforce crisil case study */
+.salesforce-goodville .section-2 .card-box .icon {background: url('../images/casestudy/salesforce-goodville/challenges-sprite.png') no-repeat 50% 0;}
+
+.salesforce-goodville .value-casestudy.section-body-margin {margin-top: 0;}
+/* as400-services start */
+/*.freemans-casestudy.as400services .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/as400-services/Left-Banner.jpg) repeat-x 0 50%;
+}*/
+.freemans-casestudy.as400services .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/as400-services/Icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.as400services .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(2) .icon {background-position-y: -64px;} 
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(3) .icon {background-position-y: -125px;}
+.freemans-casestudy.as400services .section-2 .card-box:nth-child(4) .icon {background-position-y: -187px;}
+
+/* as400-services end */
+/* eminent-software start */
+.freemans-casestudy.eminent-software .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/eminent-software/left-banner.jpg) repeat-x 0 50%;
+}
+.freemans-casestudy.eminent-software .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/eminent-software/eminent-software-sprite.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.eminent-software .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(5) {border-color: #becfff;}
+
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(1) .icon {background-position-y: 0px;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(2) .icon {background-position-y: -64px;} 
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(3) .icon {background-position-y: -147px;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(4) .icon {background-position-y: -222px;}
+.freemans-casestudy.eminent-software .section-2 .card-box:nth-child(5) .icon {background-position-y: -294px;}
+/* eminent-software end */
+
+
+/* leading-technology start */
+/*.freemans-casestudy.leading-technology .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/leading-technology/left-banner.jpg) repeat-x 0 50%;
+}*/
+.freemans-casestudy.leading-technology .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/leading-technology/leading-technology-sprite.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.leading-technology .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(5) {border-color: #becfff;}
+
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(1) .icon {background-position-y: 0px;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(2) .icon {background-position-y: -78px;} 
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(3) .icon {background-position-y: -152px;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(4) .icon {background-position-y: -227px;}
+.freemans-casestudy.leading-technology .section-2 .card-box:nth-child(5) .icon {background-position-y: -307px;}
+/* leading-technology end */
+/* ibm-i-applications start */
+
+.freemans-casestudy.ibm-i-applications .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/ibm-i-applications/Icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.ibm-i-applications .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.ibm-i-applications .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.ibm-i-applications .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+
+.freemans-casestudy.ibm-i-applications .section-2 .card-box:nth-child(1) .icon {background-position-y: 0px;}
+.freemans-casestudy.ibm-i-applications .section-2 .card-box:nth-child(2) .icon {background-position-y: -66px;} 
+.freemans-casestudy.ibm-i-applications .section-2 .card-box:nth-child(3) .icon {background-position-y: -132px;}
+/* ibm-i-applications end */
+
+/* fintech-company start */
+.freemans-casestudy.fintech-company .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/fintech-company/left-banner.jpg) repeat-x 0 50%;
+}
+.freemans-casestudy.fintech-company .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/fintech-company/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.fintech-company .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(5) {border-color: #becfff;}
+
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(1) .icon {background-position-y: 10px;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(2) .icon {background-position-y: -72px;} 
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(3) .icon {background-position-y: -152px;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(4) .icon {background-position-y: -234px;}
+.freemans-casestudy.fintech-company .section-2 .card-box:nth-child(5) .icon {background-position-y: -307px;}
+/* fintech-company end */
+
+
+/* health insurer case study */
+.health-insurer .section-2 .card-box .icon {background: url('../images/casestudy/health-insurer/challenges-sprite.png') no-repeat 50% 0;}
+
+/* mitutoyo corporation */
+.mitutoyo-corporation .casestudy-banner h1 {font-size: 38px;}
+.mitutoyo-corporation .casestudy-banner .banner-lead {font-size: 18px;}
+.mitutoyo-corporation .btn-style-one span.btn-title {font-size: 20px;}
+
+.mitutoyo-corporation .section-5 .col {flex: 0 0 100%;}
+.mitutoyo-corporation .section-5 .h2 {flex: 0 0 70%;}
+.mitutoyo-corporation .section-5.book-btn-wrapper p {flex: 0 0 30%;}
+
+.mitutoyo-corporation .section-2 .card-box .icon {background: url('../images/casestudy/mitutoyo-corporation/challenges-sprite.png') no-repeat 50% 0;}
+/* mitutoyo corporation end */
+/* koozie-group start */
+.mitutoyo-corporation.koozie-group .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/koozie-group/left-banner-koozie.jpg) repeat-x 0 50%;
+}
+.mitutoyo-corporation.koozie-group .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/koozie-group/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.mitutoyo-corporation.koozie-group .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.mitutoyo-corporation.koozie-group .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.mitutoyo-corporation.koozie-group .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+
+.mitutoyo-corporation.koozie-group .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.mitutoyo-corporation.koozie-group .section-2 .card-box:nth-child(2) .icon {background-position-y: -74px;} 
+.mitutoyo-corporation.koozie-group .section-2 .card-box:nth-child(3) .icon {background-position-y: -150px;}
+/* koozie-group end */
+
+/* caribbean start */
+/*.freemans-casestudy.as400services.caribbean .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/trinre/left-banner.jpg) repeat-x 0 50%;
+}*/
+.freemans-casestudy.as400services.caribbean .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/trinre/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.as400services.caribbean .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(1) .icon {background-position-y: 3px;}
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(2) .icon {background-position-y: -72px;} 
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(3) .icon {background-position-y: -149px;}
+.freemans-casestudy.as400services.caribbean .section-2 .card-box:nth-child(4) .icon {background-position-y: -226px;}
+/* caribbean end */
+
+/* top life insurance case study */
+.top-life-insurance .section-2 .card-box .icon {background: url('../images/casestudy/top-life-insurance/challenges-sprite.png') no-repeat 50% 0;}
+
+/* caribbean-mitigates-productivity start */
+/*.freemans-casestudy.as400services.caribbean-mitigates-productivity .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/nci/left-banner.jpg) repeat-x 0 50%;
+}*/
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/nci/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(1) .icon {background-position-y: 3px;}
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(2) .icon {background-position-y: -72px;} 
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(3) .icon {background-position-y: -149px;}
+.freemans-casestudy.as400services.caribbean-mitigates-productivity .section-2 .card-box:nth-child(4) .icon {background-position-y: -226px;}
+/* caribbean-mitigates-productivity end */
+
+/* dominican-general-insurer start */
+/*.freemans-casestudy.as400services.dominican-general-insurer .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/fdic/left-banner.jpg) repeat-x 0 50%;
+}*/
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/fdic/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box:nth-child(1) .icon {background-position-y: 3px;}
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box:nth-child(2) .icon {background-position-y: -72px;} 
+.freemans-casestudy.as400services.dominican-general-insurer .section-2 .card-box:nth-child(3) .icon {background-position-y: -149px;}
+/* dominican-general-insurer end */
+
+/* segicore lifevinsurance */
+.segicore-life-insurance .section-2 .card-box .icon {background: url('../images/casestudy/segicore-life-insurance/challenges-sprite.png') no-repeat 50% 0;}
+
+/* it company */
+.it-company .section-2 .card-box .icon {background: url('../images/casestudy/it-company/challenges-sprite.png') no-repeat 50% 0;}
+
+/* edtech */
+.edtech .section-2 .card-box .icon {background: url('../images/casestudy/edtech/challenges-sprite.png') no-repeat 50% 0;}
+
+/* cardinal-health */
+.edtech.cardinal-health .section-2 .card-box .icon {background: url('../images/casestudy/cardinal-health/icon.html') no-repeat 50% 0;}
+
+/* cardinal-health start */
+/*.freemans-casestudy.cardinal-health .casestudy-banner:before {
+    background: #3118f0 url(../images/casestudy/trinre/left-banner.jpg) repeat-x 0 50%;
+}*/
+.edtech.cardinal-health .section-2 .card-box .icon {margin-right: 5px; background: url('../images/casestudy/cardinal-health/icons.png') no-repeat 50% 0; width: 62px; height: 66px; flex: 0 0 62px;}
+.edtech.cardinal-health .section-2 .card-box p {flex: 0 0 80%; max-width: 80%; font-size: 16px; color: #1f2329; font-weight: 500;}
+
+.edtech.cardinal-health .section-2 .card-box:nth-child(2) {border-color: #ffb1ae;}
+.edtech.cardinal-health .section-2 .card-box:nth-child(3) {border-color: #becfff;}
+.edtech.cardinal-health .section-2 .card-box:nth-child(4) {border-color: #eedbff;}
+
+.edtech.cardinal-health .section-2 .card-box:nth-child(1) .icon {background-position-y: 3px;}
+.edtech.cardinal-health .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;} 
+.edtech.cardinal-health .section-2 .card-box:nth-child(3) .icon {background-position-y: -171px;}
+.edtech.cardinal-health .section-2 .card-box:nth-child(4) .icon {background-position-y: -255px;}
+/* cardinal-health end*/
+/* leading-insurer-reduces */
+.leading-insurer-reduces .section-2 .card-box .icon {background: url('../images/casestudy/leading-insurer-reduces/icons.png') no-repeat 50% 0;}
+/* life-insurance-provider */
+.life-insurance-provider .section-2 .card-box .icon {background: url('../images/casestudy/life-insurance-provider/icons.png') no-repeat 50% 0;}
+
+/* product-lab-helped */
+.product-lab-helped .section-2 .card-box .icon {background: url('../images/casestudy/product-lab-helped/challenges-sprite.png') no-repeat 50% 0;}
+
+/* eminent-us-based */
+.eminent-us-based .section-2 .card-box .icon {background: url('../images/casestudy/eminent-us-based/challenges-sprite.png') no-repeat 50% 0;}
+/* leading-insurance-firm */
+.casestudy-template.leading-insurance-firm .section-2 .card-box .icon {background: url('../images/casestudy/leading-insurance-firm/icons-sprite.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.leading-insurance-firm .section-2 .card-box:nth-child(2) .icon {background-position-y: -57px;} 
+.casestudy-template.leading-insurance-firm .section-2 .card-box:nth-child(3) .icon {background-position-y: -126px;}
+.casestudy-template.leading-insurance-firm .section-2 .card-box:nth-child(4) .icon {background-position-y: -193px;}
+
+/* sagicor-tableau-dashboard */
+.casestudy-template.product-lab-helped.sagicor .section-2 .card-box .icon {background: url('../images/casestudy/sagicor-tableau-dashboard/icons-sprite.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.product-lab-helped.sagicor .section-2 .card-box:nth-child(2) .icon {background-position-y: -67px;} 
+.casestudy-template.product-lab-helped.sagicor .section-2 .card-box:nth-child(3) .icon {background-position-y: -145px;}
+.casestudy-template.product-lab-helped.sagicor .section-2 .card-box:nth-child(4) .icon {background-position-y: -222px;}
+
+
+
+
+/* unified-portal-transformed */
+.casestudy-template.unified-portal-transformed .section-2 .card-box .icon {background: url('../images/casestudy/unified-portal-transformed/icons-sprite.png') no-repeat 50% 14px; width: 62px; height: 66px;}
+.casestudy-template.unified-portal-transformed .section-2 .card-box:nth-child(2) .icon {background-position-y: -45px;} 
+.casestudy-template.unified-portal-transformed .section-2 .card-box:nth-child(3) .icon {background-position-y: -100px;}
+.casestudy-template.unified-portal-transformed .section-2 .card-box:nth-child(4) .icon {background-position-y: -159px;}
+
+/* custom mobile apps */
+.casestudy-template.custom-mobile-apps .section-2 .card-box .icon {background-image: url('../images/casestudy/custom-mobile-apps/challenges-sprite.png')}
+
+/* AI and ML */
+.casestudy-template.ai-ml .section-2 .card-box .icon {background-image: url('../images/casestudy/ai-ml/challenges-sprite.png');}
+
+/* us-based-crowdfunding */
+.casestudy-template.us-based-crowdfunding .section-2 .card-box .icon {background: url('../images/casestudy/us-based-crowdfunding/challenges-sprite.png') no-repeat 50% 4px;}
+
+/* lawn-care-company */
+.casestudy-template.lawn-care-company .section-2 .card-box .icon {background: url('../images/casestudy/lawn-care-company/challenges-sprite.png') no-repeat 50% -2px;}
+.casestudy-template.lawn-care-company .section-2 .card-box:nth-child(2) .icon {background-position-y: -76px;} 
+.casestudy-template.lawn-care-company .section-2 .card-box:nth-child(3) .icon {background-position-y: -148px;}
+.casestudy-template.lawn-care-company .section-2 .card-box:nth-child(4) .icon {background-position-y: -230px;}
+
+/* multi-door */
+.casestudy-template.multi-door .section-2 .card-box .icon {background: url('../images/casestudy/multi-door/challenges-sprite.png') no-repeat 50% -2px;}
+.casestudy-template.multi-door .section-2 .card-box:nth-child(2) .icon {background-position-y: -76px;} 
+.casestudy-template.multi-door .section-2 .card-box:nth-child(3) .icon {background-position-y: -158px;}
+.casestudy-template.multi-door .section-2 .card-box:nth-child(4) .icon {background-position-y: -246px;}
+
+/* mining-application */
+.casestudy-template.mining-application .section-2 .card-box .icon {background: url('../images/casestudy/mining-application/challenges-sprite.png') no-repeat 50% 10px;}
+.casestudy-template.mining-application .section-2 .card-box:nth-child(2) .icon {background-position-y: -60px;} 
+
+/* us-based-manufacturing */
+.casestudy-template.us-based-manufacturing .section-2 .card-box .icon {background: url('../images/casestudy/us-based-manufacturing/challenges-sprite.png') no-repeat;}
+/* leading-non-profit */
+.casestudy-template.leading-non-profit .section-2 .card-box .icon {background: url('../images/casestudy/leading-non-profit/challenges-sprite.png') no-repeat;}
+/* wholesale-food */
+.casestudy-template.wholesale-food .section-2 .card-box .icon {background: url('../images/casestudy/wholesale-food/challenges-sprite.png') no-repeat;}
+/* management-solution */
+.casestudy-template.management-solution .section-2 .card-box .icon {background: url('../images/casestudy/management-solution/challenges-sprite.png') no-repeat;}
+/* architecture-firm */
+.casestudy-template.architecture-firm .section-2 .card-box .icon {background: url('../images/casestudy/architecture-firm/challenges-sprite.png') no-repeat;}
+/* vehicle-maintenance */
+.casestudy-template.vehicle-maintenance .section-2 .card-box .icon {background: url('../images/casestudy/vehicle-maintenance/challenges-sprite.png') no-repeat;}
+/* community-bank */
+.casestudy-template.community-bank .section-2 .card-box .icon {background: url('../images/casestudy/community-bank/challenges-sprite.png') no-repeat;}
+/* regTech-firm */
+.casestudy-template.regTech-firm .section-2 .card-box .icon {background: url('../images/casestudy/regTech-firm/challenges-sprite.png') no-repeat;}
+/* inventory-management */
+.casestudy-template.inventory-management .section-2 .card-box .icon {background: url('../images/casestudy/inventory-management/challenges-sprite.png') no-repeat;}
+/* technical-standards */
+.casestudy-template.technical-standards .section-2 .card-box .icon {background: url('../images/casestudy/technical-standards/challenges-sprite.png') no-repeat;}
+/* marketing-agency */
+.casestudy-template.marketing-agency .section-2 .card-box .icon {background: url('../images/casestudy/marketing-agency/challenges-sprite.png') no-repeat;}
+/* healthcare-company */
+.casestudy-template.healthcare-company .section-2 .card-box .icon {background: url('../images/casestudy/healthcare-company/challenges-sprite.png') no-repeat;}
+/* integration-salesforce */
+.casestudy-template.integration-salesforce .section-2 .card-box .icon {background: url('../images/casestudy/integration-salesforce/challenges-sprite.png') no-repeat;}
+/* salesforce-CRM */
+.casestudy-template.salesforce-CRM .section-2 .card-box .icon {background: url('../images/casestudy/salesforce-CRM/challenges-sprite.png') no-repeat;}
+/* leading-healthTech */
+.casestudy-template.leading-healthTech .section-2 .card-box .icon {background: url('../images/casestudy/leading-healthTech/challenges-sprite.png') no-repeat;}
+/* data-processing */
+.casestudy-template.data-processing .section-2 .card-box .icon {background: url('../images/casestudy/data-processing/challenges-sprite.png') no-repeat;}
+.casestudy-template.cannabis-insurance .section-2 .card-box .icon {background: url('../images/casestudy/cannabis-insurance/challenges-sprite.png') no-repeat;}
+
+
+.casestudy-template .section-2 .card-box:nth-child(1) .icon {background-position-y: 9px;}
+.casestudy-template .section-2 .card-box:nth-child(2) .icon {background-position-y: -69px;} 
+.casestudy-template .section-2 .card-box:nth-child(3) .icon {background-position-y: -146px;}
+.casestudy-template .section-2 .card-box:nth-child(4) .icon {background-position-y: -232px;}
+.casestudy-template .section-2 .card-box:nth-child(5) .icon {background-position-y: -312px;}
+.casestudy-template .section-2 .card-box:nth-child(6) .icon {background-position-y: -392px;}
+
+
+/* uipath-automation start */
+.casestudy-template.us-based-manufacturing.uipath-automation .section-2 .card-box .icon {background: url('../images/casestudy/uipath-automation/icons-sprite.png') no-repeat;}
+.casestudy-template.us-based-manufacturing.uipath-automation .section-2 .card-box:nth-child(1) .icon {background-position-y: 4px;} 
+.casestudy-template.us-based-manufacturing.uipath-automation .section-2 .card-box:nth-child(2) .icon {background-position-y: -68px;} 
+.casestudy-template.us-based-manufacturing.uipath-automation .section-2 .card-box:nth-child(3) .icon {background-position-y: -135px;}
+
+/* uipath-automation ends */
+/* gen-ai-chatbot start */
+.casestudy-template.gen-ai-chatbot .section-2 .card-box .icon {background: url('../images/casestudy/gen-ai/challenges-sprite.png') no-repeat;}
+.casestudy-template.gen-ai-chatbot .section-2 .card-box:nth-child(1) .icon {background-position-y: 4px;} 
+.casestudy-template.gen-ai-chatbot .section-2 .card-box:nth-child(2) .icon {background-position-y: -68px;} 
+.casestudy-template.gen-ai-chatbot .section-2 .card-box:nth-child(3) .icon {background-position-y: -135px;}
+/* gen-ai-chatbot end */
+
+/* largest-banking-group start */
+.casestudy-template.largest-banking-group .section-2 .card-box .icon {background: url('../images/casestudy/largest-banking-group/challenges-sprite.png') no-repeat;}
+.casestudy-template.largest-banking-group .section-2 .card-box:nth-child(1) .icon {background-position-y: 6px;} 
+.casestudy-template.largest-banking-group .section-2 .card-box:nth-child(2) .icon {background-position-y: -73px;} 
+.casestudy-template.largest-banking-group .section-2 .card-box:nth-child(3) .icon {background-position-y: -156px;}
+.casestudy-template.largest-banking-group .section-2 .card-box:nth-child(4) .icon {background-position-y: -232px;}
+.casestudy-template.largest-banking-group .section-2 .card-box:nth-child(5) .icon {background-position-y: -311px;}
+/* largest-banking-group end */
+
+/* record-management-company*/
+.casestudy-template.record-management-company .section-2 .card-box .icon {background: url('../images/casestudy/record-management-company/challenges-sprite.png') no-repeat;}
+.casestudy-template.record-management-company .section-2 .card-box:nth-child(1) .icon {background-position-y: 8px;} 
+.casestudy-template.record-management-company .section-2 .card-box:nth-child(2) .icon {background-position-y: -83px;} 
+.casestudy-template.record-management-company .section-2 .card-box:nth-child(3) .icon {background-position-y: -160px;}
+.casestudy-template.record-management-company .section-2 .card-box:nth-child(4) .icon {background-position-y: -245px;}
+.casestudy-template.record-management-company .section-2 .card-box:nth-child(5) .icon {background-position-y: -332px;}
+/* record-management-company end */
+
+/* publicly-funded-health-services*/
+.casestudy-template.publicly-funded-health-services .section-2 .card-box .icon {background: url('../images/casestudy/publicly-funded-health-services/challenges-sprite.png') no-repeat;}
+.casestudy-template.publicly-funded-health-services .section-2 .card-box:nth-child(1) .icon {background-position-y: 0px;} 
+.casestudy-template.publicly-funded-health-services .section-2 .card-box:nth-child(2) .icon {background-position-y: -74px;} 
+.casestudy-template.publicly-funded-health-services .section-2 .card-box:nth-child(3) .icon {background-position-y: -133px;}
+/* publicly-funded-health-services end */
+
+/* salesforce-sales-cloud start */
+.casestudy-template.salesforce-sales-cloud .section-2 .card-box .icon {background: url('../images/casestudy/salesforce-sales-cloud/icons.png') no-repeat;}
+.casestudy-template.salesforce-sales-cloud .section-2 .card-box:nth-child(1) .icon {background-position-y: 4px;} 
+.casestudy-template.salesforce-sales-cloud .section-2 .card-box:nth-child(2) .icon {background-position-y: -81px;} 
+.casestudy-template.salesforce-sales-cloud .section-2 .card-box:nth-child(3) .icon {background-position-y: -172px;}
+.casestudy-template.salesforce-sales-cloud .section-2 .card-box:nth-child(4) .icon {background-position-y: -256px;}
+/* salesforce-sales-cloud end */
+
+/* NIIF starts */
+.casestudy-template.cpq-solution.niif .section-2 .card-box .icon {background: url('../images/casestudy/niif/icons.png') no-repeat;}
+.casestudy-template.cpq-solution.niif .section-2 .card-box:nth-child(1) .icon {background-position-y: 11px;}
+.casestudy-template.cpq-solution.niif .section-2 .card-box:nth-child(2) .icon {background-position-y: -53px;} 
+.casestudy-template.cpq-solution.niif .section-2 .card-box:nth-child(3) .icon {background-position-y: -119px;}
+.casestudy-template.cpq-solution.niif .section-2 .card-box:nth-child(4) .icon {background-position-y: -185px;}
+/* NIIF end */
+
+/* Quantum starts */
+.casestudy-template.cpq-solution.quantum .section-2 .card-box .icon {background: url('../images/casestudy/quantum/icons.png') no-repeat;}
+.casestudy-template.cpq-solution.quantum .section-2 .card-box:nth-child(1) .icon {background-position-y: 11px;}
+.casestudy-template.cpq-solution.quantum .section-2 .card-box:nth-child(2) .icon {background-position-y: -53px;} 
+.casestudy-template.cpq-solution.quantum .section-2 .card-box:nth-child(3) .icon {background-position-y: -119px;}
+.casestudy-template.cpq-solution.quantum .section-2 .card-box:nth-child(4) .icon {background-position-y: -185px;}
+.casestudy-template.cpq-solution.quantum .section-2 .card-box:nth-child(5) .icon {background-position-y: -245px;}
+/* Quantum end */
+
+/* Trupoint starts */
+.casestudy-template.cpq-solution.trupoint .section-2 .card-box .icon {background: url('../images/casestudy/trupoint/icons.png') no-repeat;}
+.casestudy-template.cpq-solution.trupoint .section-2 .card-box:nth-child(1) .icon {background-position-y: 7px;}
+.casestudy-template.cpq-solution.trupoint .section-2 .card-box:nth-child(2) .icon {background-position-y: -79px;} 
+.casestudy-template.cpq-solution.trupoint .section-2 .card-box:nth-child(3) .icon {background-position-y: -164px;}
+.casestudy-template.cpq-solution.trupoint .section-2 .card-box:nth-child(4) .icon {background-position-y: -250px;}
+/* Trupoint end */
+/* Medela starts */
+.casestudy-template.cpq-solution.medela .section-2 .card-box .icon {background: url('../images/casestudy/medela/icons.png') no-repeat;}
+.casestudy-template.cpq-solution.medela .section-2 .card-box:nth-child(1) .icon {background-position-y: 7px;}
+.casestudy-template.cpq-solution.medela .section-2 .card-box:nth-child(2) .icon {background-position-y: -71px;} 
+.casestudy-template.cpq-solution.medela .section-2 .card-box:nth-child(3) .icon {background-position-y: -143px;}
+.casestudy-template.cpq-solution.medela .section-2 .card-box:nth-child(4) .icon {background-position-y: -214px;}
+.casestudy-template.cpq-solution.medela .section-2 .card-box:nth-child(5) .icon {background-position-y: -287px;}
+/* Medela end */
+
+/* Transportation Company start */
+.casestudy-template.transportation-company .section-2 .card-box .icon {background: url('../images/casestudy/transportation-company/icons.png') no-repeat;}
+.casestudy-template.transportation-company .section-2 .card-box:nth-child(1) .icon {background-position-y: -3px;}
+.casestudy-template.transportation-company .section-2 .card-box:nth-child(2) .icon {background-position-y: -97px;} 
+.casestudy-template.transportation-company .section-2 .card-box:nth-child(3) .icon {background-position-y: -189px;}
+.casestudy-template.transportation-company .section-2 .card-box:nth-child(4) .icon {background-position-y: -280px;}
+/* Medela end */
+
+/* indoor-wayfinding-app*/
+.casestudy-template.product-lab-helped.indoor-wayfinding-app .section-2 .card-box .icon {background: url('../images/casestudy/indoor-wayfinding-app/icons.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.product-lab-helped.indoor-wayfinding-app .section-2 .card-box:nth-child(1) .icon {background-position-y: 1px;} 
+.casestudy-template.product-lab-helped.indoor-wayfinding-app .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;}
+.casestudy-template.product-lab-helped.indoor-wayfinding-app .section-2 .card-box:nth-child(3) .icon {background-position-y: -190px;}
+/*indoor-wayfinding-app end*/
+
+/* fintech-customer-acquisition*/
+.casestudy-template.product-lab-helped.fintech-customer-acquisition .section-2 .card-box .icon {background: url('../images/casestudy/fintech-customer-acquisition/icons.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.product-lab-helped.fintech-customer-acquisition .section-2 .card-box:nth-child(1) .icon {background-position-y: 3px;} 
+.casestudy-template.product-lab-helped.fintech-customer-acquisition .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;}
+.casestudy-template.product-lab-helped.fintech-customer-acquisition .section-2 .card-box:nth-child(3) .icon {background-position-y: -172px;}
+.casestudy-template.product-lab-helped.fintech-customer-acquisition .section-2 .card-box:nth-child(4) .icon {background-position-y: -253px;}
+/*fintech-customer-acquisition end*/
+
+/* Azure Cloud Migration*/
+.casestudy-template.product-lab-helped.azure-cloud-migration .section-2 .card-box .icon {background: url('../images/casestudy/azure-cloud-migration/icons.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.product-lab-helped.azure-cloud-migration .section-2 .card-box:nth-child(1) .icon {background-position-y: -8px;} 
+.casestudy-template.product-lab-helped.azure-cloud-migration .section-2 .card-box:nth-child(2) .icon {background-position-y: -90px;}
+.casestudy-template.product-lab-helped.azure-cloud-migration .section-2 .card-box:nth-child(3) .icon {background-position-y: -171px;}
+.casestudy-template.product-lab-helped.azure-cloud-migration .section-2 .card-box:nth-child(4) .icon {background-position-y: -255px;}
+/*Azure Cloud Migration end*/
+
+/*ins-uaic-solution starts*/
+.casestudy-template.ins-uaic-solution .section-2 .card-box .icon {background: url('../images/casestudy/ins-uaic/icons.png') no-repeat;}
+.casestudy-template.ins-uaic-solution .section-2 .card-box:nth-child(1) .icon {background-position-y: 2px;}
+.casestudy-template.ins-uaic-solution .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;} 
+.casestudy-template.ins-uaic-solution .section-2 .card-box:nth-child(3) .icon {background-position-y: -173px;}
+.casestudy-template.ins-uaic-solution .section-2 .card-box:nth-child(4) .icon {background-position-y: -263px;}
+/*ins-uaic-solution ends*/
+
+/*ins-continental starts*/
+.casestudy-template.ins-continental .section-2 .card-box .icon {background: url('../images/casestudy/ins-continental/icons.png') no-repeat;}
+.casestudy-template.ins-continental .section-2 .card-box:nth-child(1) .icon {background-position-y: 2px;}
+.casestudy-template.ins-continental .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;} 
+.casestudy-template.ins-continental .section-2 .card-box:nth-child(3) .icon {background-position-y: -173px;}
+.casestudy-template.ins-continental .section-2 .card-box:nth-child(4) .icon {background-position-y: -263px;}
+/*ins-uaic-solution ends*/
+
+/* ai-chatbot start*/
+.casestudy-template.product-lab-helped.ai-chatbot .section-2 .card-box .icon {background: url('../images/casestudy/ai-chatbot/icons.png') no-repeat 50% 8px; width: 62px; height: 66px;}
+.casestudy-template.product-lab-helped.ai-chatbot .section-2 .card-box:nth-child(1) .icon {background-position-y: 1px;} 
+.casestudy-template.product-lab-helped.ai-chatbot .section-2 .card-box:nth-child(2) .icon {background-position-y: -85px;}
+.casestudy-template.product-lab-helped.ai-chatbot .section-2 .card-box:nth-child(3) .icon {background-position-y: -175px;}
+.casestudy-template.product-lab-helped.ai-chatbot .section-2 .card-box:nth-child(4) .icon {background-position-y: -260px;}
+/*ai-chatbot end*/
+
+

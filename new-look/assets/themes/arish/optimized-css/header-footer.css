@@ -1,0 +1,329 @@
+body{color:#494949;background-color:#f4f4f4}
+a{color:#cecece}
+/* .home-page .top-navigation{background-color:#2a2d33;position:fixed;top:0;z-index:1000;left:0;right:0;padding-top:10px;padding-bottom:9px;line-height:1}
+.home-page .top-navigation ul{list-style:none;margin:0;padding-left:5px}
+.home-page .top-navigation ul li{margin:0;padding:0;display:inline-block;margin-right:27px}
+.home-page .top-navigation ul li a{color:#fff}
+.home-page .navbar-inverse{padding-top:18px;z-index:99;background-color:transparent;border-color:#080808;position:fixed;padding-top:39px;}
+.navbar-default .main-nav>li>a.coesLink{text-transform:inherit;}
+.navbar-inverse{background-color:transparent;}
+.nav-shadow{position:static;box-shadow:0 12px 19px -12px rgba(0,0,0,.12);top:0;left:0;right:0;z-index:99;width:100%!important}
+.page-nav .jumbotron{height:80px;padding-top:0;padding-bottom:0;background:#fff;margin-bottom:0;z-index:99}
+.page-nav .navbar{min-height:56px;margin-bottom:0}
+.page-nav .navbar-default{background:0 0;border:none}
+.nav-custom a,.toggleMenu{padding:10px 15px;color:#fff}
+.toggleMenu{display:none;background:#666}
+.navbar-header .navbar-toggle{margin-right:0}
+.page-nav .navbar-brand{height:56px;padding:0}
+.navbar-brand>img{width:160px;border:0;margin-top:8px}
+.page-nav .navbar-default .navbar-collapse,.page-nav .navbar-default .navbar-form{border:none}
+.navbar-form-style{display:none}
+.page-nav .navbar-default .navbar-collapse,.page-nav .navbar-default .navbar-form{border:none}
+.yamm .collapse,.yamm .dropdown,.yamm .dropup,.yamm .nav{position:static}
+.nav-submenu-col,.page-nav .navbar-collapse{padding:0}
+.navbar-default .main-nav{margin-top:0}
+.navbar-default .main-nav,.sticky-header .navbar-default .main-nav{margin-top:15px}
+.main-nav li.dropdown.active{border-bottom:4px solid #2196f3}
+.main-nav li.dropdown.active>a{background:0 0;color:#2196f3}
+.searchFormLi{width:30px;height:30px}
+.search-form{position:absolute;right:0;top:12px}
+.search-icon-expand{width:300px;background:#fff;border-radius:25px;height:32px;border:1px solid #ccc;padding-left:25px}
+.search-form .form-group{transition:all .35s,border-radius 0;width:32px;height:32px;box-shadow:0 1px 1px rgba(0,0,0,.075) inset;border-radius:25px;float:left;margin-bottom:0;background-color:transparent;border:0}
+.search-form .form-group input.form-control{height:32px;padding-right:20px;border:0;background:0 0;box-shadow:none;display:block}
+.navbar .search-btn{border-color:#fff;padding:0}
+.search-form .form-group span.form-control-feedback{position:absolute;top:-1px;right:-2px;z-index:2;display:block;width:34px;height:34px;line-height:34px;text-align:center;left:initial;font-size:18px;color:#333}
+.search-close{right:260px;top:2px}
+.search-close,.search-icon{width:30px;height:30px;display:none;position:absolute}
+.navbar .search-btn{border-color:#fff;padding:0}
+.search-close .btn-default{border:none}
+.search-icon{top:28px;display:none;background:url(../images/close-search.png) 8px 5px no-repeat;right:10px}
+.page-nav .dropdown-menu-coloumn li a:hover,.page-nav .dropdown-menu-coloumn li.active a,.page-nav .navbar-default .navbar-nav>li>a:focus,.page-nav .navbar-default .navbar-nav>li>a:hover{color:#2196f3;background-color:transparent}
+.navbar-default .main-nav>li.dropdown:hover{border-bottom:0!important}
+.yamm .dropdown-menu{left:auto}
+.page-nav .dropdown-menu{background-color:#fafafa}
+.dropdown.dropDownNav>.dropdown-menu,.yamm .dropdown.yamm-fw.industries-menu>.single-menu{top:70px}
+.page-nav .navbar-nav>li>.dropdown-menu{border-radius:0}
+.yamm .dropdown.dropDownNav .dropdown-menu,.yamm .dropdown.yamm-fw .dropdown-menu{border-top:2px solid #2196f3}
+.dropdown-menu li{border-bottom:1px solid #ccc}
+.dropdown-menu li a{color:#444;font-size:16px;padding:8px 45px}
+.home-page .drop-level-two{left:100%;top:0;display:none}
+.dropdown-submenu-fist{display:block}
+.aboutNavIcon-1{background:url(../images/aboutNavIcon-1.png) no-repeat 10px 10px}
+.aboutNavIcon-2{background:url(../images/aboutNavIcon-2.png) no-repeat 10px 14px}
+.aboutNavIcon-3{background:url(../images/aboutNavIcon-3.png) no-repeat 10px 14px}
+.aboutNavIcon-4{background:url(../images/aboutNavIcon-4.png) no-repeat 10px 14px}
+.approachNavIcon-1{background:url(../images/approachNavIcon-1.png) no-repeat 10px 10px}
+.approachNavIcon-2{background:url(../images/approachNavIcon-2.png) no-repeat 10px 14px}
+.app-icon-1{background:url(../images/app-icon-1.png) no-repeat 10px 14px}
+.app-icon-2{background:url(../images/app-icon-2.png) no-repeat 10px 13px}
+.app-icon-3{background:url(../images/app-icon-3.png) no-repeat 10px 12px}
+.app-icon-4{background:url(../images/app-icon-4.png) no-repeat 10px 10px}
+.app-icon-5{background:url(../images/app-icon-5.png) no-repeat 10px 12px}
+.app-icon-6{background:url(../images/app-icon-6.png) no-repeat 10px 10px}
+.app-icon-7{background:url(../images/app-icon-7.png) no-repeat 10px 10px}
+.app-icon-8{background:url(../images/app-icon-8.png) no-repeat 10px 10px}
+.app-icon-9{background:url(../images/app-icon-9.png) no-repeat 10px 10px}
+.app-icon-10{background:url(../images/app-icon-10.png) no-repeat 10px 10px}
+.app-icon-11{background:url(../images/app-icon-11.png) no-repeat 10px 10px}
+.app-icon-12{background:url(../images/app-icon-12.png) no-repeat 10px 10px}
+.app-icon-13{background:url(../images/app-icon-13.png) no-repeat 12px 12px}
+.app-icon-17{background:url(../images/branding-icon-1.png) no-repeat 10px 10px}
+.app-icon-18{background:url(../images/experience-design-icon-1.png) no-repeat 10px 10px}
+.app-icon-19{background:url(../images/content-management-icon-1.png) no-repeat 10px 10px}
+.app-icon-20{background:url(../images/digital-marketing-icon-1.png) no-repeat 10px 10px}
+.app-icon-21{background:url(../images/e-commerce-icon-1.png) no-repeat 10px 10px}
+.app-icon-22{background:url(../images/social-computing.png) no-repeat 10px 10px}
+.app-icon-23{background:url(../images/data-processing-services-icon-1.png) no-repeat 10px 10px}
+.app-icon-24{background:url(../images/prepress-services-icon-1.png) no-repeat 10px 10px}
+.app-icon-25{background:url(../images/web-research.png) no-repeat 10px 10px}
+.app-icon-26{background:url(../images/image-editing-services-icon-1.png) no-repeat 10px 10px}
+.app-icon-27{background:url(../images/business-process-support-services.png) no-repeat 10px 10px}
+.app-icon-28{background:url(../images/optimapro-icon-1.png) no-repeat 10px 10px}
+.app-icon-29{background:url(../images/insureEdge-icon-1.png) no-repeat 10px 10px}
+.app-icon-30{background:url(../images/app-icon-30.png) no-repeat 10px 10px}
+.app-icon-31{background:url(../images/app-icon-31.png) no-repeat 10px 10px}
+.app-icon-32{background:url(../images/app-icon-32.png) no-repeat 10px 10px}
+.bpo-icon-1{background:url(../images/bpo-icon-1.png) no-repeat 12px 12px}
+.rapid-icon-1{background:url(../images/rapid-icon-1.png) no-repeat 12px 12px}
+.solutions-icon-1{background:url(../images/solutions-icon-1.png) no-repeat 10px 14px}
+.solutions-icon-2{background:url(../images/solutions-icon-2.png) no-repeat 10px 13px}
+.ind-nav-icon-1{background:url(../images/ind-nav-icon-1.png) no-repeat 10px 14px}
+.ind-nav-icon-2{background:url(../images/ind-nav-icon-2.png) no-repeat 10px 13px}
+.ind-nav-icon-3{background:url(../images/ind-nav-icon-3.png) no-repeat 10px 12px}
+.ind-nav-icon-4{background:url(../images/ind-nav-icon-4.png) no-repeat 10px 10px}
+.ind-nav-icon-5{background:url(../images/ind-nav-icon-5.png) no-repeat 10px 12px}
+.ind-nav-icon-6{background:url(../images/ind-nav-icon-6.png) no-repeat 10px 10px}
+.ind-nav-icon-7{background:url(../images/ind-nav-icon-7.png) no-repeat 10px 10px}
+.ind-nav-icon-8{background:url(../images/ind-nav-icon-8.png) no-repeat 10px 10px}
+.ind-nav-icon-9{background:url(../images/ind-nav-icon-9.png) no-repeat 10px 10px}
+.ind-nav-icon-10{background:url(../images/ind-nav-icon-10.png) no-repeat 10px 10px}
+.ind-nav-icon-11{background:url(../images/ind-nav-icon-11.png) no-repeat 10px 10px}
+.ind-nav-icon-12{background:url(../images/ind-nav-icon-12.png) no-repeat 10px 10px}
+.ind-nav-icon-13{background:url(../images/ind-nav-icon-13.png) no-repeat 10px 10px}
+.ind-nav-icon-14{background:url(../images/ind-nav-icon-14.png) no-repeat 10px 10px}
+.ind-nav-icon-15{background:url(../images/ind-nav-icon-15.png) no-repeat 10px 10px}
+.ind-nav-icon-16{background:url(../images/ind-nav-icon-16.png) no-repeat 10px 10px}
+.ind-nav-icon-17{background:url(../images/ind-nav-icon-17.png) no-repeat 10px 10px}
+.ind-nav-icon-18{background:url(../images/ind-nav-icon-18.png) no-repeat 10px 10px}
+.ind-nav-icon-19{background:url(../images/ind-nav-icon-19.png) no-repeat 10px 10px}
+.approach-icon-1{background:url(../images/approach-icon-1.png) no-repeat 10px 14px}
+.approach-icon-2{background:url(../images/approach-icon-2.png) no-repeat 10px 13px}
+.approach-icon-3{background:url(../images/approach-icon-3.png) no-repeat 10px 13px}
+li.active>.app-icon-1,.app-icon-1:hover{background:url(../images/app-icon-1-hover.png) no-repeat 10px 14px;color:#f44029}
+li.active>.app-icon-2,.app-icon-2:hover{background:url(../images/app-icon-2-hover.png) no-repeat 10px 13px}
+li.active>.app-icon-3,.app-icon-3:hover{background:url(../images/app-icon-3-hover.png) no-repeat 10px 12px}
+li.active>.app-icon-4,.app-icon-4:hover{background:url(../images/app-icon-4-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-5,.app-icon-5:hover{background:url(../images/app-icon-5-hover.png) no-repeat 10px 12px}
+li.active>.app-icon-6,.app-icon-6:hover{background:url(../images/app-icon-6-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-7,.app-icon-7:hover{background:url(../images/app-icon-7-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-8,.app-icon-8:hover{background:url(../images/app-icon-8-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-9,.app-icon-9:hover{background:url(../images/app-icon-9-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-10,.app-icon-10:hover{background:url(../images/app-icon-10-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-11,.app-icon-11:hover{background:url(../images/app-icon-11-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-12,.app-icon-12:hover{background:url(../images/app-icon-12-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-13,.app-icon-13:hover{background:url(../images/app-icon-13-hover.png) no-repeat 12px 12px}
+li.active>.app-icon-14,.app-icon-12:hover{background:url(../images/app-icon-12-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-17,.app-icon-17:hover{background:url(../images/branding-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-18,.app-icon-18:hover{background:url(../images/experience-design-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-19,.app-icon-19:hover{background:url(../images/content-management-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-20,.app-icon-20:hover{background:url(../images/digital-marketing-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-21,.app-icon-21:hover{background:url(../images/e-commerce-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-22,.app-icon-22:hover{background:url(../images/social-computing-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-23,.app-icon-23:hover{background:url(../images/data-processing-services-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-24,.app-icon-24:hover{background:url(../images/prepress-services-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-25,.app-icon-25:hover{background:url(../images/web-research-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-26,.app-icon-26:hover{background:url(../images/image-editing-services-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-27,.app-icon-27:hover{background:url(../images/business-process-support-services-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-28,.app-icon-28:hover{background:url(../images/optimapro-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-29,.app-icon-29:hover{background:url(../images/insureEdge-icon-1-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-30,.app-icon-30:hover{background:url(../images/app-icon-30-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-31,.app-icon-31:hover{background:url(../images/app-icon-31-hover.png) no-repeat 10px 10px}
+li.active>.app-icon-32,.app-icon-32:hover{background:url(../images/app-icon-32-hover.png) no-repeat 10px 10px}
+li.active>.bpo-icon-1,.bpo-icon-1:hover{background:url(../images/bpo-icon-1-hover.png) no-repeat 12px 12px}
+li.active>.rapid-icon-1,.rapid-icon-1:hover{background:url(../images/rapid-icon-1-hover.png) no-repeat 12px 12px}
+li.active .solutions-icon-1,.solutions-icon-1:hover{background:url(../images/solutions-icon-1-hover.png) no-repeat 10px 14px;color:#f44029}
+li.active .solutions-icon-2,.solutions-icon-2:hover{background:url(../images/solutions-icon-2-hover.png) no-repeat 10px 13px}
+li.active>.ind-nav-icon-1,.ind-nav-icon-1:hover{background:url(../images/ind-nav-icon-1-hover.png) no-repeat 10px 14px;color:#f44029}
+li.active>.ind-nav-icon-2,.ind-nav-icon-2:hover{background:url(../images/ind-nav-icon-2-hover.png) no-repeat 10px 13px}
+li.active>.ind-nav-icon-3,.ind-nav-icon-3:hover{background:url(../images/ind-nav-icon-3-hover.png) no-repeat 10px 12px}
+li.active>.ind-nav-icon-4,.ind-nav-icon-4:hover{background:url(../images/ind-nav-icon-4-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-5,.ind-nav-icon-5:hover{background:url(../images/ind-nav-icon-5-hover.png) no-repeat 10px 12px}
+li.active>.ind-nav-icon-6,.ind-nav-icon-6:hover{background:url(../images/ind-nav-icon-6-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-7,.ind-nav-icon-7:hover{background:url(../images/ind-nav-icon-7-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-8,.ind-nav-icon-8:hover{background:url(../images/ind-nav-icon-8-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-9,.ind-nav-icon-9:hover{background:url(../images/ind-nav-icon-9-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-10,.ind-nav-icon-10:hover{background:url(../images/ind-nav-icon-10-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-11,.ind-nav-icon-11:hover{background:url(../images/ind-nav-icon-11-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-12,.ind-nav-icon-12:hover{background:url(../images/ind-nav-icon-12-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-13,.ind-nav-icon-13:hover{background:url(../images/ind-nav-icon-13-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-14,.ind-nav-icon-14:hover{background:url(../images/ind-nav-icon-14-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-15,.ind-nav-icon-15:hover{background:url(../images/ind-nav-icon-15-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-16,.ind-nav-icon-16:hover{background:url(../images/ind-nav-icon-16-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-17,.ind-nav-icon-17:hover{background:url(../images/ind-nav-icon-17-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-18,.ind-nav-icon-18:hover{background:url(../images/ind-nav-icon-18-hover.png) no-repeat 10px 10px}
+li.active>.ind-nav-icon-19,.ind-nav-icon-19:hover{background:url(../images/ind-nav-icon-19-hover.png) no-repeat 10px 10px}
+li.active>.approach-icon-1,.approach-icon-1:hover{background:url(../images/approach-icon-1-hover.png) no-repeat 10px 14px;color:#f44029}
+li.active>.approach-icon-2,.approach-icon-2:hover{background:url(../images/approach-icon-2-hover.png) no-repeat 10px 13px}
+li.active>.approach-icon-3,.approach-icon-3:hover{background:url(../images/approach-icon-3-hover.png) no-repeat 10px 13px}
+li.active>.aboutNavIcon-1,.aboutNavIcon-1:hover{background:url(../images/aboutNavIcon-1-hover.png) no-repeat 10px 10px}
+li.active>.aboutNavIcon-2,.aboutNavIcon-2:hover{background:url(../images/aboutNavIcon-2-hover.png) no-repeat 10px 14px}
+li.active>.aboutNavIcon-3,.aboutNavIcon-3:hover{background:url(../images/aboutNavIcon-3-hover.png) no-repeat 10px 14px}
+li.active>.aboutNavIcon-4,.aboutNavIcon-4:hover{background:url(../images/aboutNavIcon-4-hover.png) no-repeat 10px 14px}
+li.active>.approachNavIcon-1,.approachNavIcon-1:hover{background:url(../images/approachNavIcon-1-hover.png) no-repeat 10px 10px}
+li.active>.approachNavIcon-2,.approachNavIcon-2:hover{background:url(../images/approachNavIcon-2-hover.png) no-repeat 10px 14px}
+.app-icon-33{background:url(../images/market-auto.png) 10px 10px no-repeat}
+.app-icon-33:hover,li.active>.app-icon-33{background:url(../images/market-auto-hover.png) 10px 10px no-repeat}
+.app-icon-41{background:url(../images/app-icon-41.png) 10px 10px no-repeat}
+.app-icon-42{background:url(../images/app-icon-42.png) 10px 10px no-repeat}
+.app-icon-43{background:url(../images/app-icon-43.png) 10px 10px no-repeat}
+.app-icon-41:hover,li.active>.app-icon-41{background:url(../images/app-icon-41-hover.png) 10px 10px no-repeat}
+.app-icon-42:hover,li.active>.app-icon-42{background:url(../images/app-icon-42-hover.png) 10px 10px no-repeat}
+.app-icon-43:hover,li.active>.app-icon-43{background:url(../images/app-icon-43-hover.png) 10px 10px no-repeat}
+.app-icon-288{background:url(../images/BrokerageEdge-icon_grey-1.png) 10px 10px no-repeat}
+.app-icon-288:hover,li.active>.app-icon-288{background:url(../images/BrokerageEdge-icon-1.png) 10px 10px no-repeat}
+.home-page .inds-width{right:0!important}
+.yamm-fw .dropdown-menu{margin:0;padding:0}
+.yamm .dropdown.yamm-fw .dropdown-menu{left:0;right:0;border-top:2px solid #f4503b;background:#fafafa}
+.yamm .dropdown.yamm-fw .single-menu{left:auto;right:auto;z-index:50}
+.yamm .dropdown.dropDownNav .dropdown-menu,.yamm .dropdown.yamm-fw .dropdown-menu{border-top:2px solid #2196f3}
+.dropdown.dropDownNav>.dropdown-menu,.yamm .dropdown.yamm-fw.industries-menu>.single-menu{top:70px}
+.yamm .dropdown.yamm-fw .single-menu li a{font-size:16px;padding:8px 15px 8px 45px;margin-bottom:10px;position:relative;margin-bottom:0}
+.dropdown-menu li:last-child{border-bottom:none}
+.home-page .drop-level-two:hover{display:block;}
+.home-page .drop-level-one:hover .drop-level-two{display:block!important;}
+.flag,.footer,.main-footer{width:100%;float:left}
+.field-of-area,.main-footer{position:relative}
+.main-footer{padding-bottom:10px;background:#2b3037;left:0;right:0}
+.footer-head{text-transform:uppercase;background:url(../images/underline.png) 0 30px repeat-x rgba(0,0,0,0);border-bottom:1px solid #686b6f;color:#e9e9e9;font-size:16px;padding-bottom:7px;padding-left:0;margin-top:20px;font-weight:700}
+.footer a,.main-footer{color:#e9e9e9}
+.main-footer .list-inline{margin-bottom:15px}
+.main-footer .list-inline li{display:block;font-size:14px;padding:3px 7px}
+ul.list-inline.social-footer{margin-left:0;margin-top:50px}
+.main-footer .social-footer li{display:inline-block;padding-left:0}
+.footer{background:#242930;padding-top:8px;padding-bottom:8px}
+.flagList{float:left;margin-left:10px;padding:0;}
+.footer .flagList li{float:left;background:url(../images/ites-sprite.png) no-repeat 0 -206px;width:25px;height:16px;text-indent:-50000px;font-size:0;margin-right:8px}
+.footer .flagList li:nth-child(2){background-position:-27px -206px}
+.footer .flagList li:nth-child(3){background-position:-54px -206px}
+.footer .flagList li:nth-child(4){background-position:-81px -206px}
+.footer .font14{padding-left:25%;list-style:none;display:block}
+.footer .font14 li{font-size:14px;color:#cecece;padding:0;float:left}
+.footer .font14 li a{padding:0 5px}
+.footer a{background-color:inherit}
+.footer .copyright{padding-left:0}
+.footer .copyright li{float:right;border:0;font-size:14px;color:#cecece;list-style:none}
+.footer-strip ul{margin:0}
+.footer-strip ul li{display:inline-block;margin:0 15px;color:#fff;font-size:14px}
+.siteContainer{margin-top:100px;}
+.footer .font14 li:after{content:"|";}
+.footer .font14 li:last-child:after{content:"";}
+.footer a:hover, .main-footer a:hover{color:#979797;text-decoration:none;}
+.widget-content-style .widget-inner-content .request-widget{background:#fff url(../images/ites-sprite.png) no-repeat 54px -152px!important;padding:10px 40px 10px 80px!important;}
+.widget-content-style .request-widget.call-widget{background:#00c2b9 url(../images/ites-sprite.png) no-repeat 77px -112px!important;}
+.widget-content-style .close-widget{background:#00c2b9 url(../images/ites-sprite.png) no-repeat 9px -74px!important;}
+@media screen and (min-width:992px){.dropdown-menu-width{min-width:600px;right:160px}
+.dropdown-menu-coloumn{float:left;margin:0;padding:5px 0 0;list-style:none;width:150px}
+.sub-menu-left{width:45%;margin-right:5%;margin-left:3%}
+.dropdown-menu-coloumn li a{display:block}
+}
+@media screen and (min-width:768px){.nav-shadow{box-shadow:none}
+.page-nav .jumbotron{background:#fff;box-shadow:0 0 8px #ccc}
+.navbar-header{position:absolute}
+.page-nav .navbar-brand{height:70px;margin-top:-15px;padding-top:15px}
+.main-nav{float:right}
+.navbar-default .main-nav>li>a{color:#333;font-size:17px;font-weight:700;font-family:'PT Sans',sans-serif;text-transform:uppercase;padding:18px 15px;margin-bottom:-4px}
+.yamm .dropdown.yamm-fw.industries-menu .single-menu{z-index:50}
+.sub-menu-right{width:45%}
+}
+@media screen and (max-width:767px){.home-page .top-navigation .text-right ul li{margin-right:3px;margin-top:10px;font-size:12px;text-align:left;float:left;}
+.home-page .top-navigation .text-right ul li img{width:12px;}
+.home-page .navbar-inverse{margin-top:16px;}
+.home-page .top-navigation ul li{margin-right:15px;}
+}
+@media screen and (max-width:1200px){.page-nav .jumbotron{background-color:#4c4c4c;}
+.navbar-brand>img.logo-web{margin-top:0;background:#fff;padding:5px;width:126px;}
+.page-nav .navbar-toggle{margin-top:10px;background-color:transparent!important;border:none;display:block!important;}
+.navbar-default .navbar-toggle .icon-bar{background-color:#fff;height:4px;width:30px;}
+.page-nav .jumbotron{height:56px;}
+.nav-custom{display:none;list-style:none;*zoom:1;background:#3e3e40;text-transform:capitalize;}
+.nav-custom{height:100%;width:100%;overflow:auto;position:fixed!important;z-index:99999;left:0px;bottom:0;padding-bottom:56px;overflow-y:scroll;-webkit-overflow-scrolling:touch;-webkit-transform:translate(0px, 0px);-moz-transform:translate(0px, 0px);-o-transform:translate(0px, 0px);-ms-transform:translate(0px, 0px);transform:translate(0px, 0px);-webkit-transition:0.15s ease;-moz-transition:0.15s ease;-o-transition:0.15s ease;transition:0.15s ease;top:110px;}
+.nav-custom > li{float:none;border-top:1px solid #a5a5a5;position:relative;display:block;}
+.nav-custom > li > a{display:inline-block;font-size:16px;}
+.nav-custom > li > a.arrow-mobile{background-image:url(../images/downArrow.png)!important;background-repeat:no-repeat;background-position:center;height:42px;width:50px;display:block;float:right;}
+.nav-custom ul{display:block;width:100%;padding-left:0;}
+.nav-custom li ul{position:absolute;left:-9999px;}
+.nav-custom > li.hover > ul, .nav-custom li li.hover ul{position:static;}
+.nav-custom > li.hover > ul, .nav-custom li li.hover ul>li{border-bottom:1px solid #ccc;background-color:#e3e2e2;}
+.nav-custom > li > ul>li{position:relative;background:#fafafa;border-top:1px solid #cccccc;}
+.nav-custom li li a{display:block;background:#fafafa;position:relative;z-index:100;border-top:1px solid #cccccc;border-color:#cccccc;color:#444444;text-transform:capitalize;display:block;position:relative;font-size:16px;}
+.nav-custom li li a.arrow-mobile{background-image:url(../images/downArrow.png)!important;background-repeat:no-repeat;background-position:center;height:42px;width:50px;display:block;float:right;position:absolute;top:0;right:0;}
+.nav-custom li li li{background:#e3e2e2;}
+.nav-custom li li li a{background:#e3e2e2;z-index:200;border-top:0;color:#444444;text-transform:capitalize;padding-left:25px;display:block;position:relative;}
+.navbar-header{position:inherit;float:none;}
+}
+@media (min-width:768px) and (max-width:991px){.navbar-header{position:inherit;float:none;}
+}
+@media (min-width:992px) and (max-width:1200px){.nav-custom{top:96px}
+}
+@media screen and (max-width:767px){.its-top-navigs-res.navbar-inverse{top:23px!important;position:fixed!important;}
+.its-top-navigs-res.nav-shadow.sticky-header{top:23px!important;}
+} */
+
+
+.main-footer{padding-bottom:10px;background:#2b3037;left:0;right:0}
+.footer-head{text-transform:uppercase;background:url(../images/underline.png) 0 30px repeat-x rgba(0,0,0,0);border-bottom:1px solid #686b6f;color:#e9e9e9;font-size:16px;padding-bottom:7px;padding-left:0;margin-top:20px;font-weight:700}
+.footer a,.main-footer{color:#e9e9e9}
+.main-footer .list-inline{margin-bottom:15px}
+.main-footer .list-inline li{display:block;font-size:14px;padding:3px 7px}
+ul.list-inline.social-footer{margin-left:0;margin-top:50px}
+.main-footer .social-footer li{display:inline-block;padding-left:0}
+.footer{background:#242930;padding-top:8px;padding-bottom:8px}
+.flagList{float:left;margin-left:10px;padding:0;}
+.footer .flagList li{float:left;background:url(../images/ites-sprite.png) no-repeat 0 -206px;width:25px;height:16px;text-indent:-50000px;font-size:0;margin-right:8px}
+.footer .flagList li:nth-child(2){background-position:-27px -206px}
+.footer .flagList li:nth-child(3){background-position:-54px -206px}
+.footer .flagList li:nth-child(4){background-position:-81px -206px}
+.footer .font14{padding-left:25%;list-style:none;display:block}
+.footer .font14 li{font-size:14px;color:#cecece;padding:0;float:left}
+.footer .font14 li a{padding:0 5px}
+.footer a{background-color:inherit}
+.footer .copyright{padding-left:0}
+.footer .copyright li{float:right;border:0;font-size:14px;color:#cecece;list-style:none}
+.footer-strip ul{margin:0}
+.footer-strip ul li{display:inline-block;margin:0 15px;color:#fff;font-size:14px}
+.footer .font14 li:after{content:"|";}
+.footer .font14 li:last-child:after{content:"";}
+.footer a:hover, .main-footer a:hover{color:#979797;text-decoration:none;}
+.widget-content-style .widget-inner-content .request-widget{background:#fff url(../images/ites-sprite.png) no-repeat 54px -152px!important;padding:10px 40px 10px 80px!important;}
+.widget-content-style .request-widget.call-widget{background:#00c2b9 url(../images/ites-sprite.png) no-repeat 77px -112px!important;}
+.widget-content-style .close-widget{background:#00c2b9 url(../images/ites-sprite.png) no-repeat 9px -74px!important;}
+@media screen and (min-width:992px){.dropdown-menu-width{min-width:600px;right:160px}
+.dropdown-menu-coloumn{float:left;margin:0;padding:5px 0 0;list-style:none;width:150px}
+.sub-menu-left{width:45%;margin-right:5%;margin-left:3%}
+.dropdown-menu-coloumn li a{display:block}
+}
+
+@media screen and (max-width:767px) {
+    .nav-custom a {
+        padding: 10px 15px;
+    }
+    
+}
+
+/* Breadcrumb css for tech pages (schema breadcrumb) */
+/* .page-template-template-techpage .breadcrum-bg{ background: #f9f8f8;}
+.page-template-template-techpage .breadcrum-bg .breadcrumb{margin-bottom:0;background:#f9f8f8;padding:8px 15px 0 15px;}
+.page-template-template-techpage .breadcrum-bg .breadcrumb span{color:#494949;} */
+
+.searchFormLi{width:30px;height:30px}
+.search-form{position:absolute;right:0;top:12px}
+.search-icon-expand{width:300px;background:#fff;border-radius:25px;height:32px;border:1px solid #ccc;padding-left:25px}
+.search-form .form-group{transition:all .35s,border-radius 0;width:32px;height:32px;box-shadow:0 1px 1px rgba(0,0,0,.075) inset;border-radius:25px;float:left;margin-bottom:0;background-color:transparent;border:0}
+.search-form .form-group input.form-control{height:32px;padding-right:20px;border:0;background:0 0;box-shadow:none;display:block;cursor:pointer;}
+.navbar .search-btn{border-color:#fff;padding:0}
+.search-form .form-group span.form-control-feedback{position:absolute;top:-1px;right:-2px;z-index:2;display:block;width:34px;height:34px;line-height:34px;text-align:center;left:initial;font-size:18px;color:#333}
+.search-close{right:260px;top:2px}
+.search-close,.search-icon{width:30px;height:30px;display:none;position:absolute}
+.navbar .search-btn{border-color:#fff;padding:0}
+.search-close .btn-default{border:none}
+.search-icon{top:14px;display:none;background:url(../images/close-search.png) 8px 5px no-repeat;right:10px}

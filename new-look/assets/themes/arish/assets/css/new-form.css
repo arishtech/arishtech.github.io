@@ -1,0 +1,338 @@
+form.form {
+	color: #595959;
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: space-between
+}
+
+form, form p {
+	margin: 0!important;
+	padding: 0!important;
+}
+
+body iframe {
+	overflow: visible;
+	width: 100%;
+	height: 100%
+}
+
+body form.form p.no-label,
+form.form p.email-pref {
+	margin: 0
+}
+
+.form-field.Custom_Other.pd-text {
+	width: 100%;
+	flex: 0 0 100%
+}
+
+.form-field.Custom_Other.pd-text input {
+	width: calc(100% - 52px)
+}
+
+.form-field.pd-textarea {
+	clear: both
+}
+
+.form-field.pd-select,
+.form-field.pd-text {
+	flex: 0 0 47%;
+	position: relative;
+	margin-bottom: 14px
+}
+
+.red-background,
+form.form p.errors {
+	flex: 0 0 100%
+}
+
+.form-field.pd-date {
+	width: 97%
+}
+
+form.form textarea.standard {
+	background-color: none;
+	border: 1px solid #d7d7d7;
+	border-radius: 0;
+	margin-top: 10px;
+	width: calc(100% - 0px);
+	font-size: 17px;
+	padding: 0 15px;
+	color: #3b3b3b;
+	padding-top: 15px;
+	height: 54px
+}
+
+form.form input.text {
+	height: 45px;
+	background-color: #fff;
+	border: 1px solid #d0cdcd;
+	border-radius: 0;
+	font-size: 16px;
+	color: #595959;
+	width: calc(100% - 0px);
+	padding: 0 15px;
+	margin-top: 10px;
+}
+
+form.form .select {
+	height: 45px;
+	background-color: #fff;
+	border: 1px solid #d0cdcd;
+	border-radius: 0;
+	font-size: 16px;
+	color: #595959;
+	width: calc(100% - 0px);
+	padding: 0 15px;
+	margin-top: 10px;
+}
+
+body form.form .select:invalid {
+	color: red
+}
+
+body .ctoform-heading {
+	font-size: 22px;
+	color: #0d60ac;
+	text-align: left;
+	font-weight: 700;
+	margin-bottom: 5px!important;
+	text-transform: uppercase
+}
+
+body form.form input.text::-webkit-input-placeholder {
+	color: #c1c1c1
+}
+
+body form.form input.text::-moz-placeholder {
+	color: #c1c1c1
+}
+
+body form.form input.text:-ms-input-placeholder {
+	color: #c1c1c1
+}
+
+body form.form input.text:-moz-placeholder {
+	color: #c1c1c1
+}
+
+body form.form textarea.standard::-webkit-input-placeholder {
+	color: #c1c1c1
+}
+
+body form.form textarea.standard::-moz-placeholder {
+	color: #c1c1c1
+}
+
+body form.form textarea.standard:-ms-input-placeholder {
+	color: #c1c1c1
+}
+
+body form.form textarea.standard:-moz-placeholder {
+	color: #c1c1c1
+}
+
+form.form {
+	cursor: pointer
+}
+
+body form.form div.submit input,
+body form.form div.submit input:focus,
+body form.form div.submit input:hover {
+	background-color: #ef3734!important;
+	font-family: Roboto, sans-serif;
+	font-size: 20px!important;
+	font-weight: 700;
+	width: 100%;
+	border: 0;
+	box-shadow: none;
+	border-radius: 10px;
+	margin: 0 auto;
+	margin-top: 15px;
+	outline: 0;
+	color: #fff!important;
+	line-height: 1;
+	padding: 18px 10px;
+	cursor: pointer;
+	display: block
+}
+
+body form#main-form div.submit input,
+body form#main-form div.submit input:focus,
+body form#main-form div.submit input:hover {
+	background-color: #ef3734!important;
+	font-family: Roboto, sans-serif;
+	font-size: 20px!important;
+	font-weight: 700;
+	width: fit-content;
+	border: 0;
+	box-shadow: none;
+	border-radius: 4px;
+	margin-top: 15px;
+	outline: 0;
+	color: #fff!important;
+	line-height: 1;
+	padding: 18px 30px;
+	cursor: pointer;
+	display: block;
+	margin: 0
+}
+
+form.form div.submit {
+	text-align: left;
+	width: 100%
+}
+
+.chat-thankyou {
+	text-align: center;
+	margin-top: 100px
+}
+
+.chat-thankyou .main-head,
+.thanku-web h2 {
+	font-size: 32px;
+	font-weight: 700;
+	margin-bottom: 10px!important
+}
+
+.chat-thankyou .sub-head {
+	font-size: 17px;
+	font-weight: 700;
+	margin-top: 10px
+}
+
+.thanku-web.thanku-up {
+	position: absolute;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: #009688;
+	padding: 15px;
+	text-align: center;
+	margin-top: 30px;
+	padding-top: 60px;
+	padding-bottom: 60px;
+	color: #fff
+}
+
+label.field-label {
+	font-size: 16px;
+	font-weight: 400;
+	color: #616263;
+	font-family: Roboto, sans-serif
+}
+
+.pd-checkbox .field-label {
+	display: none
+}
+
+form.form .pd-checkbox span.value {
+	margin-left: 0
+}
+
+form.form input.hasDatepicker {
+	background: url(../../../../../images/calendar.html) no-repeat 10px 50%!important;
+	display: block;
+	width: 86%;
+	background-color: #fff;
+	border: 1px solid #ccc;
+	padding: 2px 15px 2px 34px!important;
+	font-size: 17px;
+	height: 38px;
+	margin-top: 10px;
+	margin-bottom: 10px
+}
+
+form.form div.error {
+	padding: 0!important
+}
+
+.How_can_we_help_you {
+	width: 100%;
+	position: relative;
+	margin-bottom: 25px
+}
+
+.field-label {
+	position: relative;
+	top: unset;
+	padding-left: 0
+}
+
+.form.new-self-form label.error {
+	left: 0;
+	bottom: -12px;
+	font-weight: 400;
+	color: #fb6969;
+	font-size:13px;
+}
+
+.form.new-self-form .form-field.How_can_we_help_you.pd-textarea label.error {
+	left: 0;
+	bottom: -27px;
+	font-weight: 400
+}
+
+body .vcto-form-subheading {
+	margin-top: 0;
+	font-size: 16px;
+	color: #901d60;
+	font-weight: 700;
+	margin-bottom: 10px!important
+}
+
+.form-field {
+	margin-right: 0
+}
+
+@media screen and (max-width:768px) {
+	body form#main-form div.submit input,
+	body form#main-form div.submit input:focus,
+	body form#main-form div.submit input:hover {
+		margin: 0 auto;
+		width: 100%
+	}
+	body form.form div.submit input,
+	body form.form div.submit input:focus,
+	body form.form div.submit input:hover {
+		font-size: 14px
+	}
+	.form.new-self-form label.error {
+		left: 0;
+		bottom: -7px;
+		font-weight: 400;
+		font-size: 11px
+	}
+}
+
+/* form handler css start */
+
+.banner-form-handler.header-form form {background-color: #fff; border-radius: 10px; padding: 20px;}
+.banner-form-handler.header-form form .form-heading {font-size: 20px; color: #11487d; font-weight: 700;}
+.banner-form-handler.header-form form .form-group{width:50%;max-width:50%;margin-bottom:20px;flex: 0 0 50%;}
+.banner-form-handler.header-form form .form-group.subscription_check,
+.banner-form-handler.header-form form .form-group.submit-button{width:100%;max-width:100%;margin-bottom:1rem;flex: 0 0 50%;}
+.banner-form-handler.header-form form .form-control {border:none; border-radius: 0; padding: 0; border-bottom: 1px solid #000;box-shadow:none;height:55px;}
+.banner-form-handler.header-form form label.error {bottom: -21px;color: red;}
+.banner-form-handler.header-form ::placeholder { /* Chrome, Firefox, Opera, Safari 10.1+ */
+  color: #000!important;
+  opacity: 1; /* Firefox */
+}
+
+.banner-form-handler.header-form :-ms-input-placeholder { /* Internet Explorer 10-11 */
+  color: #000!important;
+}
+
+.banner-form-handler.header-form ::-ms-input-placeholder { /* Microsoft Edge */
+  color: #000!important; 
+}
+.banner-form-handler.header-form form textarea.form-control {height: 35px;box-shadow:none;}
+
+.banner-form-handler.header-form .checkbox, .radio {position: relative; display: block; margin-bottom: 15px;width:100%;}
+.banner-form-handler.header-form .checkbox label, .radio label {min-height: 20px; padding-left: 20px; margin-bottom: 0; font-weight: 400; cursor: pointer; font-size: 12px; color: #000;}
+.banner-form-handler.header-form .checkbox input[type=checkbox], .checkbox-inline input[type=checkbox], .radio input[type=radio], .radio-inline input[type=radio] {position: absolute; margin-top: 4px; margin-left: -20px;}
+.banner-form-handler.header-form form .submit-btn {display: block; font-size: 18px; font-weight: 700; color: #fff; background-color: #ec1d25; border:none; text-align: center; text-transform: capitalize; border-radius: 8px; width: 100%; cursor: pointer;}
+.banner-form-handler.header-form form .submit-btn:hover {opacity: 0.7;}
+/* form handler css end */
+
+
