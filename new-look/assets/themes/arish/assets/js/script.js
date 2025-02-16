@@ -403,7 +403,7 @@
 		$('.mobile-nav-toggler, .mobile-menu .navigation li a').click(function() {
 			if($('body').hasClass('mobile-menu-visible')) {
 		    	$('body').removeClass('mobile-menu-visible');
-		    	$('.mobile-nav-toggler').children().attr('src','/assets/themes/arish/assets/images/icons/icon-bar.png');
+		    	$('.mobile-nav-toggler').children().attr('src','assets/themes/arish/assets/images/icons/icon-bar.png');
 				$('.mobile-nav-toggler').children().attr('style', '');
 			} else {
 			    $('body').addClass('mobile-menu-visible');
