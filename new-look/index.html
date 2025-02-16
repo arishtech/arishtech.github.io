@@ -263,6 +263,9 @@
     delivering tailored solutions that drive meaningful results." />
     <meta property="og:image:width" content="730" />
     <meta property="og:image:height" content="397" />
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    </script>
+
     <script type="application/ld+json">
         {
             "@context": "https://schema.org/",
@@ -280,11 +283,10 @@
                         "ratingCount": "1022"
                     },
                     "sameAs": [
-                        "facebook",
-                        "twitter.com",
-                        "instagram.com",
-                        "youtube.com",
-                        "linkedin.com"
+                        "https://www.facebook.com/share/18qGPR6iaS/",
+                        "https://x.com/ArishTechnology",
+                        "https://www.instagram.com/arish.tech",
+                        "https://linkedin.com/company/arishtech"
                     ]
                 },
                 {
@@ -421,14 +423,18 @@
 
         <!-- Banner Section -->
         <section class="banner-section style-one grayBg" id="landing-page">
-            <video loop muted autoplay poster="#" class="fullscreen-bg__video">
-                <source src="assets/themes/arish/assets/video/banner.mp4" type="video/mp4">
-            </video>
+            <div class="videoContainer">
+                <video loop muted autoplay poster="#" class="fullscreen-bg__video video">
+                    <source src="assets/themes/arish/assets/video/banner.mp4" type="video/mp4">
+                </video>
+            </div>
         </section>
         <section class="mobile-banner-section grayBg banner-section style-one">
-            <video loop muted autoplay poster="#" class="fullscreen-bg__video">
-                <source src="assets/themes/arish/assets/video/banner.mp4" type="video/mp4">
-            </video>
+            <div class="videoContainer">
+                <video loop muted autoplay poster="#" class="fullscreen-bg__video video">
+                    <source src="assets/themes/arish/assets/video/banner.mp4" type="video/mp4">
+                </video>
+            </div>
         </section>
         <!--End Banner Section -->
 
@@ -448,66 +454,79 @@
                     </div>
                 </div>
 
-                <div class="row techBox slick-servics1">
-                    <div class="col-sm-6 col-lg-4 mb-4" style="position: absolute; left: 0%; top: 0px;">
-                        <div class="card">
-                            <img src="assets/themes/arish/assets/images/tech/tech-01.jpg" alt="Application Transformation Services
+                <div class="row section-body our-services-card">
+                    <div class="col-md-12">
+                        <div class="offering-wrapper">
+                            <div class="offering-card aos-init our-services-card-bg1 " data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/mobile.jpg" alt="Cloud Migration Services
 " class="bd-placeholder-img card-img-top">
-                            <div class="card-body whtTxt">
-                                <h5 class="card-title">Application Services</h5>
-                                <p class="card-text">Transition to a digital enterprise with modern application
-                                    development and transformation</p>
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Application Services</h5>
+                                    <p class="card-text">Transition to a digital enterprise with modern application
+                                        development and transformation</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 mb-4 techBox01">
-                        <div class="card">
-                            <img src="assets/themes/arish/assets/images/tech/tech-02.jpg" alt="Artificial Intelligence & Machine Learning
-" class="bd-placeholder-img card-img-top">
-                            <div class="card-body blkTxt">
-                                <h5 class="card-title">Cloud & DevOps Solutions</h5>
-                                <p class="card-text">Leverage cloud computing and DevOps automation to enhance
-                                    performance, security, and deployment efficiency across your IT infrastructure.</p>
 
+                            <div class="offering-card aos-init our-services-card-bg2" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Cloud & DevOps Solutions</h5>
+                                    <p class="card-text">Leverage cloud computing and DevOps automation to enhance
+                                        performance, security, and deployment efficiency across your IT infrastructure.
+                                    </p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 mb-4 techBox02">
-                        <div class="card">
-                            <img src="assets/themes/arish/assets/images/tech/tech-03.jpg" alt="Blockchain Services
-" class="bd-placeholder-img card-img-top">
-                            <div class="card-body whtTxt">
-                                <h5 class="card-title">Data & Database Management Services</h5>
-                                <p class="card-text">Optimize data handling with robust database solutions and data
-                                    analytics, ensuring high availability, security, and real-time insights.</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 mb-4 techBox03">
-                        <div class="card">
-                            <img src="assets/themes/arish/assets/images/tech/tech-04.jpg" alt="Cloud Migration Services
-" class="bd-placeholder-img card-img-top">
-                            <div class="card-body blkTxt">
-                                <h5 class="card-title">Mobile App Development</h5>
-                                <p class="card-text">Create seamless, user-friendly mobile experiences with our Android
-                                    and iOS development expertise for high-performing applications.</p>
 
+                            <div class="offering-card aos-init our-services-card-bg3" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Data & Database Management Services</h5>
+                                    <p class="card-text">Optimize data handling with robust database solutions and data
+                                        analytics, ensuring high availability, security, and real-time insights.</p>
+                                </div>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-6 col-lg-4 mb-4 techBox04">
-                        <div class="card">
-                            <img src="assets/themes/arish/assets/images/tech/tech-06.jpg" alt="Data Processing Services
-" class="bd-placeholder-img card-img-top">
-                            <div class="card-body blkTxt">
-                                <h5 class="card-title">IT Infrastructure & Atlassian Solutions</h5>
-                                <p class="card-text"> Streamline IT operations with our infrastructure services and
-                                    Atlassian tool expertise, enhancing collaboration, monitoring, and support
-                                    efficiency.</p>
-                            </div>
-                        </div>
-                    </div>
 
+                            <div class="offering-card aos-init our-services-card-bg4" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Mobile App Development</h5>
+                                    <p class="card-text">Create seamless, user-friendly mobile experiences with our
+                                        Android
+                                        and iOS development expertise for high-performing applications.</p>
+
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg5" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/data_analysis.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Data Engineering & Analytics</h5>
+                                    <p class="card-text">Transform raw data into actionable insights with scalable data engineering, advanced analytics, and real-time processing solutions.</p>
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg6" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/themes/arish/assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">IT Infrastructure & Atlassian Solutions</h5>
+                                    <p class="card-text"> Streamline IT operations with our infrastructure services and
+                                        Atlassian tool expertise, enhancing collaboration, monitoring, and support
+                                        efficiency.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
@@ -715,7 +734,7 @@
                                             </div>
                                         </div>
                                     </div>
-                                    <div class="row section-body mt60">
+                                    <div class="row section-body">
                                         <div class="col-sm-12">
                                             <div class="laravel-tech-stack">
                                                 <div class="laravel-tch-name">Technology</div>
@@ -965,42 +984,39 @@
             </div>
             <div class="container-contact100">
                 <div class="wrap-contact100">
-                    <form class="contact100-form validate-form">
-
-                        <div class="wrap-input100 validate-input bg1" data-validate="Please Type Your Name">
+                    <form id="contactForm" class="contact100-form validate-form">
+                        <div class="wrap-input100 validate-input bg1">
                             <span class="label-input100">Full Name *</span>
-                            <input class="input100" type="text" name="name" placeholder="Enter Your Name">
+                            <input class="input100" type="text" name="name" id="fullName" placeholder="Enter Your Name">
                         </div>
 
-                        <div class="wrap-input100 validate-input bg1 rs1-wrap-input100"
-                            data-validate="Enter Your Email (e@a.x)">
+                        <div class="wrap-input100 validate-input bg1">
                             <span class="label-input100">Email *</span>
-                            <input class="input100" type="text" name="email" placeholder="Enter Your Email ">
+                            <input class="input100" type="text" name="email" id="email" placeholder="Enter Your Email">
+                            <div id="emailError" class="error">Invalid email domain.</div>
                         </div>
 
-                        <div class="wrap-input100 validate-input bg1 rs1-wrap-input100"
-                            data-validate="Please Type Your Phone Number">
+                        <div class="wrap-input100 validate-input bg1">
                             <span class="label-input100">Phone *</span>
-                            <input class="input100" type="text" name="phone" placeholder="Enter Phone Number">
+                            <input class="input100" type="text" name="phone" id="phone"
+                                placeholder="Enter Phone Number">
                         </div>
 
-                        <div class="wrap-input100 validate-input bg1" data-validate="Please Type Your Company Name">
+                        <div class="wrap-input100 validate-input bg1">
                             <span class="label-input100">Company Name *</span>
-                            <input class="input100" type="text" name="name" placeholder="Enter Your Company Name">
+                            <input class="input100" type="text" name="company" id="company"
+                                placeholder="Enter Your Company Name">
                         </div>
 
-                        <div class="wrap-input100 validate-input bg0 rs1-alert-validate"
-                            data-validate="Please Type Your Message">
+                        <div class="wrap-input100 validate-input bg0">
                             <span class="label-input100">Message</span>
-                            <textarea class="input100" name="message" placeholder="Your message here..."></textarea>
+                            <textarea class="input100" style=" overflow-y:scroll;   " name="message" id="message"
+                                placeholder="Your message here..."></textarea>
                         </div>
 
                         <div class="container-contact100-form-btn">
-                            <button class="contact100-form-btn">
-                                <span>
-                                    Submit
-                                    <i class="fa fa-long-arrow-right m-l-7" aria-hidden="true"></i>
-                                </span>
+                            <button type="submit" class="contact100-form-btn">
+                                <span>Submit <i class="fa fa-long-arrow-right m-l-7" aria-hidden="true"></i></span>
                             </button>
                         </div>
                     </form>
@@ -1010,7 +1026,7 @@
         <!-- Contact Us end -->
         <!--start Footer Section -->
         <footer class="sectionPadding main-footer grayBg pb0">
-            <div class="auto-container pb30 footer-top">
+            <div class="auto-container footer-top">
                 <div class="widgets-section">
                     <div class="row clearfix">
                         <!--Column-->
@@ -1027,15 +1043,18 @@
                                     <div class="col-md-3">
                                         <div class="footer-widget subscribe-widget">
                                             <ul class="social-links clearfix">
-                                                <li><a href="#" aria-label="linkedin" target="_blank"><span
+                                                <li><a href="https://linkedin.com/company/arishtech"
+                                                        aria-label="linkedin" target="_blank"><span
                                                             class="linkedin-ico"></span></a></li>
-                                                <li><a href="#" aria-label="twitter" target="_blank"><span
-                                                            class="twitter-ico"></span></a></li>
-                                                <li><a href="#" aria-label="facebook" target="_blank"><span
+                                                <li><a href="https://x.com/ArishTechnology" aria-label="twitter"
+                                                        target="_blank"><span class="twitter-ico"></span></a></li>
+                                                <li><a href="https://www.facebook.com/share/18qGPR6iaS/"
+                                                        aria-label="facebook" target="_blank"><span
                                                             class="facebook-ico"></span></a></li>
                                                 <li><a href="#" aria-label="youtube" target="_blank"><span
                                                             class="youtube-ico"></span></a></li>
-                                                <li><a href="#" aria-label="instagram" target="_blank"><span
+                                                <li><a href="https://www.instagram.com/arish.tech"
+                                                        aria-label="instagram" target="_blank"><span
                                                             class="instagram-ico"></span></a></li>
                                             </ul>
                                         </div>
@@ -1045,7 +1064,7 @@
                                             <div class="widget-content">
                                                 <ul>
                                                     <li><a href="tel:16096320350"><i class="phone-ico"
-                                                                alt="Phone Icon"></i> +91 70968 46840</a></li>
+                                                                alt="Phone Icon"></i>+91 709 684 684 0</a></li>
                                                 </ul>
                                             </div>
                                         </div>
@@ -1174,6 +1193,58 @@ AOS.init();
     <script src="assets/contact-us-page/vendor/bootstrap/js/bootstrap.min.js"></script>
     <script src="assets/contact-us-page/vendor/select2/select2.min.js"></script>
     <script src="assets/contact-us-page/js/main.js"></script>
+    </script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("hfm1Q3MjMtQpsP3dN"); //please encrypted user id for malicious attacks
+        })()
+
+        document.getElementById("contactForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const blockedDomains = ["mailinator.com", "tempmail.com", "10minutemail.com"];
+            const fullName = document.getElementById("fullName").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const company = document.getElementById("company").value.trim();
+            const message = document.getElementById("message").value.trim();
+            const emailError = document.getElementById("emailError");
+
+            // Validate email domain
+            const emailDomain = email.split("@")[1];
+            if (blockedDomains.includes(emailDomain)) {
+                emailError.style.display = "block";
+                return;
+            } else {
+                emailError.style.display = "none";
+            }
+
+            // Validate required fields
+            if (!fullName || !email || !phone || !company || !message) {
+                alert("All fields are required!");
+                return;
+            }
+
+            // Prepare email data
+            const templateParams = {
+                fullName,
+                email,
+                phone,
+                company,
+                message
+            };
+
+            // Send email using EmailJS
+            emailjs.send("service_37a94ds", "template_dn0vfdr", templateParams)
+                .then(response => {
+                    alert("Email sent successfully!");
+                    document.getElementById("contactForm").reset();
+                })
+                .catch(error => {
+                    console.error("Error sending email:", error);
+                    alert("Error sending email. Please try again.");
+                });
+        });
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function () {

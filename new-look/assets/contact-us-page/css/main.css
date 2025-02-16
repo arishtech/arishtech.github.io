@@ -41,14 +41,8 @@
 	box-sizing: border-box;
 }
 
-body, html {
-	height: 100%;
-	font-family: Poppins-Regular, sans-serif;
-}
-
 /*---------------------------------------------*/
 a {
-	font-family: Poppins-Regular;
 	font-size: 14px;
 	line-height: 1.7;
 	color: #666666;
@@ -332,7 +326,7 @@ textarea.input100 {
 
 @media (max-width: 576px) {
   .wrap-contact100 {
-    padding: 62px 15px 90px 15px;
+    padding: 10px 15px 10px 15px;
   }
 
   .wrap-input100 {

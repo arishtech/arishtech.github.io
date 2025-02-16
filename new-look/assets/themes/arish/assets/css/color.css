@@ -125,7 +125,7 @@
 .widget_filter-price .ui-state-default:before,
 .widget_filter-price .ui-widget-content .ui-state-default:before,
 .widget_tag_cloud ul li a:hover {
-	background-color: #ff031a
+	background-color: #f16a4d !important;
 }
 
 .mobile-menu .menu-backdrop {

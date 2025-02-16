@@ -52,6 +52,23 @@
     filter: invert(53%) sepia(53%) saturate(1762%) hue-rotate(329deg) brightness(97%) contrast(95%);
 }
 
+.img-cl-white {
+    filter: invert(98%) sepia(6%) saturate(2%) hue-rotate(86deg) brightness(116%) contrast(100%);
+}
+
+.videoContainer {
+    position: relative;
+    width: 100%;
+    height: 100%;
+  }
+  
+  .videoContainer .video {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Not necessary in Chrome */
+  }
+
 @media screen and (min-width:1300px) {
     .container {
         width: 1250px;
@@ -2203,9 +2220,9 @@ textarea {
 .blkTxt {
     color: #1e232a;
 }
-
+    
 .techServices .card-title {
-    font-size: 30px;
+    font-size: 20px;
     font-weight: 600;
 }
 
@@ -4319,7 +4336,6 @@ img {
 
 .mobile-menu .navigation:last-child {
     border-bottom: 1px solid rgba(255, 255, 255, 0.10);
-    background: #e6e6e6;
 }
 
 .mobile-menu .navigation li>ul>li:first-child {
@@ -4485,7 +4501,7 @@ img.bannerIco {
 
 .sectionPadding,
 .section-padding {
-    padding: 80px 0;
+    padding: 18px 0;
 }
 
 .formSectionPadding {
@@ -23238,7 +23254,7 @@ span.text-upload {
     }
 
     .techServices .card-title {
-        font-size: 25px;
+        font-size: 20px;
         font-weight: 600;
     }
 
@@ -23494,7 +23510,19 @@ span.text-upload {
     }
 
     .footer-top {
-        display: none;
+        /* display: none; */
+    }
+
+    .footer-widget .row {
+        flex-direction: column;
+    }
+
+    .footer-widget .row .logo {
+        margin-bottom: 10px;
+    }
+
+    .main-footer .footer-widget, .subscribe-widget .social-links {
+        margin-bottom: 0px !important;
     }
 
     footer.sectionPadding.main-footer {
@@ -34597,7 +34625,7 @@ img.bannerRlogo {
 
 /* Tech Pages New start */
 .tech-pages-new .section-padding {
-    padding: 80px 0;
+    padding: 15px 0;
 }
 
 .tech-pages-new .section-header {
@@ -34774,6 +34802,79 @@ img.bannerRlogo {
 @media screen and (max-width:767px) {
     .tech-pages-new .offering-card {
         flex: 0 0 100%;
+    }
+}
+
+.our-services-card .offering-section {
+    background-color: #f1f1f1;
+}
+
+.our-services-card .offering-wrapper {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.our-services-card .offering-card {
+    background-color: #fff;
+    box-shadow: rgb(3 3 3 / 27%) 0px 17px 49px 0px;
+    border-radius: 4px;
+    flex: 0 0 32%;
+    margin-top: 30px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+
+.error {
+    color: red;
+    font-size: 12px;
+    display: none; /* Hide initially */
+}
+
+.our-services-card .offering-card img {
+    height: 100%;
+    object-fit: cover;
+    visibility: hidden;
+}
+
+.our-services-card-bg1 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/application_services.jpg);
+}
+
+.our-services-card-bg2 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/cloud.jpg);
+}
+
+.our-services-card-bg3 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/database.jpg);
+}
+
+.our-services-card-bg4 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/mobile.jpg);
+}
+
+.our-services-card-bg5 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/data_analysis.jpg);
+}
+
+.our-services-card-bg6 {
+    background: linear-gradient( rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45) ),url(../images/atlassian.png);
+}
+
+
+.our-services-card .offering-card .title {
+    font-family: "Poppins", sans-serif;
+    font-weight: 600;
+    font-size: 20px;
+    color: #1e232a;
+}
+
+@media screen and (max-width:900px) {
+    .our-services-card .offering-card {
+        flex: 0 0 100%;
+        max-height: 300px;
     }
 }
 
@@ -35293,7 +35394,7 @@ img.bannerRlogo {
     .tech-pages-new .approach-card,
     .aws-page.tech-pages-new .approach-card {
         flex: 0 0 100%;
-        margin-top: 40px;
+        margin-top: 0px;
     }
 }
 
@@ -35344,7 +35445,7 @@ img.bannerRlogo {
     .tech-pages-new .approach-card,
     .aws-page.tech-pages-new .approach-card {
         flex: 0 0 100%;
-        margin-top: 40px;
+        margin-top: 0px;
     }
 
     .row.industriesColBox .col-sm-3 {
