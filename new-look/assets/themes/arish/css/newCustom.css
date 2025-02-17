@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Gugi&amp;display=swap');
 @media screen and (min-width:1200px) {
     .container {
         width: 1250px;
@@ -29104,8 +29105,6 @@ p.expPara:before {
     font-size: 20px;
 }
 
-
-@import url('https://fonts.googleapis.com/css2?family=Gugi&amp;display=swap');
 
 /* rapid development start */
 .rapid-development {
