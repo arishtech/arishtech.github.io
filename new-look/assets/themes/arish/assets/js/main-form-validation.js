@@ -1,1 +1,0 @@
-$(document).ready(function(){$("#main-form").validate({rules:{work_email:{required:!0,email:!0},name:{required:!0,letterswithspace:!0,minlength:3,maxlength:20},company:{required:!0,letterswithspace:!0},phone_number:{required:!0,digits:!0,minlength:10,maxlength:15},how_can_we_help:{required:!0}}})});
