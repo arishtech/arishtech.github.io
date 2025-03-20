@@ -1,36 +1,1298 @@
 <!DOCTYPE html>
 <html lang="en">
+<meta http-equiv="content-type" content="text/html;charset=UTF-8" />
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Business Upgrade Announcement</title>
-    <link rel="stylesheet" href="styles/main.css">
+    <meta charset="utf-8">
+    <script>
+        if (navigator.userAgent.match(/MSIE|Internet Explorer/i) || navigator.userAgent.match(/Trident\/7\..*?rv:11/i)) {
+            var href = document.location.href;
+            if (!href.match(/[?&]nowprocket/)) {
+                if (href.indexOf("?") == -1) {
+                    if (href.indexOf("#") == -1) {
+                        document.location.href = href + "?nowprocket=1"
+                    } else {
+                        document.location.href = href.replace("#", "?nowprocket=1#")
+                    }
+                } else {
+                    if (href.indexOf("#") == -1) {
+                        document.location.href = href + "&nowprocket=1"
+                    } else {
+                        document.location.href = href.replace("#", "&nowprocket=1#")
+                    }
+                }
+            }
+        }
+    </script>
+    <script>
+        class RocketLazyLoadScripts {
+            constructor(e) {
+                this.triggerEvents = e, this.userEventHandler = this.triggerListener.bind(this), this.touchStartHandler = this._onTouchStart.bind(this), this.touchMoveHandler = this._onTouchMove.bind(this), this.touchEndHandler = this._onTouchEnd.bind(this), this.clickHandler = this._onClick.bind(this), this.interceptedClicks = [], this.delayedScripts = {
+                    normal: [],
+                    async: [],
+                    defer: []
+                }, this.allJQueries = []
+            }
+            _addUserInteractionListener(e) {
+                document.hidden ? e.triggerListener() : (this.triggerEvents.forEach((t => window.addEventListener(t, e.userEventHandler, {
+                    passive: !0
+                }))), window.addEventListener("touchstart", e.touchStartHandler, {
+                    passive: !0
+                }), window.addEventListener("mousedown", e.touchStartHandler), document.addEventListener("visibilitychange", e.userEventHandler))
+            }
+            _removeUserInteractionListener() {
+                this.triggerEvents.forEach((e => window.removeEventListener(e, this.userEventHandler, {
+                    passive: !0
+                }))), document.removeEventListener("visibilitychange", this.userEventHandler)
+            }
+            _onTouchStart(e) {
+                window.addEventListener("touchend", this.touchEndHandler), window.addEventListener("mouseup", this.touchEndHandler), window.addEventListener("touchmove", this.touchMoveHandler, {
+                    passive: !0
+                }), window.addEventListener("mousemove", this.touchMoveHandler), e.target.addEventListener("click", this.clickHandler), this._renameDOMAttribute(e.target, "onclick", "rocket-onclick")
+            }
+            _onTouchMove(e) {
+                window.removeEventListener("touchend", this.touchEndHandler), window.removeEventListener("mouseup", this.touchEndHandler), window.removeEventListener("touchmove", this.touchMoveHandler, {
+                    passive: !0
+                }), window.removeEventListener("mousemove", this.touchMoveHandler), e.target.removeEventListener("click", this.clickHandler), this._renameDOMAttribute(e.target, "rocket-onclick", "onclick")
+            }
+            _onTouchEnd(e) {
+                window.removeEventListener("touchend", this.touchEndHandler), window.removeEventListener("mouseup", this.touchEndHandler), window.removeEventListener("touchmove", this.touchMoveHandler, {
+                    passive: !0
+                }), window.removeEventListener("mousemove", this.touchMoveHandler)
+            }
+            _onClick(e) {
+                e.target.removeEventListener("click", this.clickHandler), this._renameDOMAttribute(e.target, "rocket-onclick", "onclick"), this.interceptedClicks.push(e), e.preventDefault(), e.stopPropagation(), e.stopImmediatePropagation()
+            }
+            _replayClicks() {
+                window.removeEventListener("touchstart", this.touchStartHandler, {
+                    passive: !0
+                }), window.removeEventListener("mousedown", this.touchStartHandler), this.interceptedClicks.forEach((e => {
+                    e.target.dispatchEvent(new MouseEvent("click", {
+                        view: e.view,
+                        bubbles: !0,
+                        cancelable: !0
+                    }))
+                }))
+            }
+            _renameDOMAttribute(e, t, n) {
+                e.hasAttribute(t) && (event.target.setAttribute(n, event.target.getAttribute(t)), event.target.removeAttribute(t))
+            }
+            triggerListener() {
+                this._removeUserInteractionListener(this), "loading" === document.readyState ? document.addEventListener("DOMContentLoaded", this._loadEverythingNow.bind(this)) : this._loadEverythingNow()
+            }
+            async _loadEverythingNow() {
+                this._delayEventListeners(), this._delayJQueryReady(this), this._handleDocumentWrite(), this._registerAllDelayedScripts(), this._preloadAllScripts(), await this._loadScriptsFromList(this.delayedScripts.normal), await this._loadScriptsFromList(this.delayedScripts.defer), await this._loadScriptsFromList(this.delayedScripts.async), await this._triggerDOMContentLoaded(), await this._triggerWindowLoad(), window.dispatchEvent(new Event("rocket-allScriptsLoaded")), this._replayClicks()
+            }
+            _registerAllDelayedScripts() {
+                document.querySelectorAll("script[type=rocketlazyloadscript]").forEach((e => {
+                    e.hasAttribute("src") ? e.hasAttribute("async") && !1 !== e.async ? this.delayedScripts.async.push(e) : e.hasAttribute("defer") && !1 !== e.defer || "module" === e.getAttribute("data-rocket-type") ? this.delayedScripts.defer.push(e) : this.delayedScripts.normal.push(e) : this.delayedScripts.normal.push(e)
+                }))
+            }
+            async _transformScript(e) {
+                return await this._requestAnimFrame(), new Promise((t => {
+                    const n = document.createElement("script");
+                    [...e.attributes].forEach((e => {
+                        let t = e.nodeName;
+                        "type" !== t && ("data-rocket-type" === t && (t = "type"), n.setAttribute(t, e.nodeValue))
+                    })), e.hasAttribute("src") ? (n.addEventListener("load", t), n.addEventListener("error", t)) : (n.text = e.text, t()), e.parentNode.replaceChild(n, e)
+                }))
+            }
+            async _loadScriptsFromList(e) {
+                const t = e.shift();
+                return t ? (await this._transformScript(t), this._loadScriptsFromList(e)) : Promise.resolve()
+            }
+            _preloadAllScripts() {
+                var e = document.createDocumentFragment();
+                [...this.delayedScripts.normal, ...this.delayedScripts.defer, ...this.delayedScripts.async].forEach((t => {
+                    const n = t.getAttribute("src");
+                    if (n) {
+                        const t = document.createElement("link");
+                        t.href = n, t.rel = "preload", t.as = "script", e.appendChild(t)
+                    }
+                })), document.head.appendChild(e)
+            }
+            _delayEventListeners() {
+                let e = {};
+
+                function t(t, n) {
+                    ! function (t) {
+                        function n(n) {
+                            return e[t].eventsToRewrite.indexOf(n) >= 0 ? "rocket-" + n : n
+                        }
+                        e[t] || (e[t] = {
+                            originalFunctions: {
+                                add: t.addEventListener,
+                                remove: t.removeEventListener
+                            },
+                            eventsToRewrite: []
+                        }, t.addEventListener = function () {
+                            arguments[0] = n(arguments[0]), e[t].originalFunctions.add.apply(t, arguments)
+                        }, t.removeEventListener = function () {
+                            arguments[0] = n(arguments[0]), e[t].originalFunctions.remove.apply(t, arguments)
+                        })
+                    }(t), e[t].eventsToRewrite.push(n)
+                }
+
+                function n(e, t) {
+                    let n = e[t];
+                    Object.defineProperty(e, t, {
+                        get: () => n || function () { },
+                        set(i) {
+                            e["rocket" + t] = n = i
+                        }
+                    })
+                }
+                t(document, "DOMContentLoaded"), t(window, "DOMContentLoaded"), t(window, "load"), t(window, "pageshow"), t(document, "readystatechange"), n(document, "onreadystatechange"), n(window, "onload"), n(window, "onpageshow")
+            }
+            _delayJQueryReady(e) {
+                let t = window.jQuery;
+                Object.defineProperty(window, "jQuery", {
+                    get: () => t,
+                    set(n) {
+                        if (n && n.fn && !e.allJQueries.includes(n)) {
+                            n.fn.ready = n.fn.init.prototype.ready = function (t) {
+                                e.domReadyFired ? t.bind(document)(n) : document.addEventListener("rocket-DOMContentLoaded", (() => t.bind(document)(n)))
+                            };
+                            const t = n.fn.on;
+                            n.fn.on = n.fn.init.prototype.on = function () {
+                                if (this[0] === window) {
+                                    function e(e) {
+                                        return e.split(" ").map((e => "load" === e || 0 === e.indexOf("load.") ? "rocket-jquery-load" : e)).join(" ")
+                                    }
+                                    "string" == typeof arguments[0] || arguments[0] instanceof String ? arguments[0] = e(arguments[0]) : "object" == typeof arguments[0] && Object.keys(arguments[0]).forEach((t => {
+                                        delete Object.assign(arguments[0], {
+                                            [e(t)]: arguments[0][t]
+                                        })[t]
+                                    }))
+                                }
+                                return t.apply(this, arguments), this
+                            }, e.allJQueries.push(n)
+                        }
+                        t = n
+                    }
+                })
+            }
+            async _triggerDOMContentLoaded() {
+                this.domReadyFired = !0, await this._requestAnimFrame(), document.dispatchEvent(new Event("rocket-DOMContentLoaded")), await this._requestAnimFrame(), window.dispatchEvent(new Event("rocket-DOMContentLoaded")), await this._requestAnimFrame(), document.dispatchEvent(new Event("rocket-readystatechange")), await this._requestAnimFrame(), document.rocketonreadystatechange && document.rocketonreadystatechange()
+            }
+            async _triggerWindowLoad() {
+                await this._requestAnimFrame(), window.dispatchEvent(new Event("rocket-load")), await this._requestAnimFrame(), window.rocketonload && window.rocketonload(), await this._requestAnimFrame(), this.allJQueries.forEach((e => e(window).trigger("rocket-jquery-load"))), window.dispatchEvent(new Event("rocket-pageshow")), await this._requestAnimFrame(), window.rocketonpageshow && window.rocketonpageshow()
+            }
+            _handleDocumentWrite() {
+                const e = new Map;
+                document.write = document.writeln = function (t) {
+                    const n = document.currentScript,
+                        i = document.createRange(),
+                        r = n.parentElement;
+                    let o = e.get(n);
+                    void 0 === o && (o = n.nextSibling, e.set(n, o));
+                    const s = document.createDocumentFragment();
+                    i.setStart(s, 0), s.appendChild(i.createContextualFragment(t)), r.insertBefore(s, o)
+                }
+            }
+            async _requestAnimFrame() {
+                return document.hidden ? new Promise((e => setTimeout(e))) : new Promise((e => requestAnimationFrame(e)))
+            }
+            static run() {
+                const e = new RocketLazyLoadScripts(["keydown", "mousedown", "mousemove", "touchmove", "touchstart", "touchend", "wheel"]);
+                e._addUserInteractionListener(e)
+            }
+        }
+        RocketLazyLoadScripts.run();
+    </script>
+
+    <title> Arish Technologies: IT Staffing Company</title>
+    <link rel="icon" type="image/x-icon" href="assets/images/favicon.ico" />
+
+    <link href="assets/css/fontawesome-all.css" rel="stylesheet">
+    <link href="assets/css/bootstrap.min.css" rel="stylesheet">
+    <link href="assets/css/header-footer.css" rel="stylesheet">
+    <link href="assets/css/newCustom.css" rel="stylesheet">
+    <link href="assets/css/tech-services.css" rel="stylesheet">
+
+    <link href="assets/css/style.css" rel="stylesheet">
+    <link href="assets/css/responsive.css" rel="stylesheet">
+    <link href="assets/css/color.css" rel="stylesheet">
+    <link href="assets/css/aos.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="assets/css/material-design-iconic-font.min.css">
+    <link rel="stylesheet" href="assets/css/animate.css">
+    <link rel="stylesheet" href="assets/css/hamburgers.min.css">
+    <link rel="stylesheet" href="assets/css/animsition.min.css">
+    <link rel="stylesheet" href="assets/css/util.css">
+    <link rel="stylesheet" href="assets/css/main.css">
+
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css?family=Abril%20Fatface%7CRoboto%20Slab%7CRaleway%7CPlayfair%20Display%3A400%2C700%2C900%7CPoppins%3A100%2C300%2C400%2C500%2C600%2C700%2C800%2C900&amp;display=swap" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Abril%20Fatface%7CRoboto%20Slab%7CRaleway%7CPlayfair%20Display%3A400%2C700%2C900%7CPoppins%3A100%2C300%2C400%2C500%2C600%2C700%2C800%2C900&amp;display=swap"
+        media="print" onload="this.media='all'" /><noscript>
+    <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css?family=Abril%20Fatface%7CRoboto%20Slab%7CRaleway%7CPlayfair%20Display%3A400%2C700%2C900%7CPoppins%3A100%2C300%2C400%2C500%2C600%2C700%2C800%2C900&amp;display=swap" />
+    </noscript>
+    <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&amp;family=Roboto:wght@200;300;400;500;600;700;800;900&amp;display=swap" />
+    <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&amp;family=Roboto:wght@200;300;400;500;600;700;800;900&amp;display=swap"
+        media="print" onload="this.media='all'" /><noscript>
+    <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300;400;500;600;700;800;900&amp;family=Roboto:wght@200;300;400;500;600;700;800;900&amp;display=swap" />
+    </noscript>
+
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=10.0" />
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="As a IT staffing company, At Arish, we specialize in bridging the gap
+    between exceptional talent and thriving businesses. Our team of industry
+    experts is committed to understanding your unique challenges and
+    delivering tailored solutions that drive meaningful results." />
+    <meta name="robots" content="max-image-preview:large" />
+    <meta name="keywords"
+        content="software developer company,custom software developers,software development services india" />
+    <link rel="canonical" href="index.html" />
+    <meta property="og:locale" content="en_US" />
+    <meta property="og:site_name" content="Arish Technologies" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Arish Technologies: IT Staffing Company" />
+    <meta property="og:description" content="As a IT staffing company, At Arish, we specialize in bridging the gap
+    between exceptional talent and thriving businesses. Our team of industry
+    experts is committed to understanding your unique challenges and
+    delivering tailored solutions that drive meaningful results." />
+    <meta property="og:image:width" content="730" />
+    <meta property="og:image:height" content="397" />
+    <script src="https://cdn.jsdelivr.net/npm/emailjs-com@3/dist/email.min.js"></script>
+    </script>
+
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org/",
+            "@graph": [{
+                    "@type": "Organization",
+                    "name": "Arish Technologies",
+                    "url": "https://www.arishtech.com/",
+                    "logo": "https://www.arishtech.com/images/Arish_Logo_Trans.png",
+                    "description": "At Arish, we specialize in bridging the gap
+                    between exceptional talent and thriving businesses. Our team of industry
+                    experts is committed to understanding your unique challenges and
+                    delivering tailored solutions that drive meaningful results.",
+                    "aggregateRating": {
+                        "ratingValue": "4.6",
+                        "ratingCount": "1022"
+                    },
+                    "sameAs": [
+                        "https://www.facebook.com/share/18qGPR6iaS/",
+                        "https://youtube.com/@arishtechofficial",
+                        "https://x.com/Arish_tech",
+                        "https://www.instagram.com/arish.tech",
+                        "https://linkedin.com/company/arishtech"
+                    ]
+                },
+                {
+                    "@type": "WebSite",
+                    "@id": "https://www.arishtech.com/",
+                    "url": "https://www.arishtech.com/",
+                    "name": "Arish Technologies",
+                    "potentialAction": [{
+                        "@type": "SearchAction",
+                        "target": "https://www.arishtech.com/",
+                        "query-input": "required name=search_term_string"
+                    }],
+                    "inLanguage": "en-US"
+                },
+                {
+                    "@type": "LocalBusiness",
+                    "name": "Arish Technologies",
+                    "image": "https://www.arishtech.com/images/Arish_Logo_Trans.png",
+                    "telephone": "+91 70968 46840",
+                    "email": "info@arishtech.com",
+                    "address": {
+                        "@type": "PostalAddress",
+                        "streetAddress": "16, Shreekunj Society",
+                        "addressLocality": "Prabhat Chowk, Ghatlodiya",
+                        "addressRegion": "Ahmedabad, Gujarat",
+                        "addressCountry": "India",
+                        "postalCode": "380061"
+                    },
+                    "priceRange": "$$"
+                }
+            ]
+        }
+    </script>
+
+    <style>
+        .nav-shadow.sticky-header {
+            top: 0px !important;
+            position: fixed !important;
+        }
+    </style>
 </head>
-<body>
-    <header>
-        <h1>Exciting Business Upgrade Announcement!</h1>
-    </header>
-    <main style="margin-left: 10px;">
-        <center><img height="100px" width="200px" src="images/Arish_Logo_Trans.png" alt="Arish Technology" class="featured-image"></center>
-        <section>
-            <h2>What's New?</h2>
-            <p>We are thrilled to announce that our business is undergoing a significant upgrade to enhance your experience with us. This upgrade will include new features, improved services, and a more user-friendly interface.</p>
+
+<body data-rsssl=1
+    class="home page-template page-template-new-home page-template-new-home-php page page-id-2 page-parent landing-page white-bg industry-header home-page "
+    data-spy="scroll">
+    <div class="page-wrapper">
+        <!-- Main Header -->
+
+        <!-- Header Upper -->
+        <header class="main-header header-style-one">
+            <div class="header-upper">
+                <div class="auto-container">
+                    <div class="inner-container clearfix">
+
+                        <!--Logo-->
+                        <div class="logo-box">
+                            <div class="logo"><a href="index.html"><img
+                                        src="assets/images/logo.svg"
+                                        style="width: 100px; padding: 0px;" alt="Arish Technologies Logo"></a></div>
+                        </div>
+                        <!--Nav Box-->
+                        <div class="nav-outer">
+                            <!--Mobile Navigation Toggler-->
+                            <div class="mobile-nav-toggler"><img
+                                    src="assets/images/icon-bar.png" width="25" height="14"
+                                    alt="Mobile Menu"></div>
+
+                            <!-- Main Menu -->
+                            <nav class="main-menu navbar-expand-md navbar-light">
+                                <div class="collapse navbar-collapse show" id="navbarSupportedContent">
+                                    <ul class="navigation clearfix">
+                                        <li><a href="#topNav">Home</a></li>
+                                        <li><a href="#offerings">Our Offerings</a></li>
+                                        <li><a href="#tech-stack">Technology Stack</a></li>
+                                        <li><a href="#careers">Careers</a></li>
+                                        <li><a href="#why-us">Why Us?</a></li>
+                                        <li><a href="#contactus">Contact Us</a></li>
+                                    </ul>
+                                </div>
+                            </nav>
+                            <!-- Main Menu End-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--End Header Upper-->
+
+            <!-- Sticky Header  -->
+            <div class="sticky-header">
+                <div class="header-upper">
+                    <div class="auto-container">
+                        <div class="inner-container clearfix">
+                            <!--Logo-->
+                            <div class="logo-box">
+                                <div class="logo"><a href="index.html"><img
+                                            src="assets/images/logo.svg"
+                                            style="width: 100px; padding: 0px;" alt="Arish Technologies Logo"></a>
+                                </div>
+                            </div>
+                            <!--Nav Box-->
+                            <div class="nav-outer">
+                                <!--Mobile Navigation Toggler-->
+                                <div class="mobile-nav-toggler"><img
+                                        src="assets/images/icon-bar.png" width="25"
+                                        height="14" alt="Mobile Menu"></div>
+
+                                <!-- Main Menu -->
+                                <nav class="main-menu navbar-expand-md navbar-light">
+                                </nav>
+                                <!-- Main Menu End-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div><!-- End Sticky Menu -->
+
+            <!-- Mobile Menu  -->
+            <div class="mobile-menu">
+                <div class="menu-backdrop"></div>
+                <!-- <div class="close-btn"><span class="icon flaticon-remove"></span></div> -->
+
+                <nav class="menu-box">
+                    <div class="menu-outer">
+                        <!--Here Menu Will Come Automatically Via Javascript / Same Menu as in Header-->
+                    </div>
+                </nav>
+            </div><!-- End Mobile Menu -->
+            <div class="nav-overlay">
+                <div class="cursor"></div>
+                <div class="cursor-follower"></div>
+            </div>
+        </header>
+        <!-- End Main Header -->
+
+        <!-- Banner Section -->
+        <section class="banner-section style-one grayBg" id="landing-page">
+
+            <video loop muted autoplay poster="#" class="fullscreen-bg__video video">
+                <source src="assets/videos/banner.mp4" type="video/mp4">
+            </video>
         </section>
-        <section>
-            <h2>Upgrade Timeline</h2>
-            <p>The upgrade will take place from <strong>January 25, 2025</strong> to <strong>March 20, 2025</strong>. During this period, some services may be temporarily unavailable. We appreciate your understanding and patience.</p>
+        <section class="mobile-banner-section grayBg banner-section style-one">
+
+            <video loop muted autoplay poster="#" class="fullscreen-bg__video video">
+                <source src="assets/videos/banner.mp4" type="video/mp4">
+            </video>
+
         </section>
-        <section>
-            <h2>Stay Connected!</h2>
-            <p>For the any information, please contact us @ 
-            <a href="mailto:info@arishtech.com" target="_blank">info@arishtech.com</a>or WhatsApp us @ +91-709-684-684-0</p>
-            <p>For the any sales related queries, please contact us @ 
-            <a href="mailto:sales@arishtech.com" target="_blank">sales@arishtech.com</a></p>
+        <!--End Banner Section -->
+
+        <!--start Tech Services Section -->
+        <section class="techServices grayBg">
+            <div class="auto-container">
+                <div class="row">
+                    <div class="col-sm-12 headingUnderline">
+                        <div class="text-center h1">
+                            <h1 class="tech-h2">
+                                <span>Let’s build success together</span>
+                            </h1>
+                        </div>
+                        <p class="h2SubPara">We empower your success with exceptional and right talent that meets your
+                            requirements. Our tailored staffing solutions streamline the hiring process saving you time
+                            and resources while ensuring the perfect fit.</p>
+                    </div>
+                </div>
+
+                <div class="row section-body our-services-card">
+                    <div class="col-md-12">
+                        <div class="offering-wrapper">
+                            <div class="offering-card aos-init our-services-card-bg1 " data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/mobile.jpg" alt="Cloud Migration Services
+" class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Application Services</h5>
+                                    <p class="card-text">Transition to a digital enterprise with modern application
+                                        development and transformation</p>
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg2" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Cloud & DevOps Solutions</h5>
+                                    <p class="card-text">Leverage cloud computing and DevOps automation to enhance
+                                        performance, security, and deployment efficiency across your IT infrastructure.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg3" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Data & Database Management Services</h5>
+                                    <p class="card-text">Optimize data handling with robust database solutions and data
+                                        analytics, ensuring high availability, security, and real-time insights.</p>
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg4" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Mobile App Development</h5>
+                                    <p class="card-text">Create seamless, user-friendly mobile experiences with our
+                                        Android
+                                        and iOS development expertise for high-performing applications.</p>
+
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg5" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/data_analysis.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">Data Engineering & Analytics</h5>
+                                    <p class="card-text">Transform raw data into actionable insights with scalable data
+                                        engineering, advanced analytics, and real-time processing solutions.</p>
+                                </div>
+                            </div>
+
+                            <div class="offering-card aos-init our-services-card-bg6" data-aos="fade-up"
+                                data-aos-duration="500">
+                                <img src="assets/images/mobile.jpg" alt="Cloud Migration Services
+                                " class="bd-placeholder-img card-img-top">
+                                <div class="card-body whtTxt">
+                                    <h5 class="card-title">IT Infrastructure & Atlassian Solutions</h5>
+                                    <p class="card-text"> Streamline IT operations with our infrastructure services and
+                                        Atlassian tool expertise, enhancing collaboration, monitoring, and support
+                                        efficiency.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
-    </main>
-    <footer>
-        <center><p>&copy; 2025 Arish Technology. All rights reserved.</p></center>
-    </footer>
-    <script src="scripts/main.js"></script>
+        <!--End Tech Services Section -->
+
+        <div class="all-service-new siteContainer web-research-new ">
+            <!-- Application_Services_Start -->
+            <div class="application-section2 fortechpages" style="padding-bottom: 1px;">
+
+                <div class="" id="mydiv">
+                    <div class="">
+
+                        <div class="tech-pages-new it-staffing">
+                            <section class="sectionPadding60 main-stripe-banner-bot">
+                                <div class="container">
+                                    <div class="row text-center ipadFlex">
+                                        <div class="col-md-3">
+                                            <div class="card">
+                                                <div class="mainTxt">10<span class="color-ks">+</span></div>
+                                                <div class="para">Industries Served</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card">
+                                                <div class="mainTxt">15<span class="color-ks">+</span></div>
+                                                <div class="para">Technology Stacks Covered </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card">
+                                                <div class="mainTxt">300<span class="color-ks">+</span></div>
+                                                <div class="para">IT Staffing Projects</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <div class="card">
+                                                <div class="mainTxt">98.8<span class="color-ks">%</span></div>
+                                                <div class="para">Client Satisfaction Rate</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="lead-section section-padding grayBg">
+                                <div class="container">
+                                    <div class="row section-header">
+                                        <div class="col-md-12">
+                                            <div class="headingUnderline">
+                                                <h2 class="tech-h2 text-center color-bl">Build Your Tech Dream Team
+                                                </h2>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row section-body">
+                                        <div class="col-sm-12">
+                                            <p class="lead-text">As a premier IT staffing organization, we excel in
+                                                empowering businesses by connecting them with top-tier
+                                                talent—professionals equipped with the skills and expertise critical to
+                                                driving success acording to the need of the project. From filling
+                                                short-term, project-based roles to sourcing
+                                                candidates with the perfect blend of technical proficiency and cultural
+                                                alignment for niche projects, or hiring full-time employees, our
+                                                tailored IT staffing solutions adapt to meet your evolving workforce
+                                                needs.</p>
+                                            <p class="lead-text">We partner with businesses to build their dream tech
+                                                teams, offering a comprehensive range of IT staffing services. Whether
+                                                you’re a growing startup or an established enterprise, we provide
+                                                flexible hiring options, including onsite, offsite, and offshore models,
+                                                ensuring your team is equipped to thrive in today’s competitive
+                                                landscape.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="section-padding" id="offerings">
+                                <div class="container">
+                                    <div class="row section-header">
+                                        <div class="col-md-12">
+                                            <h2 class="tech-h2 text-center color-bl ">Our Offerings</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row section-body mb-50">
+                                        <div class="col-sm-4">
+                                            <img decoding="async"
+                                                src="assets/images/contract-stafing.webp"
+                                                alt="Technology staffing solutions">
+                                        </div>
+                                        <div class="col-sm-8">
+                                            <p class="boldSecFnt">Contract Staffing and Placement</p>
+                                            <p>Our contract staffing and placement services ensure faster placements
+                                                with highly skilled professionals tailored to your needs. By leveraging
+                                                expert consultants and simplified contract terms, we provide flexible
+                                                solutions at competitive rates. Whether you need short-term talent or
+                                                permanent placements, we excel in finding the exact match to help you
+                                                achieve your business goals.</p>
+                                        </div>
+                                    </div>
+                                    <div class="row section-body">
+
+                                        <div class="col-sm-8">
+                                            <p class="boldSecFnt">Global IT Talent Recruitment and Deployment Services
+                                            </p>
+                                            <p>Our global IT talent recruitment and deployment services connect you with
+                                                top-tier tech professionals across the globe. With faster placements and
+                                                expert consultants, we ensure seamless onboarding and assignment
+                                                support. By simplifying contract terms and offering competitive rates,
+                                                we help you build a world-class IT team tailored to your project and
+                                                business requirements.
+                                            </p>
+                                        </div>
+                                        <div class="col-sm-4">
+                                            <img decoding="async" src="assets/images/global_it.webp"
+                                                alt="Technology staffing services">
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <div class="our-approach section-padding">
+                                <div class="container">
+                                    <div class="row section-header">
+                                        <div class="col-md-12">
+                                            <h2 class="tech-h2 text-center aos-init" data-aos="fade-left"
+                                                data-aos-duration="500">Our IT Staffing Process: Tailored to Your Needs
+                                            </h2>
+                                        </div>
+                                    </div>
+                                    <div class="row section-body">
+                                        <div class="col-md-12">
+                                            <div class="our-approach-wrapper">
+                                                <div class="approach-card col-3 aos-init" data-aos="fade-right"
+                                                    data-aos-duration="500">
+                                                    <p></p>
+                                                    <div class="approach-header">
+                                                        <p class="title"><span class="color-ks">1). </span>Connect with
+                                                            us</p>
+                                                    </div>
+                                                    <div class="approach-body">
+                                                        <p class="para">Connect with us to explore your project goals,
+                                                            budget constraints, timelines, and skill requirements. We
+                                                            are dedicated to sourcing top-tier tech talent tailored to
+                                                            your needs, ensuring your team is equipped to deliver
+                                                            exceptional results.
+
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="approach-card col-3 aos-init" data-aos="fade-right"
+                                                    data-aos-duration="1000">
+                                                    <p></p>
+                                                    <div class="approach-header">
+                                                        <p class="title"><span class="color-ks">2). </span>Get the tech
+                                                            talent you need
+                                                        </p>
+                                                    </div>
+                                                    <div class="approach-body">
+                                                        <p class="para">Access top-tier tech talent with expertise in
+                                                            the latest technology stacks. We carefully select skilled
+                                                            professionals based on your specific requirements, ensuring
+                                                            a perfect match of technical proficiency and seamless
+                                                            alignment with your company culture.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div class="approach-card col-3 aos-init" data-aos="fade-right"
+                                                    data-aos-duration="1500">
+                                                    <p></p>
+                                                    <div class="approach-header">
+                                                        <p class="title"><span class="color-ks">3). </span>Seamless
+                                                            Onboarding & Continued Success
+                                                        </p>
+                                                    </div>
+                                                    <div class="approach-body">
+                                                        <p class="para">Our streamlined onboarding process ensures a
+                                                            smooth transition for new hires, minimizing downtime and
+                                                            maximizing productivity. We remain committed to your success
+                                                            by providing ongoing support, monitoring performance, and
+                                                            ensuring that our talent consistently meets your business
+                                                            objectives.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <section id="tech-stack" class="section-1 sectionPadding pythonDevelopmentSection3 grayBg">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="headingUnderline">
+                                                <h2 class="tech-h2 text-center">Technology Stack</h2>
+                                                <p class="aftPara text-center">Leverage our expertise across a diverse
+                                                    technology stack to power your projects with the right tools and
+                                                    talent. </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="row section-body">
+                                        <div class="col-sm-12">
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Technology</div>
+                                                <div class="laravel-tch-list"><span>.NET</span>
+                                                    <span>Java</span> <span>Python</span> <span>PHP</span>
+                                                    <span>Node.js</span> <span>Angular JS</span> <span>React JS</span>
+                                                    <span>jQuery</span>
+                                                </div>
+                                            </div>
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Mobile</div>
+                                                <div class="laravel-tch-list"><span>iOS</span> <span>Android</span>
+                                                    <span>React Native</span>
+                                                </div>
+                                            </div>
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Database</div>
+                                                <div class="laravel-tch-list">
+                                                    <span>PostgreSQL</span> <span>Microsoft SQL
+                                                        Server</span> <span>MySQL</span> <span>MongoDB</span>
+                                                </div>
+                                            </div>
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Atlassian Tools</div>
+                                                <div class="laravel-tch-list"><span>Jira Software</span> <span>Jira
+                                                        Service Management</span>
+                                                    <span>Bitbucket</span> <span>Bamboo </span> <span>Bitbucket</span>
+                                                </div>
+                                            </div>
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Testing</div>
+                                                <div class="laravel-tch-list"><span>Selenium </span> <span>JUnit </span>
+                                                    <span>Apache JMeter</span>
+                                                </div>
+                                            </div>
+                                            <div class="laravel-tech-stack">
+                                                <div class="laravel-tch-name">Cloud</div>
+                                                <div class="laravel-tch-list"><span>Azure</span> <span>AWS</span>
+                                                    <span>Google Cloud</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <section class="section-padding" id="why-us">
+                                <div class="container">
+                                    <div class="row section-header">
+                                        <div class="col-md-12">
+                                            <h2 class="tech-h2 text-center color-bl ">Why Us?</h2>
+                                            <p class="aftPara text-center">The Strategic Impact of IT Staffing Solutions
+                                            </p>
+                                            <p class="aftPara text-center">At Arish, we specialize in bridging the gap
+                                                between exceptional talent and thriving businesses. Our team of industry
+                                                experts is committed to understanding your unique challenges and
+                                                delivering tailored solutions that drive meaningful results.</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="row section-body">
+                                        <div class="col-md-12">
+                                            <div class="offering-wrapper">
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="500">
+                                                    <p class="title">Accelerated Placements for Immediate Needs</p>
+                                                    <p class="para">In the fast-paced IT industry, time is of the
+                                                        essence. Our IT staffing solution ensures faster placements by
+                                                        leveraging an extensive talent pool and a streamlined hiring
+                                                        process. With our expertise, you can quickly onboard skilled
+                                                        professionals to meet your project deadlines and business goals
+                                                        without compromising on quality.</p>
+                                                </div>
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="1000">
+                                                    <p class="title">Expert Consultants</p>
+                                                    <p class="para">Gain a competitive edge with access to specialized
+                                                        skills and expert consultants. Our network of seasoned
+                                                        professionals spans various technologies and domains, ensuring
+                                                        your team is equipped with the right expertise to tackle complex
+                                                        challenges and drive innovation.</p>
+                                                </div>
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="1500">
+                                                    <p class="title">Flexible and Scalable Staffing Solutions</p>
+                                                    <p class="para">Adapt to your business's evolving needs with
+                                                        flexibility and scalability. Whether you need to ramp up your
+                                                        team for a critical project or scale down during off-peak
+                                                        periods, our staffing solutions are designed to align with your
+                                                        unique requirements, offering seamless adjustments without
+                                                        disruptions.
+                                                    </p>
+                                                </div>
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="500">
+                                                    <p class="title">Simplified Contracts and Cost-Effective Rates</p>
+                                                    <p class="para">Our simplified contract terms make it easy to engage
+                                                        with us, reducing administrative overhead. Additionally, we
+                                                        offer lower rates and rate matching to ensure cost-effectiveness
+                                                        without compromising on the quality of talent. This transparent
+                                                        approach helps you optimize your budget while meeting your
+                                                        staffing needs.</p>
+                                                </div>
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="1000">
+                                                    <p class="title">Enhanced Employee Retention Strategies</p>
+                                                    <p class="para">Retaining top talent is critical for long-term
+                                                        success. Our focus on employee retention ensures that the
+                                                        consultants we provide are engaged and motivated, minimizing
+                                                        turnover and maintaining continuity in your projects. This
+                                                        stability translates into consistent performance and better
+                                                        results for your business.</p>
+                                                </div>
+                                                <div class="offering-card aos-init" data-aos="fade-up"
+                                                    data-aos-duration="1500">
+                                                    <p class="title">Time Efficiency with a Proven Process</p>
+                                                    <p class="para">Save valuable time with our time-efficient staffing
+                                                        process. From sourcing to onboarding, we handle every step with
+                                                        precision, allowing you to focus on core business operations.
+                                                        Our approach minimizes delays, ensuring that you have the right
+                                                        talent in place exactly when you need it.</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+
+                            <div class="faqSection sectionPadding grayDbg">
+                                <div class="container">
+                                    <div class="row">
+                                        <div class="col-sm-12 headingUnderline">
+                                            <h2 class="tech-h2 text-center">Frequently Asked Questions</h2>
+                                        </div>
+                                    </div>
+                                    <div class="row" itemscope="" itemtype="https://schema.org/FAQPage">
+                                        <div class="accordion_container">
+                                            <div class="accordion_head" itemscope="" itemprop="mainEntity"
+                                                itemtype="https://schema.org/Question">
+                                                <h3 itemprop="name">What makes Arish IT Staffing Solutions different
+                                                    from other providers?
+                                                </h3>
+                                                <p><span class="plusminus"><i class="fa fa-minus"></i></span></p>
+                                                <div class="accordion_body" itemscope="" itemprop="acceptedAnswer"
+                                                    itemtype="https://schema.org/Answer" style="display: block;">
+                                                    <div itemprop="text">
+                                                        <p class="common-p">Arish IT Staffing Solutions stands apart
+                                                            with our commitment to faster placements, flexible
+                                                            contracts, and access to specialized skills. We focus on
+                                                            building long-term relationships by delivering exceptional
+                                                            talent and providing customized solutions that align with
+                                                            your business goals.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion_head" itemscope="" itemprop="mainEntity"
+                                                itemtype="https://schema.org/Question">
+                                                <h3 itemprop="name">Can you help with IT staffing for startups?
+                                                </h3>
+                                                <p><span class="plusminus" style="display: none;"><i
+                                                            class="fa fa-plus"></i></span></p>
+                                                <div class="accordion_body" itemscope="" itemprop="acceptedAnswer"
+                                                    itemtype="https://schema.org/Answer">
+                                                    <div itemprop="text">
+                                                        <p class="common-p">Definitely! we understand the unique
+                                                            challenges startups face. Arish IT Staffing Solutions offers
+                                                            cost-effective and scalable staffing solutions tailored to
+                                                            meet the needs of growing businesses, helping you build a
+                                                            strong technology foundation without overextending your
+                                                            budget.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion_head" itemscope="" itemprop="mainEntity"
+                                                itemtype="https://schema.org/Question">
+                                                <h3 itemprop="name">How do you ensure the quality of the candidates you
+                                                    provide?</h3>
+                                                <p><span class="plusminus" style="display: none;"><i
+                                                            class="fa fa-plus"></i></span></p>
+                                                <div class="accordion_body" itemscope="" itemprop="acceptedAnswer"
+                                                    itemtype="https://schema.org/Answer">
+                                                    <div itemprop="text">
+                                                        <p class="common-p">We follow a rigorous vetting process,
+                                                            including technical assessments, interviews, and background
+                                                            checks, to ensure every candidate meets the highest
+                                                            standards. At Arish IT Staffing Solutions, quality is our
+                                                            priority, and we deliver only the best-fit professionals for
+                                                            your needs.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion_head" itemscope="" itemprop="mainEntity"
+                                                itemtype="https://schema.org/Question">
+                                                <h3 itemprop="name">Can I use IT staffing services to enhance my
+                                                    in-house technology team?</h3>
+                                                <p><span class="plusminus" style="display: none;"><i
+                                                            class="fa fa-plus"></i></span></p>
+                                                <div class="accordion_body" itemscope="" itemprop="acceptedAnswer"
+                                                    itemtype="https://schema.org/Answer">
+                                                    <div itemprop="text">
+                                                        <p class="common-p">Yes, our IT staffing solutions are perfect
+                                                            for augmenting your in-house team. Whether you need
+                                                            additional expertise, help during peak workloads, or support
+                                                            for a specific project, Arish IT Staffing Solutions ensures
+                                                            seamless collaboration between our consultants and your
+                                                            existing staff.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="accordion_head" itemscope="" itemprop="mainEntity"
+                                                itemtype="https://schema.org/Question">
+                                                <h3 itemprop="name">Can you scale staffing solutions as my business
+                                                    grows?</h3>
+                                                <p><span class="plusminus" style="display: none;"><i
+                                                            class="fa fa-plus"></i></span></p>
+                                                <div class="accordion_body" itemscope="" itemprop="acceptedAnswer"
+                                                    itemtype="https://schema.org/Answer">
+                                                    <div itemprop="text">
+                                                        <p class="common-p">Yes, scalability is a core aspect of our
+                                                            services. Whether your needs increase due to business
+                                                            expansion or new project demands, Arish IT Staffing
+                                                            Solutions can quickly adjust to provide the additional
+                                                            resources you require.</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!--</div>-->
+
+
+        <!-- Main Footer Start -->
+        <!-- Contact Us start -->
+        <section id="contactus" style="padding: 25px 0px;">
+            <div class="row">
+                <div class="col-sm-12 headingUnderline">
+                    <h2 class="tech-h2 text-center">Contact Us</h2>
+                </div>
+            </div>
+            <div class="container-contact100">
+                <div class="wrap-contact100">
+                    <form id="contactForm" class="contact100-form validate-form">
+                        <div class="wrap-input100 validate-input bg1">
+                            <span class="label-input100">Full Name *</span>
+                            <input class="input100" type="text" name="name" id="fullName" placeholder="Enter Your Name">
+                        </div>
+
+                        <div class="wrap-input100 validate-input bg1">
+                            <span class="label-input100">Email *</span>
+                            <input class="input100" type="text" name="email" id="email" placeholder="Enter Your Email">
+                            <div id="emailError" class="error">Invalid email domain.</div>
+                        </div>
+
+                        <div class="wrap-input100 validate-input bg1">
+                            <span class="label-input100">Phone *</span>
+                            <input class="input100" type="text" name="phone" id="phone"
+                                placeholder="Enter Phone Number">
+                        </div>
+
+                        <div class="wrap-input100 validate-input bg1">
+                            <span class="label-input100">Company Name *</span>
+                            <input class="input100" type="text" name="company" id="company"
+                                placeholder="Enter Your Company Name">
+                        </div>
+
+                        <div class="wrap-input100 validate-input bg0">
+                            <span class="label-input100">Message</span>
+                            <textarea class="input100" style=" overflow-y:scroll;   " name="message" id="message"
+                                placeholder="Your message here..."></textarea>
+                        </div>
+
+                        <div class="container-contact100-form-btn">
+                            <button type="submit" class="contact100-form-btn">
+                                <span>Submit <i class="fa fa-long-arrow-right m-l-7" aria-hidden="true"></i></span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </section>
+        <!-- Contact Us end -->
+        <!--start Footer Section -->
+        <footer class="sectionPadding main-footer grayBg pb0">
+            <div class="auto-container footer-top">
+                <div class="widgets-section">
+                    <div class="row clearfix">
+                        <!--Column-->
+                        <div class="column col-lg-12">
+                            <div class="footer-widget">
+                                <h3 class="widget-title">Connect With Us</h3>
+                                <div class="row" style="display: flex;align-items: center;">
+                                    <div class="col-md-3">
+                                        <div class="logo"><a href="index.html"><img
+                                                    src="assets/images/logo.svg"
+                                                    style="width: 100px; padding: 0px;"
+                                                    alt="Arish Technologies Logo"></a></div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="footer-widget subscribe-widget">
+                                            <ul class="social-links clearfix">
+                                                <li><a href="https://linkedin.com/company/arishtech"
+                                                        aria-label="linkedin" target="_blank"><span
+                                                            class="linkedin-ico"></span></a></li>
+                                                <li><a href="https://x.com/Arish_tech" aria-label="twitter"
+                                                        target="_blank"><span class="twitter-ico"></span></a></li>
+                                                <li><a href="https://www.facebook.com/share/18qGPR6iaS/"
+                                                        aria-label="facebook" target="_blank"><span
+                                                            class="facebook-ico"></span></a></li>
+                                                <li><a href="https://youtube.com/@arishtechofficial"
+                                                        aria-label="youtube" target="_blank"><span
+                                                            class="youtube-ico"></span></a></li>
+                                                <li><a href="https://www.instagram.com/arish.tech"
+                                                        aria-label="instagram" target="_blank"><span
+                                                            class="instagram-ico"></span></a></li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-3">
+                                        <div class="footer-widget links-widget">
+                                            <div class="widget-content">
+                                                <ul>
+                                                    <li><a href="tel:16096320350"><i class="phone-ico"
+                                                                alt="Phone Icon"></i>+91 709 684 684 0</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-3">
+                                        <div class="footer-widget links-widget">
+                                            <div class="widget-content">
+                                                <ul>
+                                                    <li><a href="mailto:info@arishtech.com"><i class="envelope-ico"
+                                                                alt="Message Icon"></i> info@arishtech.com</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="footer-bottom-three">
+                            <div class="auto-container">
+                                <div class="text-center">
+                                    <div class="copyright-text">Copyright ©
+                                        <script>
+                                            var CurrentYear = new Date().getFullYear();
+                                            document.write(CurrentYear);
+                                        </script>
+                                        Arish Techologies. All Rights Reserved.
+                                    </div>
+                                    <div class="clearfix"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom-foure">
+                <div class="auto-container">
+                    <div class="row m-0">
+                        <div class="copyright-text mob-foot-copy text-center">Copyright ©
+                            <script>
+                                var CurrentYear = new Date().getFullYear();
+                                document.write(CurrentYear);
+                            </script>
+                            Arish Techologies. All Rights Reserved.
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+    <!--End pagewrapper-->
+
+    <!--Scroll to top-->
+    <div class="scroll-to-top scroll-to-target bg-color-ks" data-target="html"><span
+            class="flaticon-right-arrow"></span></div>
+
+    <script type="rocketlazyloadscript" src="assets/js/bootstrap.min.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/TweenMax.min.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/swiper.min.js" defer></script>
+
+    <script type="rocketlazyloadscript" src="assets/js/owl.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/appear.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/wow.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/lazyload.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/scrollbar.js" defer></script>
+
+    <script type="rocketlazyloadscript" src="assets/js/aos.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/slick.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/numscroller.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/faq-accordion.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/script.js" defer></script>
+    <script type="rocketlazyloadscript">window.addEventListener('DOMContentLoaded', function() {
+
+AOS.init();
+  $(document).ready(function(){
+	var prospectName = '';
+      var prospectEmail = '';
+      localStorage.setItem('prospect_name', prospectName);
+      localStorage.setItem('prospect_email', prospectEmail); 
+      $('#thanku-container').hide();
+      $('#thanku-container1').hide();
+      $(".contact-widget").click(function () {
+         $(".widget-content-contact").toggle();
+      });
+      $(".close-widget").click(function () {
+         $(".widget-content-contact").toggle();
+      });
+      $(".request-widget").click(function () {
+         $(".widget-content-contact").toggle();
+      });
+      $(".close-widi").click(function () {
+         $(".widget-content-contact").toggle();
+      });
+      $("#req-consultation").click(function () {
+         $(".widget-inner-content").hide();
+         $("#consultation-form").show();
+         $(".widget-content-contact-style").show();
+      });
+      $(".tabbinginput").focus(function () {
+         $(this).parent().parent().removeClass("animatebottom");
+         $(this).parent().parent().addClass("animateTop");
+      }).blur(function () {
+         if (!$(this).val()) {
+            $(this).parent().parent().removeClass("animateTop");
+            $(this).parent().parent().addClass("animatebottom");
+         }
+      }) 
+      $(".tabbingtextarea").focus(function () {
+         $(this).parent().parent().removeClass("animatebottom");
+         $(this).parent().parent().addClass("animateTop");
+      }).blur(function () {
+         if (!$(this).val()) {
+            $(this).parent().parent().removeClass("animateTop");
+            $(this).parent().parent().addClass("animatebottom");
+         }
+      })
+  })
+});
+</script>
+    <script src="assets/js/jquery-3.2.1.min.js"></script>
+    <script type="rocketlazyloadscript" src="assets/js/animsition.min.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/popper.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js//select2.min.js" defer></script>
+    <script type="rocketlazyloadscript" src="assets/js/main.js" defer></script>
+    </script>
+    <script type="text/javascript">
+        (function () {
+            emailjs.init("hfm1Q3MjMtQpsP3dN"); //please encrypted user id for malicious attacks
+        })()
+
+        document.getElementById("contactForm").addEventListener("submit", function (event) {
+            event.preventDefault(); // Prevent default form submission
+
+            const blockedDomains = ["mailinator.com", "tempmail.com", "10minutemail.com"];
+            const fullName = document.getElementById("fullName").value.trim();
+            const email = document.getElementById("email").value.trim();
+            const phone = document.getElementById("phone").value.trim();
+            const company = document.getElementById("company").value.trim();
+            const message = document.getElementById("message").value.trim();
+            const emailError = document.getElementById("emailError");
+
+            // Validate email domain
+            const emailDomain = email.split("@")[1];
+            if (blockedDomains.includes(emailDomain)) {
+                emailError.style.display = "block";
+                return;
+            } else {
+                emailError.style.display = "none";
+            }
+
+            // Validate required fields
+            if (!fullName || !email || !phone || !company || !message) {
+                alert("All fields are required!");
+                return;
+            }
+
+            // Prepare email data
+            const templateParams = {
+                fullName,
+                email,
+                phone,
+                company,
+                message
+            };
+
+            // Send email using EmailJS
+            emailjs.send("service_37a94ds", "template_dn0vfdr", templateParams)
+                .then(response => {
+                    alert("Email sent successfully!");
+                    document.getElementById("contactForm").reset();
+                })
+                .catch(error => {
+                    console.error("Error sending email:", error);
+                    alert("Error sending email. Please try again.");
+                });
+        });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.body.addEventListener('click', function (e) {
+                // Check if a navigation link was clicked
+                if (e.target.matches('.navigation a')) {
+                    e.preventDefault(); // Prevent default anchor click behavior
+
+                    const targetId = e.target.getAttribute('href').substring(1); // Get target section ID
+
+                    // If "Home" is clicked, scroll to top
+                    if (targetId === "topNav") {
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                        return;
+                    }
+
+                    const targetElement = document.getElementById(targetId);
+                    if (!targetElement) return;
+
+                    // Select headers
+                    const normalHeader = document.querySelector('.main-header'); // Normal header before scrolling
+                    const stickyHeader = document.querySelector('.sticky-header'); // Sticky header after scrolling
+
+                    let headerHeight = 0;
+                    if (stickyHeader && window.scrollY > normalHeader.offsetHeight) {
+                        headerHeight = stickyHeader.offsetHeight; // Use sticky header height when visible
+                    } else if (normalHeader) {
+                        headerHeight = normalHeader.offsetHeight; // Use normal header height when present
+                    }
+
+                    console.log("Header Height:", headerHeight);
+                    console.log("Sticky Header Visible:", window.scrollY > normalHeader.offsetHeight);
+
+                    // Calculate scrolling position
+                    const targetPosition = targetElement.getBoundingClientRect().top + window.scrollY; // Absolute position
+                    const offsetTop = targetPosition - headerHeight - 10; // Ensure a 10px gap
+
+                    console.log("Scrolling to:", offsetTop);
+
+                    // Smooth scroll
+                    window.scrollTo({
+                        top: offsetTop,
+                        behavior: 'smooth'
+                    });
+
+                    // Optional: Add padding after scrolling
+                    setTimeout(() => {
+                        targetElement.style.paddingBottom = '20px';
+                    }, 500);
+                }
+            });
+        });
+    </script>
 </body>
+
 </html>
