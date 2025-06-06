@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atlassian Services | Arish Technology</title>
+    <meta name="description" content="Discover expert Atlassian services at Arish Technology. Implementation, customization, and support for Jira, Confluence, Bitbucket, and more.">
+    <link rel="stylesheet" href="/assets/css/styles.css">
+    <style>
+        body { font-family: Arial, sans-serif; color: #333; margin: 0; padding: 0; }
+        .hero { background-color: #0052CC; color: #fff; padding: 60px 20px; text-align: center; }
+        .container { padding: 40px 20px; max-width: 1200px; margin: auto; }
+        h1, h2 { color: #0052CC; }
+        ul { padding-left: 20px; }
+        .cta { text-align: center; margin-top: 40px; }
+        .cta a { background-color: #0052CC; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; }
+        .cta a:hover { background-color: #003f9a; }
+        .icons-section { text-align: center; margin-top: 30px; }
+        .icons-section img { width: 100px; margin: 0 15px; vertical-align: middle; }
+        .feature-image { width: 100%; max-width: 700px; display: block; margin: 30px auto; border-radius: 8px; }
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 1s ease-out, transform 1s ease-out; }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, { threshold: 0.1 });
+
+            document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        });
+    </script>
+</head>
+<body>
+
+    <header class="hero fade-in">
+        <h1>Atlassian Services</h1>
+        <p>Boost Your Team's Efficiency with Tailored Jira, Confluence, and DevOps Solutions</p>
+        <div class="icons-section">
+            <img src="/assets/images/logo-arishtech.png" alt="Arish Technology Logo">
+            <img src="/assets/images/jira-icon.png" alt="Jira">
+            <img src="/assets/images/confluence-icon.png" alt="Confluence">
+            <img src="/assets/images/bitbucket-icon.png" alt="Bitbucket">
+        </div>
+    </header>
+
+    <main class="container">
+        <h2 class="fade-in">Why Choose Arish Technology for Atlassian?</h2>
+        <p class="fade-in">As a trusted Atlassian solutions partner, Arish Technology helps organizations streamline collaboration, project management, and IT service delivery using Atlassian tools. Whether you're starting fresh or optimizing existing systems, our experts are here to help.</p>
+
+        <img src="/assets/images/atlassian-team-collaboration.jpg" alt="Team Collaboration with Atlassian" class="feature-image fade-in">
+
+        <h2 class="fade-in">Our Atlassian Service Offerings</h2>
+        <ul class="fade-in">
+            <li><strong>Jira Implementation & Customization:</strong> Project setup, workflows, automation, issue types, and dashboards tailored to your business needs.</li>
+            <li><strong>Confluence Setup & Optimization:</strong> Centralized knowledge management and collaboration workspaces.</li>
+            <li><strong>Atlassian DevOps Tools:</strong> Bitbucket, Bamboo, and Jira Service Management integration and configuration.</li>
+            <li><strong>Marketplace App Integration:</strong> Installation and support for top-rated plugins and custom Insight development.</li>
+            <li><strong>Migration & Cloud Transition:</strong> Move from Server to Cloud or Data Center with minimal downtime.</li>
+            <li><strong>User Training & Support:</strong> Enable your teams with hands-on training and best practices guidance.</li>
+        </ul>
+
+        <h2 class="fade-in">Industries We Serve</h2>
+        <p class="fade-in">We work with startups, enterprises, and public-sector organizations across industries including IT, healthcare, education, and finance.</p>
+
+        <div class="cta fade-in">
+            <h2>Ready to Streamline Your Workflows?</h2>
+            <p>Let us help you make the most of Atlassian tools.</p>
+            <a href="/contact">Contact Us Today</a>
+        </div>
+    </main>
+
+</body>
+</html>
