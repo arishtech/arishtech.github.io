@@ -1253,7 +1253,7 @@ AOS.init();
             document.body.addEventListener('click', function (e) {
                 // Check if a navigation link was clicked
                 if (e.target.matches('.navigation a')) {
-                    e.preventDefault(); // Prevent default anchor click behavior
+                    // e.preventDefault(); // Prevent default anchor click behavior
 
                     const targetId = e.target.getAttribute('href').substring(1); // Get target section ID
 
