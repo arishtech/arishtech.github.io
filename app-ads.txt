@@ -160,3 +160,6 @@ undertone.com, 4261, RESELLER
 adyoulike.com, 721f20f70910d379981dc19ec5da709f, RESELLER
 video.unrulymedia.com, 2464975885, RESELLER
 bidmachine.io, 1447, RESELLER
+smilewanted.com, 5959, RESELLER
+pubmatic.com, 165611, RESELLER, 5d62403b186f2ace
+smartadserver.com, 5044, RESELLER, 060d053dcf45cbf3
