@@ -1,0 +1,5 @@
+{
+"version": "1.0.7",
+"tv": "arishtech.com/Preet_TV_TV.apk",
+"mobile": "arishtech.com/Preet_TV_Mobile.apk"
+}
