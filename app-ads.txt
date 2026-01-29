@@ -1,3 +1,4 @@
+google.com, pub-5397492713499376, DIRECT, f08c47fec0942fa0
 start.io, 130807160, DIRECT
 pubnative.net, 1007349, RESELLER, d641df8625486a7b
 pubnative.net, 1008289, RESELLER, d641df8625486a7b
