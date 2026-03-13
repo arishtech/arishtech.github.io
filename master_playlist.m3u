@@ -9244,9 +9244,9 @@ http://115.42.65.142:9981/stream/channelid/1099703605?video_type=video%2Fmp2t&re
 #EXTINF:-1 tvg-id="AzaharesRadiovisualMultimedia.ar@SD" tvg-logo="https://i.imgur.com/g1BFoSs.png" group-title="Music",Azahares Radio Multimedia (720p)
 https://streamyes.alsolnet.com/azaharesfm/live/playlist.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
 #EXTINF:-1 tvg-id="B4UMusic.in@APAC" tvg-logo="https://dtil.tmsimg.com/assets/s158141_ld_h15_aa.png?lock=720x540" group-title="Music",B4U Music APAC (720p)
-https://edge2.roarzone.info:8447/roarzone/edge3/b4u-music/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
+https://cdn-2.pishow.tv/live/415/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
 #EXTINF:-1 tvg-id="B4UMusic.in@India" tvg-logo="https://dtil.tmsimg.com/assets/s158141_ld_h15_aa.png?lock=720x540" group-title="Music",B4U Music (1080p)
-https://cdnb4u.wiseplayout.com/B4U_Music/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=1080p&source_group=Music
+https://cdn-2.pishow.tv/live/415/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=1080p&source_group=Music
 #EXTINF:-1 tvg-id="BarazaTVRelaxing.gr@SD" tvg-logo="https://i.imgur.com/TZ1unwF.png" group-title="Music",Baraza TV Relaxing (720p)
 https://rtmp.streams.ovh:1936/barazarelax/barazarelax/playlist.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
 #EXTINF:-1 tvg-id="BarazaTVDeepHouse.gr@SD" tvg-logo="https://i.imgur.com/TZ1unwF.png" group-title="Music",Baraza TV Deep House (720p)
@@ -13961,7 +13961,7 @@ http://cdntv.online/low/9mlxywika2/55.m3u8?video_type=application%2Fvnd.apple.mp
 http://cdntv.online/low/9mlxywika2/56.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Sports
 #EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Football",Russia Football 3 HD
 http://cdntv.online/low/9mlxywika2/57.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Sports
-#EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Football",PRO Sport International �
+#EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Football",PRO Sport International  
 https://proshls.wns.live/hls/stream.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Sports
 #EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Football",Sharjah Sports 🎯
 https://svs.itworkscdn.net/smc4sportslive/smc4.smil/smc4sportspublish/smc4tv_720p/chunks.m3u8?video_type=application%2Fx-mpegURL&source_group=Sports
