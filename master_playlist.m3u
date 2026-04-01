@@ -13625,8 +13625,6 @@ https://cloudvideo.servers10.com:8081/8026/tracks-v1a1/index.m3u8?video_type=app
 https://cdnlive.myspirit.tv/LS-ATL-43240-2/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
 #EXTINF:-1 tvg-id="Star101FM.gu@SD" tvg-logo="https://star101.gu/images/fb_icon.jpg" group-title="Music",Star 101 FM (KNUT Guam) [Not 24/7]
 https://live2.tensila.com/knut-v-1.choice/hls/master.m3u8?video_type=application%2Foctet-stream&source_group=Music
-#EXTINF:-1 tvg-id="StarPlusTelevizija.mk@SD" tvg-logo="https://i.imgur.com/01yz22a.png" group-title="Music",Star Plus Music (1080p) [Not 24/7]
-http://103.229.254.25:7001/play/a09z/index.m3u8?video_type=application%2Fvnd.apple.mpegURL&resolution=1080p&source_group=Music
 #EXTINF:-1 tvg-id="SteelbirdMusic.in@SD" tvg-logo="https://jiotvimages.cdn.jio.com/dare_images/images/Steelbird_Music.png" group-title="Music",Steelbird Music (720p) [Not 24/7]
 https://cdn2.in/SteelbirdMusicTVhls/live.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=720p&source_group=Music
 #EXTINF:-1 tvg-id="StingrayClassicRock.ca@SD" tvg-logo="https://i.imgur.com/FBgu8yB.png" group-title="Music",Stingray Classic Rock (1080p)
