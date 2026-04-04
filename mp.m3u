@@ -20531,3 +20531,5 @@ https://cloudfrontnet.vercel.app/tplay/playout/209627/master.m3u8?video_type=app
 https://cloudfrontnet.vercel.app/tplay/playout/209612/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Ungrouped
 #EXTINF:-1 group-title="Bangladeshi Ungrouped",Bollywood Movies
 https://cloudfrontnet.vercel.app/tplay/playout/209593/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Ungrouped
+#EXTINF:-1 tvg-id="" tvg-logo="" group-title="Hindi Music",Classic Hits
+https://mumt03.tangotv.in/CLASSICHITS/index.m3u8
