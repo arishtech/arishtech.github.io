@@ -1,0 +1,21 @@
+#EXTM3U
+#EXTINF:-1 tvg-id="eng_news" tvg-name="English News" group-title="News",English News
+http://example.com/streams/eng_news.m3u8
+#EXTINF:-1 tvg-id="hindi_news" tvg-name="Hindi News" group-title="News",Hindi News
+http://example.com/streams/hindi_news.m3u8
+#EXTINF:-1 tvg-id="ent_1" tvg-name="Entertainment" group-title="Entertainment",Entertainment
+http://example.com/streams/ent_1.m3u8
+#EXTINF:-1 tvg-id="sports_1" tvg-name="Sports 1" group-title="Sports",Sports 1
+http://example.com/streams/sports_1.m3u8
+#EXTINF:-1 tvg-id="sports_2" tvg-name="Sports 2" group-title="Sports",Sports 2
+http://example.com/streams/sports_2.m3u8
+#EXTINF:-1 tvg-id="movies_1" tvg-name="Movie World" group-title="Movies",Movie World
+http://example.com/streams/movies_1.m3u8
+#EXTINF:-1 tvg-id="kids_1" tvg-name="Kids Zone" group-title="Animation",Kids Zone
+http://example.com/streams/kids_1.m3u8
+#EXTINF:-1 tvg-id="music_1" tvg-name="Music Hits" group-title="Music",Music Hits
+http://example.com/streams/music_1.m3u8
+#EXTINF:-1 tvg-id="music_2" tvg-name="Hindi Music" group-title="Music",Hindi Music
+http://example.com/streams/music_1.m3u8
+#EXTINF:-1 tvg-id="music_3" tvg-name="English Music" group-title="Music",English Music
+http://example.com/streams/music_1.m3u8
