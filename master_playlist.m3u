@@ -18455,14 +18455,10 @@ https://zkpywrbgdbeg-hls-live.mariatvcdn.it/teleradiopace2/254c9b5c52a73a94ef0f6
 https://880ca9c9341c405f83d8664a18cc7134.mediatailor.us-west-2.amazonaws.com/v1/master/ba62fe743df0fe93366eba3a257d792884136c7f/LINEAR-1224-SPACELIVE-LG-UK/mt/lg-uk/1224/hls/master/playlist.m3u8?video_type=application%2Fvnd.apple.mpegurl&resolution=1080p&source_group=Relax
 
 #GROUP:Ipl 2026
-#EXTINF:-1 tvg-id="StarSports3.in@SD" tvg-logo="https://xstreamcp-assets-msp.streamready.in/assets/LIVETV/LIVECHANNEL/LIVETV_LIVETVCHANNEL_STAR_SPORTS_3/images/LOGO_HD/image.png" group-title="Ipl 2026",Star Sports 3 (576p)
-http://103.161.153.165:8000/play/a05p/index.m3u8?video_type=application%2Fvnd.apple.mpegURL&resolution=576p&source_group=Sports
 #EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Ipl 2026",PSL 🇵🇰🏏 Willow HD
 http://xui.mainserver.cc/play/oCkZyqACmAE6FvzKu_186PEFGOk9LoJ4xGfS1beyo7s/.m3u8?video_type=application%2Foctet-stream&source_group=Sports
-#EXTINF:-1 tvg-logo="https://bugsfreeweb.github.io/LiveTVCollector/BugsfreeLogo/default-logo.png" group-title="Ipl 2026",Star Sports SL 1 🇮🇳
-https://mflixott.com/tv/plusbox/live/StarSportsSelect1/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Sports
-#EXTINF:-1 tvg-logo=" " group-title="Ipl 2026",Star Sports SL 2 🇮🇳
-https://mflixott.com/tv/plusbox/live/StarSportsSelect2/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Sports
+#EXTINF:-1 tvg-logo="https://i.imgur.com/E5jjKHI.png" group-title="Ipl 2026",Star Sports 1 HD Eng
+https://mflixott.com/tv/plusbox/live/TSportsHD/index.m3u8
 
 #GROUP:General Series
 #EXTINF:-1 tvg-id="SuperTV.it@SD" tvg-logo="https://i.imgur.com/hxF3yhw.png" group-title="General Series",Super TV (720p)
