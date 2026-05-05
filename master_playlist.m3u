@@ -2,142 +2,756 @@
 
 #LANG:Unknown
 
-#GROUP:Entertainment
-#EXTINF:-1 tvg-id="Star Plus HD" tvg-logo="https://idfc.helioho.st/img/starplushd.png" group-title="Entertainment",Star Plus HD
-http://103.229.254.25:7001/play/a09z/index.m3u8?video_type=application%2Fvnd.apple.mpegURL&source_group=Entertainment
-#EXTINF:-1 tvg-id="Big Magic" tvg-logo="https://idfc.helioho.st/img/bigmagic.png" group-title="Entertainment",Big Magic
-https://mumt05.tangotv.in/BIGMAGIC/tracks-v2a1/mono.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Entertainment
-#EXTINF:-1 tvg-id="Sony SAB HD" tvg-logo="https://idfc.helioho.st/img/sonysabhd.png" group-title="Entertainment",Sony SAB HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156014&extension=ts&play_token=KEuQuwT9b5&video_type=application%2Foctet-stream&source_group=Entertainment
-#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155977&extension=ts&play_token=lOqDOQc3bb&video_type=application%2Foctet-stream&source_group=Entertainment
-
 #GROUP:Ungrouped
 #EXTINF:-1 tvg-id="June" group-title="Ungrouped",2026" tvg-logo="" group-title="",June 10, 2026
-http://cps2.serv00.net/intro.mp4?video_type=video%2Fmp4&source_group=Ungrouped
+http://cps2.serv00.net/intro.mp4?source_group=Ungrouped
+
+#GROUP:Entertainment
+#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155977&extension=ts&play_token=lOqDOQc3bb&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Plus HD" tvg-logo="https://idfc.helioho.st/img/starplushd.png" group-title="Entertainment",Star Plus HD
+http://103.229.254.25:7001/play/a09z/index.m3u8?source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Bharat HD" tvg-logo="https://idfc.helioho.st/img/starbharathd.png" group-title="Entertainment",Star Bharat HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156173&extension=ts&play_token=biGNE7a4dH&source_group=Entertainment
+#EXTINF:-1 tvg-id="SET HD" tvg-logo="https://idfc.helioho.st/img/sonyentertainmenttelevisionhd.png" group-title="Entertainment",Sony Entertainment Television HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156104&extension=ts&play_token=AC1Ajg3vSO&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony SAB HD" tvg-logo="https://idfc.helioho.st/img/sonysabhd.png" group-title="Entertainment",Sony SAB HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156014&extension=ts&play_token=KEuQuwT9b5&source_group=Entertainment
+#EXTINF:-1 tvg-id="&amp;TV HD" tvg-logo="https://idfc.helioho.st/img/andtvhd.png" group-title="Entertainment",&TV HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=809740&extension=ts&play_token=BGO8c0rPJ0&source_group=Entertainment
+#EXTINF:-1 tvg-id="Zee TV HD" tvg-logo="https://idfc.helioho.st/img/zeetvhd.png" group-title="Entertainment",Zee TV HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155974&extension=ts&play_token=hejE8B8HZN&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors HD" tvg-logo="https://idfc.helioho.st/img/colorshd.png" group-title="Entertainment",Colors HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280774&extension=ts&play_token=rrL9XkvEly&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Utsav" tvg-logo="https://idfc.helioho.st/img/starutsav.png" group-title="Entertainment",Star Utsav
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156163&extension=ts&play_token=nddBs1OYPM&source_group=Entertainment
+#EXTINF:-1 tvg-id="Anmol TV" tvg-logo="https://idfc.helioho.st/img/anmoltv.png" group-title="Entertainment",Anmol TV
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156165&extension=ts&play_token=yGhkBRQMcv&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors Rishtey" tvg-logo="https://idfc.helioho.st/img/colorsrishtey.png" group-title="Entertainment",Colors Rishtey
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=42456&extension=ts&play_token=5Dv1zSuQM2&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony Pal" tvg-logo="https://idfc.helioho.st/img/sonypal.png" group-title="Entertainment",Sony Pal
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156101&extension=ts&play_token=lZig7wLFJ8&source_group=Entertainment
+#EXTINF:-1 tvg-id="The Q" tvg-logo="https://idfc.helioho.st/img/theq.png" group-title="Entertainment",The Q
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280906&extension=ts&play_token=HnRG8BlKdE&source_group=Entertainment
+#EXTINF:-1 tvg-id="Big Magic" tvg-logo="https://idfc.helioho.st/img/bigmagic.png" group-title="Entertainment",Big Magic
+https://mumt05.tangotv.in/BIGMAGIC/tracks-v2a1/mono.m3u8?source_group=Entertainment
+#EXTINF:-1 tvg-id="Dangal" tvg-logo="https://idfc.helioho.st/img/dangal.png" group-title="Entertainment",Dangal
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156049&extension=ts&play_token=SWbZOE2pGq&source_group=Entertainment
+#EXTINF:-1 tvg-id="Shemaroo TV" tvg-logo="https://idfc.helioho.st/img/shemarootv.png" group-title="Entertainment",Shemaroo TV
+http://idfc.helioho.st/image/shemaroo.png?source_group=Entertainment
+#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155977&extension=ts&play_token=lOqDOQc3bb&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Bharat HD" tvg-logo="https://idfc.helioho.st/img/starbharathd.png" group-title="Entertainment",Star Bharat HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156173&extension=ts&play_token=biGNE7a4dH&source_group=Entertainment
+#EXTINF:-1 tvg-id="SET HD" tvg-logo="https://idfc.helioho.st/img/sonyentertainmenttelevisionhd.png" group-title="Entertainment",Sony Entertainment Television HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156104&extension=ts&play_token=AC1Ajg3vSO&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony SAB HD" tvg-logo="https://idfc.helioho.st/img/sonysabhd.png" group-title="Entertainment",Sony SAB HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156014&extension=ts&play_token=KEuQuwT9b5&source_group=Entertainment
+#EXTINF:-1 tvg-id="&amp;TV HD" tvg-logo="https://idfc.helioho.st/img/andtvhd.png" group-title="Entertainment",&TV HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=809740&extension=ts&play_token=BGO8c0rPJ0&source_group=Entertainment
+#EXTINF:-1 tvg-id="Zee TV HD" tvg-logo="https://idfc.helioho.st/img/zeetvhd.png" group-title="Entertainment",Zee TV HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155974&extension=ts&play_token=hejE8B8HZN&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors HD" tvg-logo="https://idfc.helioho.st/img/colorshd.png" group-title="Entertainment",Colors HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280774&extension=ts&play_token=rrL9XkvEly&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Utsav" tvg-logo="https://idfc.helioho.st/img/starutsav.png" group-title="Entertainment",Star Utsav
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156163&extension=ts&play_token=nddBs1OYPM&source_group=Entertainment
+#EXTINF:-1 tvg-id="Anmol TV" tvg-logo="https://idfc.helioho.st/img/anmoltv.png" group-title="Entertainment",Anmol TV
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156165&extension=ts&play_token=yGhkBRQMcv&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors Rishtey" tvg-logo="https://idfc.helioho.st/img/colorsrishtey.png" group-title="Entertainment",Colors Rishtey
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=42456&extension=ts&play_token=5Dv1zSuQM2&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony Pal" tvg-logo="https://idfc.helioho.st/img/sonypal.png" group-title="Entertainment",Sony Pal
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156101&extension=ts&play_token=lZig7wLFJ8&source_group=Entertainment
+#EXTINF:-1 tvg-id="The Q" tvg-logo="https://idfc.helioho.st/img/theq.png" group-title="Entertainment",The Q
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280906&extension=ts&play_token=HnRG8BlKdE&source_group=Entertainment
+#EXTINF:-1 tvg-id="Dangal" tvg-logo="https://idfc.helioho.st/img/dangal.png" group-title="Entertainment",Dangal
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156049&extension=ts&play_token=SWbZOE2pGq&source_group=Entertainment
+#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155977&extension=ts&play_token=lOqDOQc3bb&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Bharat HD" tvg-logo="https://idfc.helioho.st/img/starbharathd.png" group-title="Entertainment",Star Bharat HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156173&extension=ts&play_token=biGNE7a4dH&source_group=Entertainment
+#EXTINF:-1 tvg-id="SET HD" tvg-logo="https://idfc.helioho.st/img/sonyentertainmenttelevisionhd.png" group-title="Entertainment",Sony Entertainment Television HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156104&extension=ts&play_token=AC1Ajg3vSO&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony SAB HD" tvg-logo="https://idfc.helioho.st/img/sonysabhd.png" group-title="Entertainment",Sony SAB HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156014&extension=ts&play_token=KEuQuwT9b5&source_group=Entertainment
+#EXTINF:-1 tvg-id="&amp;TV HD" tvg-logo="https://idfc.helioho.st/img/andtvhd.png" group-title="Entertainment",&TV HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=809740&extension=ts&play_token=BGO8c0rPJ0&source_group=Entertainment
+#EXTINF:-1 tvg-id="Zee TV HD" tvg-logo="https://idfc.helioho.st/img/zeetvhd.png" group-title="Entertainment",Zee TV HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155974&extension=ts&play_token=hejE8B8HZN&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors HD" tvg-logo="https://idfc.helioho.st/img/colorshd.png" group-title="Entertainment",Colors HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280774&extension=ts&play_token=rrL9XkvEly&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Utsav" tvg-logo="https://idfc.helioho.st/img/starutsav.png" group-title="Entertainment",Star Utsav
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156163&extension=ts&play_token=nddBs1OYPM&source_group=Entertainment
+#EXTINF:-1 tvg-id="Anmol TV" tvg-logo="https://idfc.helioho.st/img/anmoltv.png" group-title="Entertainment",Anmol TV
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156165&extension=ts&play_token=yGhkBRQMcv&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors Rishtey" tvg-logo="https://idfc.helioho.st/img/colorsrishtey.png" group-title="Entertainment",Colors Rishtey
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=42456&extension=ts&play_token=5Dv1zSuQM2&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony Pal" tvg-logo="https://idfc.helioho.st/img/sonypal.png" group-title="Entertainment",Sony Pal
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156101&extension=ts&play_token=lZig7wLFJ8&source_group=Entertainment
+#EXTINF:-1 tvg-id="The Q" tvg-logo="https://idfc.helioho.st/img/theq.png" group-title="Entertainment",The Q
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280906&extension=ts&play_token=HnRG8BlKdE&source_group=Entertainment
+#EXTINF:-1 tvg-id="Dangal" tvg-logo="https://idfc.helioho.st/img/dangal.png" group-title="Entertainment",Dangal
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156049&extension=ts&play_token=SWbZOE2pGq&source_group=Entertainment
 
 #GROUP:Movies
+#EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="https://idfc.helioho.st/img/stargoldhd.png" group-title="Movies",Star Gold HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280766&extension=ts&play_token=nuqCGtnr3Y&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold 2 HD" tvg-logo="https://idfc.helioho.st/img/stargold2.png" group-title="Movies",Star Gold 2 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1112132&extension=ts&play_token=hXxlpGUY8w&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="https://idfc.helioho.st/img/stargoldselecthd.png" group-title="Movies",Star Gold Select HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155970&extension=ts&play_token=IWVn8cXnPP&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Romance" tvg-logo="https://idfc.helioho.st/img/stargoldromance.png" group-title="Movies",Star Gold Romance
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156033&extension=ts&play_token=1M2SSmhUCd&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Thrills" tvg-logo="https://idfc.helioho.st/img/stargoldthrills.png" group-title="Movies",Star Gold Thrills
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1118072&extension=ts&play_token=qCNJswakO5&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Max HD" tvg-logo="https://idfc.helioho.st/img/sonymaxhd.png" group-title="Movies",Sony Max HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156013&extension=ts&play_token=slNi06NyY0&source_group=Movies
+#EXTINF:-1 tvg-id="SONY MAX 2" tvg-logo="https://idfc.helioho.st/img/sonymax2.png" group-title="Movies",Sony Max 2
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280780&extension=ts&play_token=FZEfjeq9Yx&source_group=Movies
+#EXTINF:-1 tvg-id="0-9-zeecinemahd" tvg-logo="https://idfc.helioho.st/img/zeecinemahd.png" group-title="Movies",Zee Cinema HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280772&extension=ts&play_token=jkotD9UHGj&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Bollywood" tvg-logo="https://idfc.helioho.st/img/zeebollywood.png" group-title="Movies",Zee Bollywood
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=311859&extension=ts&play_token=G528n8bIYd&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="https://idfc.helioho.st/img/zeeclassic.png" group-title="Movies",Zee Classic
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=311858&extension=ts&play_token=puq2jSfWDY&source_group=Movies
+#EXTINF:-1 tvg-id="Anmol Cinema" tvg-logo="https://idfc.helioho.st/img/anmolcinema.png" group-title="Movies",Anmol Cinema
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156146&extension=ts&play_token=52uStJtrzi&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Action" tvg-logo="https://idfc.helioho.st/img/zeeaction.png" group-title="Movies",Zee Action
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156139&extension=ts&play_token=BLfrGBenhu&source_group=Movies
+#EXTINF:-1 tvg-id="&amp;Pictures HD" tvg-logo="https://idfc.helioho.st/img/andpictureshd.png" group-title="Movies",&pictures HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155997&extension=ts&play_token=pPOAD0S1LV&source_group=Movies
+#EXTINF:-1 tvg-id="&Xplor HD" tvg-logo="https://idfc.helioho.st/img/andxplorhd.png" group-title="Movies",&Xplor HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=209743&extension=ts&play_token=mR7FwO88sY&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Kadak" tvg-logo="https://idfc.helioho.st/img/b4ukadak.png" group-title="Movies",B4U Kadak
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280798&extension=ts&play_token=x08LMQW83N&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Movies" tvg-logo="https://idfc.helioho.st/img/b4umovies.png" group-title="Movies",B4U Movies
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155987&extension=ts&play_token=TZW8QYOOb4&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Wah" tvg-logo="https://idfc.helioho.st/img/sonywah.png" group-title="Movies",Sony Wah
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156039&extension=ts&play_token=DJzQvajFd0&source_group=Movies
 #EXTINF:-1 tvg-id="Star Utsav Movies" tvg-logo="https://idfc.helioho.st/img/starutsavmovies.png" group-title="Movies",Star Utsav Movies
-http://iptvcasomsapi.jprdigital.in/x-media/C0322/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Movies
+http://iptvcasomsapi.jprdigital.in/x-media/C0322/master.m3u8?source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex HD" tvg-logo="https://idfc.helioho.st/img/colorscineplexhd.png" group-title="Movies",Colors Cineplex HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156003&extension=ts&play_token=eUwkMz7EMt&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex Superhits" tvg-logo="https://idfc.helioho.st/img/colorscineplexsuperhits.png" group-title="Movies",Colors Cineplex Superhits
+http://idfc.helioho.st/image/colorscineplexsuperhits.png?source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="https://idfc.helioho.st/img/colorscineplexbollywood.png" group-title="Movies",Colors Cineplex Bollywood
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=946375&extension=ts&play_token=5n2Zexr7WT&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines" tvg-logo="https://idfc.helioho.st/img/goldmines.png" group-title="Movies",Goldmines
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=157155&extension=ts&play_token=hYaKohtxmE&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines Movies" tvg-logo="https://idfc.helioho.st/img/goldminesmovies.png" group-title="Movies",Goldmines Movies
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=157158&extension=ts&play_token=annAK2OggM&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Biskope" tvg-logo="https://idfc.helioho.st/img/zeebiskope.png" group-title="Movies",Zee Biskope
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280860&extension=ts&play_token=fJdtLF69hE&source_group=Movies
 #EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="https://idfc.helioho.st/img/stargoldhd.png" group-title="Movies",Star Gold HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280766&extension=ts&play_token=nuqCGtnr3Y&video_type=application%2Foctet-stream&source_group=Movies
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280766&extension=ts&play_token=nuqCGtnr3Y&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold 2 HD" tvg-logo="https://idfc.helioho.st/img/stargold2.png" group-title="Movies",Star Gold 2 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1112132&extension=ts&play_token=hXxlpGUY8w&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="https://idfc.helioho.st/img/stargoldselecthd.png" group-title="Movies",Star Gold Select HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155970&extension=ts&play_token=IWVn8cXnPP&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Romance" tvg-logo="https://idfc.helioho.st/img/stargoldromance.png" group-title="Movies",Star Gold Romance
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156033&extension=ts&play_token=1M2SSmhUCd&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Thrills" tvg-logo="https://idfc.helioho.st/img/stargoldthrills.png" group-title="Movies",Star Gold Thrills
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1118072&extension=ts&play_token=qCNJswakO5&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Max HD" tvg-logo="https://idfc.helioho.st/img/sonymaxhd.png" group-title="Movies",Sony Max HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156013&extension=ts&play_token=slNi06NyY0&source_group=Movies
+#EXTINF:-1 tvg-id="SONY MAX 2" tvg-logo="https://idfc.helioho.st/img/sonymax2.png" group-title="Movies",Sony Max 2
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280780&extension=ts&play_token=FZEfjeq9Yx&source_group=Movies
+#EXTINF:-1 tvg-id="0-9-zeecinemahd" tvg-logo="https://idfc.helioho.st/img/zeecinemahd.png" group-title="Movies",Zee Cinema HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280772&extension=ts&play_token=jkotD9UHGj&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Bollywood" tvg-logo="https://idfc.helioho.st/img/zeebollywood.png" group-title="Movies",Zee Bollywood
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=311859&extension=ts&play_token=G528n8bIYd&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="https://idfc.helioho.st/img/zeeclassic.png" group-title="Movies",Zee Classic
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=311858&extension=ts&play_token=puq2jSfWDY&source_group=Movies
+#EXTINF:-1 tvg-id="Anmol Cinema" tvg-logo="https://idfc.helioho.st/img/anmolcinema.png" group-title="Movies",Anmol Cinema
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156146&extension=ts&play_token=52uStJtrzi&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Action" tvg-logo="https://idfc.helioho.st/img/zeeaction.png" group-title="Movies",Zee Action
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156139&extension=ts&play_token=BLfrGBenhu&source_group=Movies
+#EXTINF:-1 tvg-id="&amp;Pictures HD" tvg-logo="https://idfc.helioho.st/img/andpictureshd.png" group-title="Movies",&pictures HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155997&extension=ts&play_token=pPOAD0S1LV&source_group=Movies
+#EXTINF:-1 tvg-id="&Xplor HD" tvg-logo="https://idfc.helioho.st/img/andxplorhd.png" group-title="Movies",&Xplor HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=209743&extension=ts&play_token=mR7FwO88sY&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Kadak" tvg-logo="https://idfc.helioho.st/img/b4ukadak.png" group-title="Movies",B4U Kadak
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280798&extension=ts&play_token=x08LMQW83N&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Movies" tvg-logo="https://idfc.helioho.st/img/b4umovies.png" group-title="Movies",B4U Movies
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155987&extension=ts&play_token=TZW8QYOOb4&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Wah" tvg-logo="https://idfc.helioho.st/img/sonywah.png" group-title="Movies",Sony Wah
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156039&extension=ts&play_token=DJzQvajFd0&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex HD" tvg-logo="https://idfc.helioho.st/img/colorscineplexhd.png" group-title="Movies",Colors Cineplex HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156003&extension=ts&play_token=eUwkMz7EMt&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="https://idfc.helioho.st/img/colorscineplexbollywood.png" group-title="Movies",Colors Cineplex Bollywood
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=946375&extension=ts&play_token=5n2Zexr7WT&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines" tvg-logo="https://idfc.helioho.st/img/goldmines.png" group-title="Movies",Goldmines
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=157155&extension=ts&play_token=hYaKohtxmE&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines Movies" tvg-logo="https://idfc.helioho.st/img/goldminesmovies.png" group-title="Movies",Goldmines Movies
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=157158&extension=ts&play_token=annAK2OggM&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Biskope" tvg-logo="https://idfc.helioho.st/img/zeebiskope.png" group-title="Movies",Zee Biskope
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280860&extension=ts&play_token=fJdtLF69hE&source_group=Movies
 #EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="https://idfc.helioho.st/img/stargoldhd.png" group-title="Movies",Star Gold HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280766&extension=ts&play_token=nuqCGtnr3Y&video_type=application%2Foctet-stream&source_group=Movies
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280766&extension=ts&play_token=nuqCGtnr3Y&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold 2 HD" tvg-logo="https://idfc.helioho.st/img/stargold2.png" group-title="Movies",Star Gold 2 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1112132&extension=ts&play_token=hXxlpGUY8w&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="https://idfc.helioho.st/img/stargoldselecthd.png" group-title="Movies",Star Gold Select HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155970&extension=ts&play_token=IWVn8cXnPP&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Romance" tvg-logo="https://idfc.helioho.st/img/stargoldromance.png" group-title="Movies",Star Gold Romance
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156033&extension=ts&play_token=1M2SSmhUCd&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Thrills" tvg-logo="https://idfc.helioho.st/img/stargoldthrills.png" group-title="Movies",Star Gold Thrills
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1118072&extension=ts&play_token=qCNJswakO5&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Max HD" tvg-logo="https://idfc.helioho.st/img/sonymaxhd.png" group-title="Movies",Sony Max HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156013&extension=ts&play_token=slNi06NyY0&source_group=Movies
+#EXTINF:-1 tvg-id="SONY MAX 2" tvg-logo="https://idfc.helioho.st/img/sonymax2.png" group-title="Movies",Sony Max 2
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280780&extension=ts&play_token=FZEfjeq9Yx&source_group=Movies
+#EXTINF:-1 tvg-id="0-9-zeecinemahd" tvg-logo="https://idfc.helioho.st/img/zeecinemahd.png" group-title="Movies",Zee Cinema HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280772&extension=ts&play_token=jkotD9UHGj&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Bollywood" tvg-logo="https://idfc.helioho.st/img/zeebollywood.png" group-title="Movies",Zee Bollywood
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=311859&extension=ts&play_token=G528n8bIYd&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="https://idfc.helioho.st/img/zeeclassic.png" group-title="Movies",Zee Classic
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=311858&extension=ts&play_token=puq2jSfWDY&source_group=Movies
+#EXTINF:-1 tvg-id="Anmol Cinema" tvg-logo="https://idfc.helioho.st/img/anmolcinema.png" group-title="Movies",Anmol Cinema
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156146&extension=ts&play_token=52uStJtrzi&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Action" tvg-logo="https://idfc.helioho.st/img/zeeaction.png" group-title="Movies",Zee Action
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156139&extension=ts&play_token=BLfrGBenhu&source_group=Movies
+#EXTINF:-1 tvg-id="&amp;Pictures HD" tvg-logo="https://idfc.helioho.st/img/andpictureshd.png" group-title="Movies",&pictures HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155997&extension=ts&play_token=pPOAD0S1LV&source_group=Movies
+#EXTINF:-1 tvg-id="&Xplor HD" tvg-logo="https://idfc.helioho.st/img/andxplorhd.png" group-title="Movies",&Xplor HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=209743&extension=ts&play_token=mR7FwO88sY&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Kadak" tvg-logo="https://idfc.helioho.st/img/b4ukadak.png" group-title="Movies",B4U Kadak
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280798&extension=ts&play_token=x08LMQW83N&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Movies" tvg-logo="https://idfc.helioho.st/img/b4umovies.png" group-title="Movies",B4U Movies
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155987&extension=ts&play_token=TZW8QYOOb4&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Wah" tvg-logo="https://idfc.helioho.st/img/sonywah.png" group-title="Movies",Sony Wah
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156039&extension=ts&play_token=DJzQvajFd0&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex HD" tvg-logo="https://idfc.helioho.st/img/colorscineplexhd.png" group-title="Movies",Colors Cineplex HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156003&extension=ts&play_token=eUwkMz7EMt&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="https://idfc.helioho.st/img/colorscineplexbollywood.png" group-title="Movies",Colors Cineplex Bollywood
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=946375&extension=ts&play_token=5n2Zexr7WT&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines" tvg-logo="https://idfc.helioho.st/img/goldmines.png" group-title="Movies",Goldmines
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=157155&extension=ts&play_token=hYaKohtxmE&source_group=Movies
+#EXTINF:-1 tvg-id="Goldmines Movies" tvg-logo="https://idfc.helioho.st/img/goldminesmovies.png" group-title="Movies",Goldmines Movies
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=157158&extension=ts&play_token=annAK2OggM&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Biskope" tvg-logo="https://idfc.helioho.st/img/zeebiskope.png" group-title="Movies",Zee Biskope
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280860&extension=ts&play_token=fJdtLF69hE&source_group=Movies
 
 #GROUP:Music
 #EXTINF:-1 tvg-id="9xm" tvg-logo="https://idfc.helioho.st/img/9xm.png" group-title="Music",9xm
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280784&extension=ts&play_token=LRdHekThxj&video_type=application%2Foctet-stream&source_group=Music
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280784&extension=ts&play_token=LRdHekThxj&source_group=Music
+#EXTINF:-1 tvg-id="9x Jalwa" tvg-logo="https://idfc.helioho.st/img/9xjalwa.png" group-title="Music",9x Jalwa
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156123&extension=ts&play_token=wnQ0LwIFqV&source_group=Music
+#EXTINF:-1 tvg-id="Music India" tvg-logo="https://idfc.helioho.st/img/musicindia.png" group-title="Music",Music India
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156056&extension=ts&play_token=xT9vcKoLPj&source_group=Music
+#EXTINF:-1 tvg-id="E24" tvg-logo="https://idfc.helioho.st/img/e24.png" group-title="Music",E24
+http://idfc.helioho.st/img/e24.png?source_group=Music
+#EXTINF:-1 tvg-id="Showbox" tvg-logo="https://idfc.helioho.st/img/showbox.png" group-title="Music",Showbox
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156134&extension=ts&play_token=U3BbpYq1gF&source_group=Music
+#EXTINF:-1 tvg-id="B4U Music" tvg-logo="https://idfc.helioho.st/img/b4umusic.png" group-title="Music",B4U Music
+https://cdn-2.pishow.tv/live/415/master.m3u8?source_group=Music
+#EXTINF:-1 tvg-id="MTV Beats" tvg-logo="https://idfc.helioho.st/img/mtvbeats.png" group-title="Music",MTV Beats
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1118066&extension=ts&play_token=kbxOv6ewQL&source_group=Music
+#EXTINF:-1 tvg-id="Mastii" tvg-logo="https://idfc.helioho.st/img/mastiii.png" group-title="Music",Mastii
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156050&extension=ts&play_token=JUul0jo8a8&source_group=Music
 #EXTINF:-1 tvg-id="9xm" tvg-logo="https://idfc.helioho.st/img/9xm.png" group-title="Music",9xm
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280784&extension=ts&play_token=LRdHekThxj&video_type=application%2Foctet-stream&source_group=Music
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280784&extension=ts&play_token=LRdHekThxj&source_group=Music
+#EXTINF:-1 tvg-id="9x Jalwa" tvg-logo="https://idfc.helioho.st/img/9xjalwa.png" group-title="Music",9x Jalwa
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156123&extension=ts&play_token=wnQ0LwIFqV&source_group=Music
+#EXTINF:-1 tvg-id="Music India" tvg-logo="https://idfc.helioho.st/img/musicindia.png" group-title="Music",Music India
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156056&extension=ts&play_token=xT9vcKoLPj&source_group=Music
+#EXTINF:-1 tvg-id="Showbox" tvg-logo="https://idfc.helioho.st/img/showbox.png" group-title="Music",Showbox
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156134&extension=ts&play_token=U3BbpYq1gF&source_group=Music
+#EXTINF:-1 tvg-id="MTV Beats" tvg-logo="https://idfc.helioho.st/img/mtvbeats.png" group-title="Music",MTV Beats
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1118066&extension=ts&play_token=kbxOv6ewQL&source_group=Music
+#EXTINF:-1 tvg-id="Mastii" tvg-logo="https://idfc.helioho.st/img/mastiii.png" group-title="Music",Mastii
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156050&extension=ts&play_token=JUul0jo8a8&source_group=Music
+#EXTINF:-1 tvg-id="9xm" tvg-logo="https://idfc.helioho.st/img/9xm.png" group-title="Music",9xm
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280784&extension=ts&play_token=LRdHekThxj&source_group=Music
+#EXTINF:-1 tvg-id="9x Jalwa" tvg-logo="https://idfc.helioho.st/img/9xjalwa.png" group-title="Music",9x Jalwa
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156123&extension=ts&play_token=wnQ0LwIFqV&source_group=Music
+#EXTINF:-1 tvg-id="Music India" tvg-logo="https://idfc.helioho.st/img/musicindia.png" group-title="Music",Music India
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156056&extension=ts&play_token=xT9vcKoLPj&source_group=Music
+#EXTINF:-1 tvg-id="Showbox" tvg-logo="https://idfc.helioho.st/img/showbox.png" group-title="Music",Showbox
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156134&extension=ts&play_token=U3BbpYq1gF&source_group=Music
+#EXTINF:-1 tvg-id="MTV Beats" tvg-logo="https://idfc.helioho.st/img/mtvbeats.png" group-title="Music",MTV Beats
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1118066&extension=ts&play_token=kbxOv6ewQL&source_group=Music
+#EXTINF:-1 tvg-id="Mastii" tvg-logo="https://idfc.helioho.st/img/mastiii.png" group-title="Music",Mastii
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156050&extension=ts&play_token=JUul0jo8a8&source_group=Music
 
 #GROUP:News
-#EXTINF:-1 tvg-id="ABP News" tvg-logo="https://idfc.helioho.st/img/abpnews.png" group-title="News",ABP News
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156044&extension=ts&play_token=tNpIu4uigd&video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="DD News HD" tvg-logo="https://idfc.helioho.st/img/ddnews.png" group-title="News",DD News HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155978&extension=ts&play_token=V9BIxARl0o&video_type=application%2Foctet-stream&source_group=News
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155978&extension=ts&play_token=V9BIxARl0o&source_group=News
+#EXTINF:-1 tvg-id="ABP News" tvg-logo="https://idfc.helioho.st/img/abpnews.png" group-title="News",ABP News
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156044&extension=ts&play_token=tNpIu4uigd&source_group=News
+#EXTINF:-1 tvg-id="NDTV India" tvg-logo="https://idfc.helioho.st/img/ndtvindia.png" group-title="News",NDTV India
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156052&extension=ts&play_token=UjB9yVBBt4&source_group=News
+#EXTINF:-1 tvg-id="Aaj Tak HD" tvg-logo="https://idfc.helioho.st/img/aajtakhd.png" group-title="News",Aaj Tak HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1526120&extension=ts&play_token=Les6etv0Du&source_group=News
+#EXTINF:-1 tvg-id="Zee News" tvg-logo="https://idfc.helioho.st/img/zeenews.png" group-title="News",Zee News
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156051&extension=ts&play_token=vB2YiVCelF&source_group=News
+#EXTINF:-1 tvg-id="India TV" tvg-logo="https://idfc.helioho.st/img/indiatv.png" group-title="News",India TV
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156047&extension=ts&play_token=YG4xCZII2a&source_group=News
+#EXTINF:-1 tvg-id="News 24" tvg-logo="https://idfc.helioho.st/img/news24.png" group-title="News",News 24
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156083&extension=ts&play_token=L6EXWATGxh&source_group=News
+#EXTINF:-1 tvg-id="News18 India" tvg-logo="https://idfc.helioho.st/img/news18india.png" group-title="News",News18 India
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156153&extension=ts&play_token=coXaci7ruC&source_group=News
+#EXTINF:-1 tvg-id="India News" tvg-logo="https://idfc.helioho.st/img/indianews.png" group-title="News",India News
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156045&extension=ts&play_token=U56JLm8qfG&source_group=News
+#EXTINF:-1 tvg-id="Network 10" tvg-logo="https://idfc.helioho.st/img/network10.png" group-title="News",Network 10
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1526167&extension=ts&play_token=Qt3Wx2s0us&source_group=News
+#EXTINF:-1 tvg-id="Zee Business" tvg-logo="https://idfc.helioho.st/img/zeebusiness.png" group-title="News",Zee Business
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156122&extension=ts&play_token=U7YbuBoLMZ&source_group=News
+#EXTINF:-1 tvg-id="CNBC Awaaz" tvg-logo="https://idfc.helioho.st/img/cnbcawaaz.png" group-title="News",CNBC Awaaz
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280812&extension=ts&play_token=F7sNS9E8gj&source_group=News
+#EXTINF:-1 tvg-id="DD News HD" tvg-logo="https://idfc.helioho.st/img/ddnews.png" group-title="News",DD News HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155978&extension=ts&play_token=V9BIxARl0o&source_group=News
+#EXTINF:-1 tvg-id="ABP News" tvg-logo="https://idfc.helioho.st/img/abpnews.png" group-title="News",ABP News
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156044&extension=ts&play_token=tNpIu4uigd&source_group=News
+#EXTINF:-1 tvg-id="NDTV India" tvg-logo="https://idfc.helioho.st/img/ndtvindia.png" group-title="News",NDTV India
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156052&extension=ts&play_token=UjB9yVBBt4&source_group=News
+#EXTINF:-1 tvg-id="Aaj Tak HD" tvg-logo="https://idfc.helioho.st/img/aajtakhd.png" group-title="News",Aaj Tak HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1526120&extension=ts&play_token=Les6etv0Du&source_group=News
+#EXTINF:-1 tvg-id="Zee News" tvg-logo="https://idfc.helioho.st/img/zeenews.png" group-title="News",Zee News
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156051&extension=ts&play_token=vB2YiVCelF&source_group=News
+#EXTINF:-1 tvg-id="India TV" tvg-logo="https://idfc.helioho.st/img/indiatv.png" group-title="News",India TV
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156047&extension=ts&play_token=YG4xCZII2a&source_group=News
+#EXTINF:-1 tvg-id="News 24" tvg-logo="https://idfc.helioho.st/img/news24.png" group-title="News",News 24
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156083&extension=ts&play_token=L6EXWATGxh&source_group=News
+#EXTINF:-1 tvg-id="News18 India" tvg-logo="https://idfc.helioho.st/img/news18india.png" group-title="News",News18 India
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156153&extension=ts&play_token=coXaci7ruC&source_group=News
+#EXTINF:-1 tvg-id="India News" tvg-logo="https://idfc.helioho.st/img/indianews.png" group-title="News",India News
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156045&extension=ts&play_token=U56JLm8qfG&source_group=News
+#EXTINF:-1 tvg-id="Network 10" tvg-logo="https://idfc.helioho.st/img/network10.png" group-title="News",Network 10
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1526167&extension=ts&play_token=Qt3Wx2s0us&source_group=News
+#EXTINF:-1 tvg-id="Zee Business" tvg-logo="https://idfc.helioho.st/img/zeebusiness.png" group-title="News",Zee Business
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156122&extension=ts&play_token=U7YbuBoLMZ&source_group=News
+#EXTINF:-1 tvg-id="CNBC Awaaz" tvg-logo="https://idfc.helioho.st/img/cnbcawaaz.png" group-title="News",CNBC Awaaz
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280812&extension=ts&play_token=F7sNS9E8gj&source_group=News
+#EXTINF:-1 tvg-id="DD News HD" tvg-logo="https://idfc.helioho.st/img/ddnews.png" group-title="News",DD News HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155978&extension=ts&play_token=V9BIxARl0o&source_group=News
+#EXTINF:-1 tvg-id="ABP News" tvg-logo="https://idfc.helioho.st/img/abpnews.png" group-title="News",ABP News
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156044&extension=ts&play_token=tNpIu4uigd&source_group=News
+#EXTINF:-1 tvg-id="NDTV India" tvg-logo="https://idfc.helioho.st/img/ndtvindia.png" group-title="News",NDTV India
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156052&extension=ts&play_token=UjB9yVBBt4&source_group=News
+#EXTINF:-1 tvg-id="Aaj Tak HD" tvg-logo="https://idfc.helioho.st/img/aajtakhd.png" group-title="News",Aaj Tak HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1526120&extension=ts&play_token=Les6etv0Du&source_group=News
+#EXTINF:-1 tvg-id="Zee News" tvg-logo="https://idfc.helioho.st/img/zeenews.png" group-title="News",Zee News
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156051&extension=ts&play_token=vB2YiVCelF&source_group=News
+#EXTINF:-1 tvg-id="India TV" tvg-logo="https://idfc.helioho.st/img/indiatv.png" group-title="News",India TV
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156047&extension=ts&play_token=YG4xCZII2a&source_group=News
+#EXTINF:-1 tvg-id="News 24" tvg-logo="https://idfc.helioho.st/img/news24.png" group-title="News",News 24
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156083&extension=ts&play_token=L6EXWATGxh&source_group=News
+#EXTINF:-1 tvg-id="News18 India" tvg-logo="https://idfc.helioho.st/img/news18india.png" group-title="News",News18 India
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156153&extension=ts&play_token=coXaci7ruC&source_group=News
+#EXTINF:-1 tvg-id="India News" tvg-logo="https://idfc.helioho.st/img/indianews.png" group-title="News",India News
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156045&extension=ts&play_token=U56JLm8qfG&source_group=News
+#EXTINF:-1 tvg-id="Network 10" tvg-logo="https://idfc.helioho.st/img/network10.png" group-title="News",Network 10
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1526167&extension=ts&play_token=Qt3Wx2s0us&source_group=News
+#EXTINF:-1 tvg-id="Zee Business" tvg-logo="https://idfc.helioho.st/img/zeebusiness.png" group-title="News",Zee Business
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156122&extension=ts&play_token=U7YbuBoLMZ&source_group=News
+#EXTINF:-1 tvg-id="CNBC Awaaz" tvg-logo="https://idfc.helioho.st/img/cnbcawaaz.png" group-title="News",CNBC Awaaz
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280812&extension=ts&play_token=F7sNS9E8gj&source_group=News
 
 #GROUP:Kids
+#EXTINF:-1 tvg-id="Hungama" tvg-logo="https://idfc.helioho.st/img/hungama.png" group-title="Kids",Hungama
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1097666&extension=ts&play_token=E8TIGavdGa&source_group=Kids
 #EXTINF:-1 tvg-id="Disney" tvg-logo="https://idfc.helioho.st/img/disney.png" group-title="Kids",Disney
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156000&extension=ts&play_token=fi8xHjGRPq&video_type=application%2Foctet-stream&source_group=Kids
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156000&extension=ts&play_token=fi8xHjGRPq&source_group=Kids
+#EXTINF:-1 tvg-id="Nick" tvg-logo="https://idfc.helioho.st/img/nick.png" group-title="Kids",Nick
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1752848&extension=ts&play_token=8FNt7g9GJ5&source_group=Kids
+#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="https://idfc.helioho.st/img/cartoonnetwork.png" group-title="Kids",Cartoon Network
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=280748&extension=ts&play_token=w1r2RYMoBx&source_group=Kids
+#EXTINF:-1 tvg-id="Pogo" tvg-logo="https://idfc.helioho.st/img/pogo.png" group-title="Kids",Pogo
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156128&extension=ts&play_token=62Vbfjc3PK&source_group=Kids
+#EXTINF:-1 tvg-id="Gubbare" tvg-logo="https://idfc.helioho.st/img/gubbare.png" group-title="Kids",Gubbare
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1529127&extension=ts&play_token=vmj60O8KeO&source_group=Kids
+#EXTINF:-1 tvg-id="Disney Junior" tvg-logo="https://idfc.helioho.st/img/disneyjr.png" group-title="Kids",Disney Junior
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=811469&extension=ts&play_token=xoSBEW8mDy&source_group=Kids
+#EXTINF:-1 tvg-id="Hungama" tvg-logo="https://idfc.helioho.st/img/hungama.png" group-title="Kids",Hungama
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1097666&extension=ts&play_token=E8TIGavdGa&source_group=Kids
 #EXTINF:-1 tvg-id="Disney" tvg-logo="https://idfc.helioho.st/img/disney.png" group-title="Kids",Disney
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156000&extension=ts&play_token=fi8xHjGRPq&video_type=application%2Foctet-stream&source_group=Kids
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156000&extension=ts&play_token=fi8xHjGRPq&source_group=Kids
+#EXTINF:-1 tvg-id="Nick" tvg-logo="https://idfc.helioho.st/img/nick.png" group-title="Kids",Nick
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1752848&extension=ts&play_token=8FNt7g9GJ5&source_group=Kids
+#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="https://idfc.helioho.st/img/cartoonnetwork.png" group-title="Kids",Cartoon Network
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=280748&extension=ts&play_token=w1r2RYMoBx&source_group=Kids
+#EXTINF:-1 tvg-id="Pogo" tvg-logo="https://idfc.helioho.st/img/pogo.png" group-title="Kids",Pogo
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156128&extension=ts&play_token=62Vbfjc3PK&source_group=Kids
+#EXTINF:-1 tvg-id="Gubbare" tvg-logo="https://idfc.helioho.st/img/gubbare.png" group-title="Kids",Gubbare
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1529127&extension=ts&play_token=vmj60O8KeO&source_group=Kids
+#EXTINF:-1 tvg-id="Disney Junior" tvg-logo="https://idfc.helioho.st/img/disneyjr.png" group-title="Kids",Disney Junior
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=811469&extension=ts&play_token=xoSBEW8mDy&source_group=Kids
+#EXTINF:-1 tvg-id="Hungama" tvg-logo="https://idfc.helioho.st/img/hungama.png" group-title="Kids",Hungama
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1097666&extension=ts&play_token=E8TIGavdGa&source_group=Kids
+#EXTINF:-1 tvg-id="Disney" tvg-logo="https://idfc.helioho.st/img/disney.png" group-title="Kids",Disney
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156000&extension=ts&play_token=fi8xHjGRPq&source_group=Kids
+#EXTINF:-1 tvg-id="Nick" tvg-logo="https://idfc.helioho.st/img/nick.png" group-title="Kids",Nick
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1752848&extension=ts&play_token=8FNt7g9GJ5&source_group=Kids
+#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="https://idfc.helioho.st/img/cartoonnetwork.png" group-title="Kids",Cartoon Network
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=280748&extension=ts&play_token=w1r2RYMoBx&source_group=Kids
+#EXTINF:-1 tvg-id="Pogo" tvg-logo="https://idfc.helioho.st/img/pogo.png" group-title="Kids",Pogo
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156128&extension=ts&play_token=62Vbfjc3PK&source_group=Kids
+#EXTINF:-1 tvg-id="Gubbare" tvg-logo="https://idfc.helioho.st/img/gubbare.png" group-title="Kids",Gubbare
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1529127&extension=ts&play_token=vmj60O8KeO&source_group=Kids
+#EXTINF:-1 tvg-id="Disney Junior" tvg-logo="https://idfc.helioho.st/img/disneyjr.png" group-title="Kids",Disney Junior
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=811469&extension=ts&play_token=xoSBEW8mDy&source_group=Kids
 
 #GROUP:Infotainment
 #EXTINF:-1 tvg-id="Animal Planet HD" tvg-logo="https://idfc.helioho.st/img/animalplanethd.png" group-title="Infotainment",Animal Planet HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156168&extension=ts&play_token=rRwAuIPjJ1&video_type=application%2Foctet-stream&source_group=Infotainment
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156168&extension=ts&play_token=rRwAuIPjJ1&source_group=Infotainment
 #EXTINF:-1 tvg-id="National Geographic HD" tvg-logo="https://idfc.helioho.st/img/natgeohd.png" group-title="Infotainment",National Geographic HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156011&extension=ts&play_token=ZhYvl5oBvm&video_type=application%2Foctet-stream&source_group=Infotainment
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156011&extension=ts&play_token=ZhYvl5oBvm&source_group=Infotainment
+#EXTINF:-1 tvg-id="Nat Geo Wild HD" tvg-logo="https://idfc.helioho.st/img/natgeowildhd.png" group-title="Infotainment",Nat Geo Wild HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155989&extension=ts&play_token=SjyaUY90cp&source_group=Infotainment
+#EXTINF:-1 tvg-id="Discovery HD" tvg-logo="https://idfc.helioho.st/img/discoveryhd.png" group-title="Infotainment",Discovery HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155999&extension=ts&play_token=po9ZTzoAHl&source_group=Infotainment
+#EXTINF:-1 tvg-id="Animal Planet HD" tvg-logo="https://idfc.helioho.st/img/animalplanethd.png" group-title="Infotainment",Animal Planet HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156168&extension=ts&play_token=rRwAuIPjJ1&source_group=Infotainment
+#EXTINF:-1 tvg-id="National Geographic HD" tvg-logo="https://idfc.helioho.st/img/natgeohd.png" group-title="Infotainment",National Geographic HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156011&extension=ts&play_token=ZhYvl5oBvm&source_group=Infotainment
+#EXTINF:-1 tvg-id="Nat Geo Wild HD" tvg-logo="https://idfc.helioho.st/img/natgeowildhd.png" group-title="Infotainment",Nat Geo Wild HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155989&extension=ts&play_token=SjyaUY90cp&source_group=Infotainment
+#EXTINF:-1 tvg-id="Discovery HD" tvg-logo="https://idfc.helioho.st/img/discoveryhd.png" group-title="Infotainment",Discovery HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155999&extension=ts&play_token=po9ZTzoAHl&source_group=Infotainment
+#EXTINF:-1 tvg-id="Animal Planet HD" tvg-logo="https://idfc.helioho.st/img/animalplanethd.png" group-title="Infotainment",Animal Planet HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156168&extension=ts&play_token=rRwAuIPjJ1&source_group=Infotainment
+#EXTINF:-1 tvg-id="National Geographic HD" tvg-logo="https://idfc.helioho.st/img/natgeohd.png" group-title="Infotainment",National Geographic HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156011&extension=ts&play_token=ZhYvl5oBvm&source_group=Infotainment
+#EXTINF:-1 tvg-id="Nat Geo Wild HD" tvg-logo="https://idfc.helioho.st/img/natgeowildhd.png" group-title="Infotainment",Nat Geo Wild HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155989&extension=ts&play_token=SjyaUY90cp&source_group=Infotainment
+#EXTINF:-1 tvg-id="Discovery HD" tvg-logo="https://idfc.helioho.st/img/discoveryhd.png" group-title="Infotainment",Discovery HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155999&extension=ts&play_token=po9ZTzoAHl&source_group=Infotainment
 
 #GROUP:Sports
 #EXTINF:-1 tvg-id="ts1191" tvg-logo="https://idfc.helioho.st/img/ddsports.png" group-title="Sports",DD Sports HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155983&extension=ts&play_token=1NabMhnotp&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=155983&extension=ts&play_token=1NabMhnotp&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 3" tvg-logo="https://idfc.helioho.st/img/starsports3.png" group-title="Sports",Star Sports 3
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1698893&extension=ts&play_token=hXAXIiG0UA&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 1 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect1.png" group-title="Sports",Star Sports Select 1 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1114583&extension=ts&play_token=zWZ9nwSJb2&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 2 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect2.png" group-title="Sports",Star Sports Select 2 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1114584&extension=ts&play_token=9UHT75Zv9H&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 1 HD" tvg-logo="https://idfc.helioho.st/img/sonyten1hd.png" group-title="Sports",Sony Sports Ten 1 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1114576&extension=ts&play_token=zNMM6nwU8m&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 2 HD" tvg-logo="https://idfc.helioho.st/img/sonyten2hd.png" group-title="Sports",Sony Sports Ten 2 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1114577&extension=ts&play_token=8ozcWtXK7P&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 3 HD" tvg-logo="https://idfc.helioho.st/img/sonyten3hd.png" group-title="Sports",Sony Sports Ten 3 HD
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1114578&extension=ts&play_token=Q1wIK96dLB&source_group=Sports
 #EXTINF:-1 tvg-id="ts1191" tvg-logo="https://idfc.helioho.st/img/ddsports.png" group-title="Sports",DD Sports HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155983&extension=ts&play_token=1NabMhnotp&video_type=application%2Foctet-stream&source_group=Sports
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=155983&extension=ts&play_token=1NabMhnotp&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 3" tvg-logo="https://idfc.helioho.st/img/starsports3.png" group-title="Sports",Star Sports 3
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1698893&extension=ts&play_token=hXAXIiG0UA&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 1 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect1.png" group-title="Sports",Star Sports Select 1 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1114583&extension=ts&play_token=zWZ9nwSJb2&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 2 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect2.png" group-title="Sports",Star Sports Select 2 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1114584&extension=ts&play_token=9UHT75Zv9H&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 1 HD" tvg-logo="https://idfc.helioho.st/img/sonyten1hd.png" group-title="Sports",Sony Sports Ten 1 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1114576&extension=ts&play_token=zNMM6nwU8m&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 2 HD" tvg-logo="https://idfc.helioho.st/img/sonyten2hd.png" group-title="Sports",Sony Sports Ten 2 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1114577&extension=ts&play_token=8ozcWtXK7P&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 3 HD" tvg-logo="https://idfc.helioho.st/img/sonyten3hd.png" group-title="Sports",Sony Sports Ten 3 HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1114578&extension=ts&play_token=Q1wIK96dLB&source_group=Sports
+#EXTINF:-1 tvg-id="ts1191" tvg-logo="https://idfc.helioho.st/img/ddsports.png" group-title="Sports",DD Sports HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=155983&extension=ts&play_token=1NabMhnotp&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 3" tvg-logo="https://idfc.helioho.st/img/starsports3.png" group-title="Sports",Star Sports 3
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698893&extension=ts&play_token=hXAXIiG0UA&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 1 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect1.png" group-title="Sports",Star Sports Select 1 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1114583&extension=ts&play_token=zWZ9nwSJb2&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 2 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect2.png" group-title="Sports",Star Sports Select 2 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1114584&extension=ts&play_token=9UHT75Zv9H&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 1 HD" tvg-logo="https://idfc.helioho.st/img/sonyten1hd.png" group-title="Sports",Sony Sports Ten 1 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1114576&extension=ts&play_token=zNMM6nwU8m&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 2 HD" tvg-logo="https://idfc.helioho.st/img/sonyten2hd.png" group-title="Sports",Sony Sports Ten 2 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1114577&extension=ts&play_token=8ozcWtXK7P&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 3 HD" tvg-logo="https://idfc.helioho.st/img/sonyten3hd.png" group-title="Sports",Sony Sports Ten 3 HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1114578&extension=ts&play_token=Q1wIK96dLB&source_group=Sports
 
 #GROUP:Religious
 #EXTINF:-1 tvg-id="Divya" tvg-logo="https://idfc.helioho.st/img/divya.png" group-title="Religious",Divya
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156132&extension=ts&play_token=52O4NA0bo3&video_type=application%2Foctet-stream&source_group=Religious
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=156132&extension=ts&play_token=52O4NA0bo3&source_group=Religious
+#EXTINF:-1 tvg-id="Aastha" tvg-logo="https://idfc.helioho.st/img/aastha.png" group-title="Religious",Aastha
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1533128&extension=ts&play_token=X3ccaRBZVi&source_group=Religious
 #EXTINF:-1 tvg-id="Divya" tvg-logo="https://idfc.helioho.st/img/divya.png" group-title="Religious",Divya
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156132&extension=ts&play_token=52O4NA0bo3&video_type=application%2Foctet-stream&source_group=Religious
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=156132&extension=ts&play_token=52O4NA0bo3&source_group=Religious
+#EXTINF:-1 tvg-id="Aastha" tvg-logo="https://idfc.helioho.st/img/aastha.png" group-title="Religious",Aastha
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1533128&extension=ts&play_token=X3ccaRBZVi&source_group=Religious
+#EXTINF:-1 tvg-id="Divya" tvg-logo="https://idfc.helioho.st/img/divya.png" group-title="Religious",Divya
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=156132&extension=ts&play_token=52O4NA0bo3&source_group=Religious
+#EXTINF:-1 tvg-id="Aastha" tvg-logo="https://idfc.helioho.st/img/aastha.png" group-title="Religious",Aastha
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1533128&extension=ts&play_token=X3ccaRBZVi&source_group=Religious
 
 #GROUP:All
-#EXTINF:-1 tvg-id="Star Plus HD" tvg-logo="http://idfc.helioho.st/image/starplushd.png" group-title="All",Star Plus HD
-http://103.229.254.25:7001/play/a09z/index.m3u8?video_type=application%2Fvnd.apple.mpegURL&source_group=All
 #EXTINF:-1 tvg-id="DD National" tvg-logo="http://idfc.helioho.st/image/ddnational.png" group-title="All",DD National
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155977&extension=ts&play_token=Rbf5ycHSK6&video_type=application%2Foctet-stream&source_group=All
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155977&extension=ts&play_token=Rbf5ycHSK6&source_group=All
+#EXTINF:-1 tvg-id="Star Plus HD" tvg-logo="http://idfc.helioho.st/image/starplushd.png" group-title="All",Star Plus HD
+http://103.229.254.25:7001/play/a09z/index.m3u8?source_group=All
+#EXTINF:-1 tvg-id="Zee TV HD" tvg-logo="http://idfc.helioho.st/image/zeetvhd.png" group-title="All",Zee TV HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155974&extension=ts&play_token=FOa6XZqphz&source_group=All
+#EXTINF:-1 tvg-id="SET HD" tvg-logo="http://idfc.helioho.st/image/sethd.png" group-title="All",SET HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156104&extension=ts&play_token=PLU9jRVQaM&source_group=All
+#EXTINF:-1 tvg-id="Colors HD" tvg-logo="http://idfc.helioho.st/image/colorshd.png" group-title="All",Colors HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156172&extension=ts&play_token=WzVFlgjM8l&source_group=All
+#EXTINF:-1 tvg-id="&TV HD " tvg-logo="http://idfc.helioho.st/image/andtvhd.png" group-title="All",&TV HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280745&extension=ts&play_token=AoGc8nJTcO&source_group=All
+#EXTINF:-1 tvg-id="Zee Anmol" tvg-logo="http://idfc.helioho.st/image/zeeanmol.png" group-title="All",Zee Anmol
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156165&extension=ts&play_token=a6ox512dab&source_group=All
+#EXTINF:-1 tvg-id="Star Bharat HD" tvg-logo="http://idfc.helioho.st/image/starbharathd.png" group-title="All",Star Bharat HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280765&extension=ts&play_token=BemfXAQ2jS&source_group=All
+#EXTINF:-1 tvg-id="Colors Rishtey" tvg-logo="http://idfc.helioho.st/image/colorsrishtey.png" group-title="All",Colors Rishtey
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=42456&extension=ts&play_token=XNUBDnTKcp&source_group=All
+#EXTINF:-1 tvg-id="Star Utsav" tvg-logo="http://idfc.helioho.st/image/starutsav.png" group-title="All",Star Utsav
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156163&extension=ts&play_token=CdXpMxezJ1&source_group=All
+#EXTINF:-1 tvg-id="Sony Sab HD" tvg-logo="http://idfc.helioho.st/image/sonysabhd.png" group-title="All",Sony Sab HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156014&extension=ts&play_token=z3uwN49zK4&source_group=All
+#EXTINF:-1 tvg-id="Divya TV" tvg-logo="http://idfc.helioho.st/image/divyatv.png" group-title="All",Divya TV
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156132&extension=ts&play_token=xghfnxyZBT&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo TV" tvg-logo="http://idfc.helioho.st/image/shemaroo.png" group-title="All",Shemaroo TV
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280897&extension=ts&play_token=jLFq6XOvPn&source_group=All
+#EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="http://idfc.helioho.st/image/stargoldhd.png" group-title="All",Star Gold HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280766&extension=ts&play_token=szWoTfbZY4&source_group=All
+#EXTINF:-1 tvg-id="Star Gold 2" tvg-logo="http://idfc.helioho.st/image/stargold2.png" group-title="All",Star Gold 2
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1112132&extension=ts&play_token=Cd0wa9MBzZ&source_group=All
+#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="http://idfc.helioho.st/image/stargoldselecthd.png" group-title="All",Star Gold Select HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155970&extension=ts&play_token=PxM3wBLmCp&source_group=All
+#EXTINF:-1 tvg-id="Star Gold Romance" tvg-logo="http://idfc.helioho.st/image/stargoldromance.png" group-title="All",Star Gold Romance
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156033&extension=ts&play_token=FLBwPbPTzn&source_group=All
+#EXTINF:-1 tvg-id="Star Gold Thrills" tvg-logo="http://idfc.helioho.st/image/stargoldthrills.png" group-title="All",Star Gold Thrills
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1118072&extension=ts&play_token=WCgz4DC93p&source_group=All
+#EXTINF:-1 tvg-id="TATA Play Classic" tvg-logo="http://idfc.helioho.st/image/tataplayclassic.png" group-title="All",TATA Play Classic
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155994&extension=ts&play_token=LtKQU57yqw&source_group=All
+#EXTINF:-1 tvg-id="Sony Max HD" tvg-logo="http://idfc.helioho.st/image/sonymaxhd.png" group-title="All",Sony Max HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156013&extension=ts&play_token=M6VSP5LwQS&source_group=All
+#EXTINF:-1 tvg-id="Sony Max 2" tvg-logo="http://idfc.helioho.st/image/sonymax2.png" group-title="All",Sony Max 2
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280780&extension=ts&play_token=SMphbexEMc&source_group=All
+#EXTINF:-1 tvg-id="Zee Cinema HD" tvg-logo="http://idfc.helioho.st/image/zeecinemahd.png" group-title="All",Zee Cinema HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280772&extension=ts&play_token=ZMoh9WZ2Bo&source_group=All
+#EXTINF:-1 tvg-id="Zee Bollywood" tvg-logo="http://idfc.helioho.st/image/zeebollywood.png" group-title="All",Zee Bollywood
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=311859&extension=ts&play_token=ck2PDwOWyr&source_group=All
+#EXTINF:-1 tvg-id="Zee Action" tvg-logo="http://idfc.helioho.st/image/zeeaction.png" group-title="All",Zee Action
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156139&extension=ts&play_token=qFg5sOJ7AW&source_group=All
+#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="http://idfc.helioho.st/image/zeeclassic.png" group-title="All",Zee Classic
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=311858&extension=ts&play_token=izJdsAPp7s&source_group=All
+#EXTINF:-1 tvg-id="Zee Anmol Cinema" tvg-logo="http://idfc.helioho.st/image/zeeanmolcinema.png" group-title="All",Zee Anmol Cinema
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156146&extension=ts&play_token=zvJpGqGVHG&source_group=All
+#EXTINF:-1 tvg-id="&Pictures HD" tvg-logo="http://idfc.helioho.st/image/andpictureshd.png" group-title="All",&Pictures HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280744&extension=ts&play_token=MAE7GAGaL2&source_group=All
+#EXTINF:-1 tvg-id="Colors Cineplex HD" tvg-logo="http://idfc.helioho.st/image/colorscineplexhd.png" group-title="All",Colors Cineplex HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156003&extension=ts&play_token=wqLuMkpztz&source_group=All
+#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="http://idfc.helioho.st/image/colorscineplexbollywood.png" group-title="All",Colors Cineplex Bollywood
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=946375&extension=ts&play_token=mvrHfz5j7T&source_group=All
+#EXTINF:-1 tvg-id="Goldmines" tvg-logo="http://idfc.helioho.st/image/goldmines.png" group-title="All",Goldmines
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=157155&extension=ts&play_token=MOQyw358Ud&source_group=All
+#EXTINF:-1 tvg-id="Tata Play Bollywood Premiere" tvg-logo="http://idfc.helioho.st/image/tataplaybollywoodpremiere.png" group-title="All",Tata Play Bollywood Premiere
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156028&extension=ts&play_token=ITPmteTORj&source_group=All
+#EXTINF:-1 tvg-id="Zee Biskope" tvg-logo="http://idfc.helioho.st/image/zeebiskope.png" group-title="All",Zee Biskope
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280860&extension=ts&play_token=goItQzObje&source_group=All
+#EXTINF:-1 tvg-id="Dhamaal TV" tvg-logo="http://idfc.helioho.st/image/dhamaaltv.png" group-title="All",Dhamaal TV
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156155&extension=ts&play_token=ysBI2Fwl1H&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Movies 1" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Movies 1
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=636159&extension=ts&play_token=cQEOmqhzPA&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Movies 2" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Movies 2
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=636158&extension=ts&play_token=yqd2s24Npb&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Movies 3" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Movies 3
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=636162&extension=ts&play_token=tyqM4pUaJd&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Comedy" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Comedy
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1950859&extension=ts&play_token=zi7qKcUZty&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Romance" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Romance
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1950860&extension=ts&play_token=2xNRX5OCwL&source_group=All
+#EXTINF:-1 tvg-id="Shemaroo Family" tvg-logo="http://idfc.helioho.st/image/shemaroomovies.png" group-title="All",Shemaroo Family
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=636169&extension=ts&play_token=oy4wzd4VVN&source_group=All
+#EXTINF:-1 tvg-id="9XM" tvg-logo="http://idfc.helioho.st/image/9xm.png" group-title="All",9XM
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156120&extension=ts&play_token=iMeE56frDR&source_group=All
+#EXTINF:-1 tvg-id="9X Jalwa" tvg-logo="http://idfc.helioho.st/image/9xjalwa.png" group-title="All",9X Jalwa
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156123&extension=ts&play_token=hRo26SA40H&source_group=All
+#EXTINF:-1 tvg-id="Music India" tvg-logo="http://idfc.helioho.st/image/musicindia.png" group-title="All",Music India
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156056&extension=ts&play_token=m4UXisoCad&source_group=All
+#EXTINF:-1 tvg-id="B4U Music" tvg-logo="http://idfc.helioho.st/image/b4umusic.png" group-title="All",B4U Music
+https://cdn-2.pishow.tv/live/415/master.m3u8?source_group=All
+#EXTINF:-1 tvg-id="Mastiii" tvg-logo="http://idfc.helioho.st/image/mastiii.png" group-title="All",Mastiii
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156050&extension=ts&play_token=IMkiRYRPwT&source_group=All
+#EXTINF:-1 tvg-id="Showbox" tvg-logo="http://idfc.helioho.st/image/showbox.png" group-title="All",Showbox
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156134&extension=ts&play_token=Db3VVhIuYx&source_group=All
+#EXTINF:-1 tvg-id="DD News" tvg-logo="http://idfc.helioho.st/image/ddnews.png" group-title="All",DD News
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155978&extension=ts&play_token=4NH2HoZ9e3&source_group=All
+#EXTINF:-1 tvg-id="Aaj Tak" tvg-logo="http://idfc.helioho.st/image/aajtak.png" group-title="All",Aaj Tak
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1526120&extension=ts&play_token=joTMfYJeFw&source_group=All
+#EXTINF:-1 tvg-id="Zee News" tvg-logo="http://idfc.helioho.st/image/zeenews.png" group-title="All",Zee News
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1532832&extension=ts&play_token=ffrcvQLTpg&source_group=All
+#EXTINF:-1 tvg-id="ABP News" tvg-logo="http://idfc.helioho.st/image/abpnews.png" group-title="All",ABP News
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1526126&extension=ts&play_token=JnOkAxpNHK&source_group=All
+#EXTINF:-1 tvg-id="Zee Bihar Jharkhand" tvg-logo="http://idfc.helioho.st/image/zeebiharjharkhand.png" group-title="All",Zee Bihar Jharkhand
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1112136&extension=ts&play_token=E2pFupYs59&source_group=All
+#EXTINF:-1 tvg-id="NDTV India" tvg-logo="http://idfc.helioho.st/image/ndtvindia.png" group-title="All",NDTV India
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156052&extension=ts&play_token=L6FOIBP2Ur&source_group=All
+#EXTINF:-1 tvg-id="India TV" tvg-logo="http://idfc.helioho.st/image/indiatv.png" group-title="All",India TV
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156047&extension=ts&play_token=DXjTu31e1j&source_group=All
 #EXTINF:-1 tvg-id="Network 10" tvg-logo="http://idfc.helioho.st/image/network10.png" group-title="All",Network 10
-https://network10.livebox.co.in/network10hls/live.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=All
+https://network10.livebox.co.in/network10hls/live.m3u8?source_group=All
+#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="http://idfc.helioho.st/image/cartoonnetwork.png" group-title="All",Cartoon Network
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280748&extension=ts&play_token=ky9kJBM7wU&source_group=All
+#EXTINF:-1 tvg-id="Pogo" tvg-logo="http://idfc.helioho.st/image/pogo.png" group-title="All",Pogo
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156128&extension=ts&play_token=7g8D3HNEYS&source_group=All
+#EXTINF:-1 tvg-id="Nick" tvg-logo="http://idfc.helioho.st/image/nick.png" group-title="All",Nick
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1752848&extension=ts&play_token=n3EzT4rwPO&source_group=All
+#EXTINF:-1 tvg-id="Disney" tvg-logo="http://idfc.helioho.st/image/disney.png" group-title="All",Disney
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156000&extension=ts&play_token=8vsK5BOUin&source_group=All
+#EXTINF:-1 tvg-id="Animal Planet" tvg-logo="http://idfc.helioho.st/image/animalplanet.png" group-title="All",Animal Planet
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156168&extension=ts&play_token=MrKW3zbrfl&source_group=All
+#EXTINF:-1 tvg-id="Discovery Channel" tvg-logo="http://idfc.helioho.st/image/discovery.png" group-title="All",Discovery Channel
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=280754&extension=ts&play_token=0nd5gVvWHz&source_group=All
+#EXTINF:-1 tvg-id="National Geographic HD" tvg-logo="http://idfc.helioho.st/image/natgeohd.png" group-title="All",National Geographic HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=156011&extension=ts&play_token=TStsCKoU4v&source_group=All
+#EXTINF:-1 tvg-id="DD Sports" tvg-logo="http://idfc.helioho.st/image/ddsports.png" group-title="All",DD Sports
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155983&extension=ts&play_token=FKM45uoyGY&source_group=All
+#EXTINF:-1 tvg-id="Star Sports 3" tvg-logo="http://idfc.helioho.st/image/starsports3.png" group-title="All",Star Sports 3
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=282678&extension=ts&play_token=DsZwOyLGf1&source_group=All
+#EXTINF:-1 tvg-id="Star Sports Select 1" tvg-logo="http://idfc.helioho.st/image/starsports1select.png" group-title="All",Star Sports Select 1
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1114583&extension=ts&play_token=GVkDj1bKV0&source_group=All
+#EXTINF:-1 tvg-id="Star Sports Select 2" tvg-logo="http://idfc.helioho.st/image/starsports2select.png" group-title="All",Star Sports Select 2
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1114584&extension=ts&play_token=2yJW9wdKlc&source_group=All
+#EXTINF:-1 tvg-id="SONY SPORTS TEN 1 HD" tvg-logo="http://idfc.helioho.st/image/sonysports1hd.png" group-title="All",SONY SPORTS TEN 1 HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1114576&extension=ts&play_token=oJibTkE9sq&source_group=All
+#EXTINF:-1 tvg-id="SONY SPORTS TEN 2 HD" tvg-logo="http://idfc.helioho.st/image/sonysports2hd.png" group-title="All",SONY SPORTS TEN 2 HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1114577&extension=ts&play_token=f9O41W49IF&source_group=All
+#EXTINF:-1 tvg-id="SONY SPORTS TEN 3 HD" tvg-logo="http://idfc.helioho.st/image/sonysports3hd.png" group-title="All",SONY SPORTS TEN 3 HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1114578&extension=ts&play_token=sU3VeXqwcT&source_group=All
+#EXTINF:-1 tvg-id="WWE TV" tvg-logo="http://idfc.helioho.st/image/wwenetwork.png" group-title="All",WWE TV
+https://joker-verse.vercel.app/opplex/live/388817.m3u8?uid=1101608667&pass=e8e2af20&source_group=All
 
 #LANG:Bhojpuri
 
 #GROUP:Movies
-#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Movies",Filamchi Bhojpuri
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="B4U  Bhojpuri" tvg-logo="https://idfc.helioho.st/img/b4ubhojpuri.png" group-title="Movies",B4U  Bhojpuri
+http://idfc.helioho.st/image/b4ubhojpuri.png?source_group=Movies
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Movies",Bhojpuri Cinema
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&video_type=application%2Foctet-stream&source_group=Movies
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Movies",Filamchi Bhojpuri
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Movies",Bhojpuri Cinema
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Movies",Filamchi Bhojpuri
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Movies",Bhojpuri Cinema
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Movies",Filamchi Bhojpuri
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
 
 #GROUP:Bhojpuri
-#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri",Filamchi Bhojpuri
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="B4U Bhojpuri" tvg-logo="http://idfc.helioho.st/image/b4ubhojpuri.png" group-title="Bhojpuri",B4U Bhojpuri
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&video_type=application%2Foctet-stream&source_group=All
+#EXTINF:-1 tvg-id="B4U  Bhojpuri" tvg-logo="https://idfc.helioho.st/img/b4ubhojpuri.png" group-title="Bhojpuri",B4U  Bhojpuri
+http://idfc.helioho.st/image/b4ubhojpuri.png?source_group=Movies
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri",Bhojpuri Cinema
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&video_type=application%2Foctet-stream&source_group=Movies
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri",Filamchi Bhojpuri
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri",Bhojpuri Cinema
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri",Filamchi Bhojpuri
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="http://idfc.helioho.st/image/bhojpuricinema.png" group-title="Bhojpuri",Bhojpuri Cinema
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155979&extension=ts&play_token=jaSSnJPcNe&source_group=All
+#EXTINF:-1 tvg-id="B4U Bhojpuri" tvg-logo="http://idfc.helioho.st/image/b4ubhojpuri.png" group-title="Bhojpuri",B4U Bhojpuri
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&source_group=All
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri",Bhojpuri Cinema
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri",Filamchi Bhojpuri
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
 
 #GROUP:Bhojpuri Movies
-#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri Movies",Filamchi Bhojpuri
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="B4U  Bhojpuri" tvg-logo="https://idfc.helioho.st/img/b4ubhojpuri.png" group-title="Bhojpuri Movies",B4U  Bhojpuri
+http://idfc.helioho.st/image/b4ubhojpuri.png?source_group=Movies
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri Movies",Bhojpuri Cinema
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&video_type=application%2Foctet-stream&source_group=Movies
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri Movies",Filamchi Bhojpuri
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri Movies",Bhojpuri Cinema
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri Movies",Filamchi Bhojpuri
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri Movies",Bhojpuri Cinema
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=282598&extension=ts&play_token=cAr8P3GdA7&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri Movies",Filamchi Bhojpuri
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1531152&extension=ts&play_token=vLjUQyVm4q&source_group=Movies
 
 #GROUP:All
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="http://idfc.helioho.st/image/bhojpuricinema.png" group-title="All",Bhojpuri Cinema
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155979&extension=ts&play_token=jaSSnJPcNe&source_group=All
 #EXTINF:-1 tvg-id="B4U Bhojpuri" tvg-logo="http://idfc.helioho.st/image/b4ubhojpuri.png" group-title="All",B4U Bhojpuri
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&video_type=application%2Foctet-stream&source_group=All
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&source_group=All
 
 #GROUP:Bhojpuri All
+#EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="http://idfc.helioho.st/image/bhojpuricinema.png" group-title="Bhojpuri All",Bhojpuri Cinema
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=155979&extension=ts&play_token=jaSSnJPcNe&source_group=All
 #EXTINF:-1 tvg-id="B4U Bhojpuri" tvg-logo="http://idfc.helioho.st/image/b4ubhojpuri.png" group-title="Bhojpuri All",B4U Bhojpuri
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&video_type=application%2Foctet-stream&source_group=All
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1531154&extension=ts&play_token=lX2d6mbSbo&source_group=All
 
 #LANG:Hindi
 
 #GROUP:Sports
 #EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Sports",Star Sports 1 Hindi HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Sports",Star Sports 2 Hindi HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Sports",Star Sports 1 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Sports",Star Sports 2 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Sports",Star Sports 1 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Sports",Star Sports 2 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
 
 #GROUP:Hindi
 #EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi",Star Sports 1 Hindi HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&video_type=application%2Foctet-stream&source_group=Sports
-#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&video_type=application%2Foctet-stream&source_group=All
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi",Star Sports 1 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports1hindi.png" group-title="Hindi",Star Sports 1 Hindi HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=282674&extension=ts&play_token=gLh9kaIu07&source_group=All
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&source_group=All
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi",Star Sports 1 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
 
 #GROUP:Hindi Sports
 #EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi Sports",Star Sports 1 Hindi HD
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi Sports",Star Sports 2 Hindi HD
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&video_type=application%2Foctet-stream&source_group=Sports
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi Sports",Star Sports 1 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi Sports",Star Sports 2 Hindi HD
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi Sports",Star Sports 1 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1104672&extension=ts&play_token=OheOpiMsEn&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi Sports",Star Sports 2 Hindi HD
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1698894&extension=ts&play_token=2CVlngB18P&source_group=Sports
 
 #GROUP:All
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports1hindi.png" group-title="All",Star Sports 1 Hindi HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=282674&extension=ts&play_token=gLh9kaIu07&source_group=All
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports2.png" group-title="All",Star Sports 2 Hindi HD
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&video_type=application%2Foctet-stream&source_group=All
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&source_group=All
 
 #GROUP:Hindi All
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports1hindi.png" group-title="Hindi All",Star Sports 1 Hindi HD
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=282674&extension=ts&play_token=gLh9kaIu07&source_group=All
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="http://idfc.helioho.st/image/starsports2.png" group-title="Hindi All",Star Sports 2 Hindi HD
-http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&video_type=application%2Foctet-stream&source_group=All
+http://line.trx-ott.com:80/play/live.php?mac=00%3A1A%3A79%3A52%3A69%3A3A&stream=1698894&extension=ts&play_token=mCoSRoRjRD&source_group=All
 
 #LANG:Religious
 
 #GROUP:Religious
 #EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious",Aastha Bhajan
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1533133&extension=ts&play_token=9eBnqTD75D&video_type=application%2Foctet-stream&source_group=Religious
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1533133&extension=ts&play_token=9eBnqTD75D&source_group=Religious
 #EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious",Aastha Bhajan
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1533133&extension=ts&play_token=9eBnqTD75Dhttp%3A%2F%2Fklaratv.com%3A80&video_type=application%2Foctet-stream&source_group=Religious
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1533133&extension=ts&play_token=9eBnqTD75D&source_group=Religious
+#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious",Aastha Bhajan
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1533133&extension=ts&play_token=9eBnqTD75Dhttp%3A%2F%2Fklaratv.com%3A80&source_group=Religious
 
 #GROUP:Religious Religious
 #EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious Religious",Aastha Bhajan
-http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1533133&extension=ts&play_token=9eBnqTD75D&video_type=application%2Foctet-stream&source_group=Religious
+http://weaseltv.live/play/live.php?mac=00%3A1A%3A79%3A5A%3A91%3A3A&stream=1533133&extension=ts&play_token=9eBnqTD75D&source_group=Religious
 #EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious Religious",Aastha Bhajan
-http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1533133&extension=ts&play_token=9eBnqTD75Dhttp%3A%2F%2Fklaratv.com%3A80&video_type=application%2Foctet-stream&source_group=Religious
+http://klaratv.com:80/play/live.php?mac=00%3A1A%3A79%3A4C%3A7E%3A06&stream=1533133&extension=ts&play_token=9eBnqTD75D&source_group=Religious
+#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious Religious",Aastha Bhajan
+http://line.vueott.com/play/live.php?mac=00%3A1A%3A79%3A89%3A52%3AB8&stream=1533133&extension=ts&play_token=9eBnqTD75Dhttp%3A%2F%2Fklaratv.com%3A80&source_group=Religious
