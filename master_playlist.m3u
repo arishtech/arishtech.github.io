@@ -5,132 +5,206 @@
 #GROUP:Entertainment
 #EXTINF:-1 tvg-id="Star Plus HD" tvg-logo="https://idfc.helioho.st/img/starplushd.png" group-title="Entertainment",Star Plus HD
 http://103.229.254.25:7001/play/a09z/index.m3u8?video_type=application%2Fvnd.apple.mpegURL&source_group=Entertainment
+#EXTINF:-1 tvg-id="Zee TV HD" tvg-logo="https://idfc.helioho.st/img/zeetvhd.png" group-title="Entertainment",Zee TV HD
+http://85.92.112.50:80/live/play/ZG01RGFXSm9NMDk1UW1sRFlVUk9UMHRSUVcxS01XNDRWekE0VWk5R1dWWXJUVUU0Y0dWV1lsVmlUVDA9/155974?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Sony SAB HD" tvg-logo="https://idfc.helioho.st/img/sonysabhd.png" group-title="Entertainment",Sony SAB HD
+http://185.245.0.209:80/live/play/Um1scWR6VTFaVlIyY0dwNWIzTlZhRTQxTjIxeVpWWk9OVEJGTmpWSFJVOTFTbUkwT1hCcE5qVTNiejA9/156014?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Bharat HD" tvg-logo="https://idfc.helioho.st/img/starbharathd.png" group-title="Entertainment",Star Bharat HD
+http://185.245.0.209:80/live/play/WjI1TGNGZzJWVFp3VjJGdFN5OUNOMGx5Y0haSmQzQlFaeXQxZFVwVE9ERktRWEZaU2tnckszZ3dNRDA9/156173?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="&amp;TV HD" tvg-logo="https://idfc.helioho.st/img/andtvhd.png" group-title="Entertainment",&TV HD
+http://185.245.0.209:80/live/play/Tm1wSFFrbHJkR2g2WW1kYWN6aHlVbWxsUlV0cGFtSnlUMFp3Wml0Vk5XRTRNVzFrVDNOdU1GWmlXVDA9/809740?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
+http://103.148.116.71:80/live/play/Y2tZMmN6bHhWMWRNUTBwNVpIWnVTalZsYVc5WlRsSTJSRmQ2ZUdsS05tUkZVM2t5TTJWVFIzWkJUVDA9/155977?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors Rishtey" tvg-logo="https://idfc.helioho.st/img/colorsrishtey.png" group-title="Entertainment",Colors Rishtey
+http://185.245.0.150:80/live/play/VWk5clJUaFhOM2hwZVRkb1JWQlVaMFZMVGxGMVdIcEdPWEkwTlV0ck5EZ3pWV2x0ZDBaUFlsVlhORDA9/42456?video_type=application%2Foctet-stream&source_group=Entertainment
 #EXTINF:-1 tvg-id="Big Magic" tvg-logo="https://idfc.helioho.st/img/bigmagic.png" group-title="Entertainment",Big Magic
 https://mumt05.tangotv.in/BIGMAGIC/tracks-v2a1/mono.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Entertainment
-#EXTINF:-1 tvg-id="DD National HD" tvg-logo="https://idfc.helioho.st/img/ddnational.png" group-title="Entertainment",DD National HD
-http://103.148.116.71:80/live/play/UmtKd04xUnRVVzl6VVM4elpUbExRamMxYVRWQlNsaGtRbFpYY2tGaFZWcGpZMmR3TVVnNU5tRXZXVDA9/155977?video_type=application%2Foctet-stream&source_group=Entertainment
-#EXTINF:-1 tvg-id="&amp;TV HD" tvg-logo="https://idfc.helioho.st/img/andtvhd.png" group-title="Entertainment",&TV HD
-http://185.245.0.209:80/live/play/YlhWd1kyUnJWWEpuYTBJMWJrOTRjV2RaWlVNMFVWZHJhRVU0YWtoRGRVSlJUREpPWjFscmJqa3JSVDA9/809740?video_type=application%2Foctet-stream&source_group=Entertainment
-
-#GROUP:Movies
-#EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="https://idfc.helioho.st/img/stargoldhd.png" group-title="Movies",Star Gold HD
-http://185.245.0.184:80/live/play/VTIxMVNERkVXRU5IV2twV2VXMXRjV0pXUkZoMU5VZ3dWUzlDTXpreFVYaGtZVzVoYjFaMlQxQjNTVDA9/280766?video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="Star Utsav Movies" tvg-logo="https://idfc.helioho.st/img/starutsavmovies.png" group-title="Movies",Star Utsav Movies
-http://iptvcasomsapi.jprdigital.in/x-media/C0322/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Movies
-#EXTINF:-1 tvg-id="Anmol Cinema" tvg-logo="https://idfc.helioho.st/img/anmolcinema.png" group-title="Movies",Anmol Cinema
-http://185.245.0.209:80/live/play/Wm10RWMxSnZWa2d2YzJKNGJXOW9VemR5WlV4NWMxZHVkME55Y0d4Rk5rcEZSVWw2TlU0elpWQktSVDA9/156146?video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="https://idfc.helioho.st/img/stargoldselecthd.png" group-title="Movies",Star Gold Select HD
-http://185.245.0.184:80/live/play/UzNwRlQwUmxiMjA1YkhKc1RXcHFibUpYYTFoR1NtaFdWbTQyVUdacWJrSXhMMnhtZDBrNGFHUk5UVDA9/155970?video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="Star Gold 2 HD" tvg-logo="https://idfc.helioho.st/img/stargold2.png" group-title="Movies",Star Gold 2 HD
-http://185.245.0.184:80/live/play/U2xVdlp6aGtVbTFVYlN0RmF6RTFjSGd2Y1hKUGVHSmxSbEZrY1ZkWGJtVk1Uemt2YmpSdVZIZGlPRDA9/1112132?video_type=video%2Fmp2t&source_group=Movies
-#EXTINF:-1 tvg-id="B4U Movies" tvg-logo="https://idfc.helioho.st/img/b4umovies.png" group-title="Movies",B4U Movies
-http://185.245.0.209:80/live/play/VG1rdlQzY3ZjVTl3VW1WSFdTdHRVSE42ZG5OV2NFOVlNRlZJZEVsWFZIRm1TVEJuYW1sSVVEVmpVVDA9/155987?video_type=video%2Fmp2t&source_group=Movies
-#EXTINF:-1 tvg-id="Zee Action" tvg-logo="https://idfc.helioho.st/img/zeeaction.png" group-title="Movies",Zee Action
-http://185.245.0.209:80/live/play/TlZKa1kyZHFkMFo2T0RFcmRuWlNZblp4U2xsSFdGWlVZbGRqTWtKMWRtZFdMMDFEVEZCeVpqTk5kejA9/156139?video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="https://idfc.helioho.st/img/colorscineplexbollywood.png" group-title="Movies",Colors Cineplex Bollywood
-http://185.245.0.209:80/live/play/U3poUlowWTRkV2xDZGtOR2VVSXJTWGhaUlU5VmRIUjBRMHBMVVV3NVFtNUxaMk51U21WNlJHcFpTVDA9/946375?video_type=application%2Foctet-stream&source_group=Movies
-#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="https://idfc.helioho.st/img/zeeclassic.png" group-title="Movies",Zee Classic
-http://185.245.0.209:80/live/play/VlVsRVEwVkZRWGhUU0dFeU0xUndOVUV6TUVWVE1VWjVUekJyVUhGc05Va3llbVZwYW1vMFduWnpTVDA9/311858?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Pal" tvg-logo="https://idfc.helioho.st/img/sonypal.png" group-title="Entertainment",Sony Pal
+http://185.245.0.209:80/live/play/VDJGeFF6RjJSVEZOVHpoUE5qQkdObm80WmxOQ1pGQkNiV05HTTBGTlNWWXhNbkpGV0hobFZGTXZORDA9/156101?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Star Utsav" tvg-logo="https://idfc.helioho.st/img/starutsav.png" group-title="Entertainment",Star Utsav
+http://185.245.0.209:80/live/play/Wlc5bmIwSXZNR1Z1Ym5GbFFpczRTek5WYURrM2RVbEVSMHhCTmlzck5uUlpRbVJvYlRsc2VuSkNWVDA9/156163?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="The Q" tvg-logo="https://idfc.helioho.st/img/theq.png" group-title="Entertainment",The Q
+http://185.245.0.209:80/live/play/Y1dVdmRuVlVka2xKYUVSWFpVUmtlVmRETm05UWNXNDVlVTFJTTNCc01FZHNjak5wVVdrdlZXVTRaejA9/280906?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Colors HD" tvg-logo="https://idfc.helioho.st/img/colorshd.png" group-title="Entertainment",Colors HD
+http://85.92.114.24:80/live/play/VjAxbFlsY3dTeXRYWTBGWU0wY3hPVWRhTXpoYU16WnFOV1JZZFcxbmQyY3haRW96Y0cxcEsxZE5iejA9/280774?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Dangal" tvg-logo="https://idfc.helioho.st/img/dangal.png" group-title="Entertainment",Dangal
+http://185.245.0.209:80/live/play/TDBkRU9ISXJhSFZXYm5abGFFVklReXN5VDBkbmVFVlNXVWxxY1daRGVtUkRhR3BUVUVSalJ6WjZNRDA9/156049?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="SET HD" tvg-logo="https://idfc.helioho.st/img/sonyentertainmenttelevisionhd.png" group-title="Entertainment",Sony Entertainment Television HD
+http://85.92.112.50:80/live/play/T0VwMU1YaEVWbU5PTWtwTmJHbDRObWcwYlhoSVVuUTRjV3hyVDBaME4wOW1WVUZxYkZGQ1kwMW1WVDA9/156104?video_type=application%2Foctet-stream&source_group=Entertainment
+#EXTINF:-1 tvg-id="Anmol TV" tvg-logo="https://idfc.helioho.st/img/anmoltv.png" group-title="Entertainment",Anmol TV
+http://185.245.0.207:80/live/play/UzBOVVZGRjBRM0JyYUdoNVQwdE5kRUZSY1hOUmFFZG5SbGxXTDFrNFZFeHhaVzlwVURoRU5EVnZVVDA9/156165?video_type=application%2Foctet-stream&source_group=Entertainment
 
 #GROUP:Ungrouped
 #EXTINF:-1 tvg-id="June" group-title="Ungrouped",2026" tvg-logo="" group-title="",June 10, 2026
 https://cps2.serv00.net/intro.mp4?video_type=video%2Fmp4&source_group=Ungrouped
 
+#GROUP:Movies
+#EXTINF:-1 tvg-id="Star Gold HD" tvg-logo="https://idfc.helioho.st/img/stargoldhd.png" group-title="Movies",Star Gold HD
+http://185.245.0.184:80/live/play/ZVdkdmRqWkNNWGhWVEhsTmVVZHdURlE0WlVoU1RqSm1ORWd4VnpneFVrWlRWRGMyUzJGMVpYWnRNRDA9/280766?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Romance" tvg-logo="https://idfc.helioho.st/img/stargoldromance.png" group-title="Movies",Star Gold Romance
+http://185.245.0.184:80/live/play/UVVveEwwSkRVSGsxWkVGWVVGZ3hNbWhaVjJSaU5GVlhPRlJ0Y21aaGRpOWxUM1ZoWW5weGF6TmFRVDA9/156033?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold 2 HD" tvg-logo="https://idfc.helioho.st/img/stargold2.png" group-title="Movies",Star Gold 2 HD
+http://185.245.0.184:80/live/play/VUZGdlVuSktiVlpxVTJaSWFVZExVemRpVG5kdFQwVTFOalkxY2s1aGNrMUliWEoyUldWWGNubHFiejA9/1112132?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Thrills" tvg-logo="https://idfc.helioho.st/img/stargoldthrills.png" group-title="Movies",Star Gold Thrills
+http://185.245.0.184:80/live/play/WlV4RVVGUktjbGRKVFhaNGRGWjZOV3BwVFhWWFptZEdLemR5WlZCb01IUnFlREJWT1dKb1dsQXhiejA9/1118072?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Max HD" tvg-logo="https://idfc.helioho.st/img/sonymaxhd.png" group-title="Movies",Sony Max HD
+http://85.92.112.75:80/live/play/V1dRd1FXOURRV3MxWm5SWU9UZFNjMlZHYUU1cFdURjRPVXBZZEZaS05sQjVOMk5tUlZaYVFsY3lPRDA9/156013?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Star Gold Select HD" tvg-logo="https://idfc.helioho.st/img/stargoldselecthd.png" group-title="Movies",Star Gold Select HD
+http://185.245.0.184:80/live/play/YlZrdmRHbHJkVWhtWVhkYVZtVnVNR1kxT1U5eFNWcFBjRVUxT1dSbVNHRkdUSEpyYjI1RVNteFVRVDA9/155970?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="SONY MAX 2" tvg-logo="https://idfc.helioho.st/img/sonymax2.png" group-title="Movies",Sony Max 2
+http://85.92.112.75:80/live/play/UjI5WVpIQk5TbWQwY2pReVMxVTFiV3gzSzNSUVpHOUhWVVJaVFhNelNVb3ZVMEZtY1dSdFIxZFVSVDA9/280780?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Bollywood" tvg-logo="https://idfc.helioho.st/img/zeebollywood.png" group-title="Movies",Zee Bollywood
+http://185.245.0.209:80/live/play/TVhCb1MyeDNkRTFqVkhWQlZDdEdORXhDTUVWUllYUmtZVlpoWVRaclNqSlliVUYzU0hsSFVFSnVTVDA9/311859?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Anmol Cinema" tvg-logo="https://idfc.helioho.st/img/anmolcinema.png" group-title="Movies",Anmol Cinema
+http://185.245.0.209:80/live/play/V0VSUGRGZEJNU3RLTHk4emFtODFZbUZaY21OaFp6SnNiR2htYURkdVVEbG1kbXN5SzB0RFZqbGtkejA9/156146?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="&amp;Pictures HD" tvg-logo="https://idfc.helioho.st/img/andpictureshd.png" group-title="Movies",&pictures HD
+http://185.245.0.209:80/live/play/UVhWekwwOTFORmhCTDI0ME9VYzBhRFYxYldWVGFscEhaRzFWVTBsMVNUWXpVRUl4T1VKNmRqSkVORDA9/155997?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="&Xplor HD" tvg-logo="https://idfc.helioho.st/img/andxplorhd.png" group-title="Movies",&Xplor HD
+http://185.245.0.209:80/live/play/ZURWVmQyUjVOSEpuUlU5TWQyaEZiMlYwV0U1VmEzSXJiVXQ1UTFaYVNUQXdkVzlKTmpaQmN6RnNjejA9/209743?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Star Utsav Movies" tvg-logo="https://idfc.helioho.st/img/starutsavmovies.png" group-title="Movies",Star Utsav Movies
+http://iptvcasomsapi.jprdigital.in/x-media/C0322/master.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Classic" tvg-logo="https://idfc.helioho.st/img/zeeclassic.png" group-title="Movies",Zee Classic
+http://185.245.0.209:80/live/play/Y2pFdk9HRmhTbG92WlhOQmFtTlRTMHRaZUZWdWFXZHlhazl0YlcxcWVVRkRWa0p6T1doTldqQnhORDA9/311858?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Sony Wah" tvg-logo="https://idfc.helioho.st/img/sonywah.png" group-title="Movies",Sony Wah
+http://185.245.0.209:80/live/play/UkdGVWFYSkRiM2xuUjJSWGRsbFVZM0EzT1hkb1RFSm5WRFJvTW5wdFp6Tk9VbnBUVGpORWNEVldRVDA9/156039?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Zee Action" tvg-logo="https://idfc.helioho.st/img/zeeaction.png" group-title="Movies",Zee Action
+http://185.245.0.209:80/live/play/ZEVsNVZreHFWVlkzVDB0U2RrMWxTSEZZZWs5bVNrcDBiREp6WjJacFJrdEljR04yVjBvcmFGQkJPRDA9/156139?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex HD" tvg-logo="https://idfc.helioho.st/img/colorscineplexhd.png" group-title="Movies",Colors Cineplex HD
+http://185.245.0.209:80/live/play/Y1hSb2RYWXJTeXMxVUhaQ1NuWm1kbnBOVUZWelJGYzJhekUwVW1zeFFqVlFRVVpGTlU1TVYyNUlXVDA9/156003?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Kadak" tvg-logo="https://idfc.helioho.st/img/b4ukadak.png" group-title="Movies",B4U Kadak
+http://185.245.0.209:80/live/play/VlZOUVIwRjNUaXRFV1doVmFEQktWMmRWV0RoSFIxaEtiVlJIUW5oeFVEQm1RMmhEVUhGNlkwMUlPRDA9/280798?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Colors Cineplex Bollywood" tvg-logo="https://idfc.helioho.st/img/colorscineplexbollywood.png" group-title="Movies",Colors Cineplex Bollywood
+http://185.245.0.209:80/live/play/Y1dkVUswbFNjV1pXU0V4RWJ6ZHNSa3d3YzFKRWJHczFha1JuTUVSWEsxaDZNMWw1Y1VoR0wwUlVhejA9/946375?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="B4U Movies" tvg-logo="https://idfc.helioho.st/img/b4umovies.png" group-title="Movies",B4U Movies
+http://185.245.0.209:80/live/play/TDFwWWRHTnFOMlJPSzFwTlIwbGFXV1p2ZEZGdFpVcDZNbk54VVRaaWRYaGpkRlF4U0ZWalJ6VmpaejA9/155987?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="0-9-zeecinemahd" tvg-logo="https://idfc.helioho.st/img/zeecinemahd.png" group-title="Movies",Zee Cinema HD
+http://185.245.0.209:80/live/play/VEhkVGVTOWtOMjExYUV0cmRVSjJPU3QwWVhWWlZWQklUV2xxY1RWSldEWXZkMFp4Um5WVWJtYzVZejA9/280772?video_type=application%2Foctet-stream&source_group=Movies
+
 #GROUP:Music
-#EXTINF:-1 tvg-id="9xm" tvg-logo="https://idfc.helioho.st/img/9xm.png" group-title="Music",9xm
-http://185.245.0.209:80/live/play/ZWpabFpWWnNlRlkwYTFOcWRYSjFkbmxqUzNKR2FYQlJkVVJoUVVrM2VrVTBhRFZ3UVZKNWRXRnJPRDA9/280784?video_type=application%2Foctet-stream&source_group=Music
 #EXTINF:-1 tvg-id="Showbox" tvg-logo="https://idfc.helioho.st/img/showbox.png" group-title="Music",Showbox
-http://185.245.0.209:80/live/play/ZW1sTmJuWk5iMVY0ZUZwcU5IRTBNbkZUWTJGdVpYbG5WMEZ2U0cxT1EyUnBkR0pqWVRSSk9VZDZNRDA9/156134?video_type=application%2Foctet-stream&source_group=Music
-#EXTINF:-1 tvg-id="9x Jalwa" tvg-logo="https://idfc.helioho.st/img/9xjalwa.png" group-title="Music",9x Jalwa
-http://185.245.0.209:80/live/play/V21WcFdXbFpOV0paTTI5MFZXMDFiek5RZUZORlJGZHhiRkExY2tkQ2RYTk1TVmcwYVUxMFJHRnhRVDA9/156123?video_type=video%2Fmp2t&source_group=Music
+http://185.245.0.209:80/live/play/U1hSMVZsRjZVVU5SZUVObWFtdHNXR2hKS3paVE5sZExaV28yZDNGMVdFOTFNalkxVURRM2RGQlRZejA9/156134?video_type=application%2Foctet-stream&source_group=Music
+#EXTINF:-1 tvg-id="9xm" tvg-logo="https://idfc.helioho.st/img/9xm.png" group-title="Music",9xm
+http://185.245.0.209:80/live/play/ZG5RMlpXdEtWbmRVZEhOQ1puWnVUVzl5TVVVcloyOUJVUzlaYVRsWFMwUlBVWFY0WTA5WlZFSnRSVDA9/280784?video_type=application%2Foctet-stream&source_group=Music
+#EXTINF:-1 tvg-id="MTV Beats" tvg-logo="https://idfc.helioho.st/img/mtvbeats.png" group-title="Music",MTV Beats
+http://185.245.0.209:80/live/play/S3pFM1VETkViVkkyZGxkMWNHVmhRM3AyVm5rdlNYQXZUbFJSTDBGYWJYaE9jVzVWYTBjMmJrczBXVDA9/1118066?video_type=application%2Foctet-stream&source_group=Music
+#EXTINF:-1 tvg-id="Mastii" tvg-logo="https://idfc.helioho.st/img/mastiii.png" group-title="Music",Mastii
+http://185.245.0.209:80/live/play/YlZoRFZEbFlkVzlyTHpaU1RrYzVZVTVhWmtWcmFXRkhSWEJWVFdjeVkwVnRhV1o1ZVRadmEyMXdSVDA9/156050?video_type=application%2Foctet-stream&source_group=Music
 #EXTINF:-1 tvg-id="Music India" tvg-logo="https://idfc.helioho.st/img/musicindia.png" group-title="Music",Music India
-http://185.245.0.209:80/live/play/Y1dSVFpYaHdUWFZrTVZwMFdFTXdZMWxyU1ZWekwyVjJURFV5YVM5NVV6TmhWRmM1T1U1WmJraGlhejA9/156056?video_type=video%2Fmp2t&source_group=Music
+http://185.245.0.209:80/live/play/UjJwTGRYVlpUMWQ2VHpjeFJteHJVRkpDWWpabVdVeHhkMGh2V0VsbVpVZFRaV012TUd4WGVVVm9SVDA9/156056?video_type=application%2Foctet-stream&source_group=Music
+#EXTINF:-1 tvg-id="9x Jalwa" tvg-logo="https://idfc.helioho.st/img/9xjalwa.png" group-title="Music",9x Jalwa
+http://185.245.0.209:80/live/play/VWxCWFZVeHhjRll6YkdWd1JuaDZja0pNVnpOWFprUmlWRXBVY2xKR1VHcDNUVkJrSzBkVVpWWTBRVDA9/156123?video_type=application%2Foctet-stream&source_group=Music
 
 #GROUP:News
 #EXTINF:-1 tvg-id="DD News HD" tvg-logo="https://idfc.helioho.st/img/ddnews.png" group-title="News",DD News HD
-http://103.148.116.71:80/live/play/Um5abGJpdDFkVFpRTjFaV1dtRjRVRlF2WTBKa1dWaHVVV3gzWlM5ak5raFNPVE5UU0VGUlduTldRVDA9/155978?video_type=application%2Foctet-stream&source_group=News
+http://103.148.116.71:80/live/play/Wm5odmMxTTBkWHBZTlUxcVFWbEdlSHB6YVc5M1QxbGFObTVNUkZGdWVpOUtjbU5OV2xWMldFbEZVVDA9/155978?video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="ABP News" tvg-logo="https://idfc.helioho.st/img/abpnews.png" group-title="News",ABP News
-http://103.148.116.71:80/live/play/UjBOdWNVUlRieXRZYm5kTlZIVmhOSEZvYzFaVk5UTnpXV1ZwYVhsUFUyeGxZbWsxVlhobVRFbzVXVDA9/156044?video_type=application%2Foctet-stream&source_group=News
+http://103.148.116.71:80/live/play/TlVreGVIUk1WbnBrUkdJeGIzRnlPWEJPYm14R0t6bEdRMGhsVUU4M1JEZHVhVFJOYldsd1ExWlVjejA9/156044?video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="NDTV India" tvg-logo="https://idfc.helioho.st/img/ndtvindia.png" group-title="News",NDTV India
-http://103.148.116.71:80/live/play/UVdZMVEzcHBRa3h2ZFhoVVRUSnVWa3QwTlVwMk0ydzBUVU5hVlZaMVFVTkZMM2Q1Ykhod0swdGxVVDA9/156052?video_type=application%2Foctet-stream&source_group=News
-#EXTINF:-1 tvg-id="India TV" tvg-logo="https://idfc.helioho.st/img/indiatv.png" group-title="News",India TV
-http://103.148.116.71:80/live/play/Ynk5T2IzUkROR1phUWxGck5FUlZOR2hXZEVWRVEwMHhNMUUxYUU5SVIybEtLMVpoZFdJeGJFRjVjejA9/156047?video_type=application%2Foctet-stream&source_group=News
+http://103.148.116.71:80/live/play/VW5KUVJUSk9Ua0Z4Um5rcmIyMVdVVmh0VTB4b2FrWXhWM2xyWmxwTmRFbG9TQzhyY2pSeWNXNXBPRDA9/156052?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="Zee News" tvg-logo="https://idfc.helioho.st/img/zeenews.png" group-title="News",Zee News
+http://103.148.116.71:80/live/play/Vld4MVNIRlZSMEp0UWtOUWRqZzVjSFUzYnpOQldVaHRTRzVuVUU1VGRHeFZkbTEzVEc0NU1YUnJPRDA9/156051?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="News 24" tvg-logo="https://idfc.helioho.st/img/news24.png" group-title="News",News 24
+http://103.148.116.71:80/live/play/U0ZBeWRVRkZTV3BGTTBKNFluSjVOazlyYVdkdFpHZ3pPV1UzUnpSbmFXNXlORVF6ZEc0ek9GbDZXVDA9/156083?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="News18 India" tvg-logo="https://idfc.helioho.st/img/news18india.png" group-title="News",News18 India
+http://103.148.116.71:80/live/play/U1ZoMmNuSldMMEZQUVhabldISlFVVTh2U1hGWlEyMDJiSGtyYUVGQ1MyVlNXbEI0VUU1cFdWTjRZejA9/156153?video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="Aaj Tak HD" tvg-logo="https://idfc.helioho.st/img/aajtakhd.png" group-title="News",Aaj Tak HD
-http://103.148.116.71:80/live/play/YXpaSFFXc3hRa3BYT0VoYVpqSkJhRGx5VlRVMVNUWkVWRWhrVVZwc1dHdFVXRzVSVFhsak1HMXFTVDA9/1526120?video_type=video%2Fmp2t&source_group=News
+http://103.148.116.71:80/live/play/WW5VMlNuSk5aMFIxUW5CNE9HTmtVRVJIUkhoNFlqWmhSRUZHU2t4WVpWbGxSbGxwWWxWNk9VNWxkejA9/1526120?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="India News" tvg-logo="https://idfc.helioho.st/img/indianews.png" group-title="News",India News
+http://103.148.116.71:80/live/play/TlN0TVZVeElhMFIxYkVaWVF6WkdZVkJTU0RWRGJuTkJSREZwVFZCdFZVcDZiSGhLUkV3MEswOXZiejA9/156045?video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="Network 10" tvg-logo="https://idfc.helioho.st/img/network10.png" group-title="News",Network 10
-http://103.148.116.71:80/live/play/VlVSdVNrbHBOVVEzTXk4eGFGRmtjamh6UVd4MkswbHZUVXhxTW01WE5VNXRlR3RaWlU1REx6VjZPRDA9/1526167?video_type=application%2Foctet-stream&source_group=News
+http://103.148.116.71:80/live/play/VUVkVVIzRXpkMHBCZUhCWE5HaFJLekJtTkVScmIwOWhSV28xZG5OdVNrWTBPVFl5Tm5rdlZVZEZNRDA9/1526167?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="CNBC Awaaz" tvg-logo="https://idfc.helioho.st/img/cnbcawaaz.png" group-title="News",CNBC Awaaz
+http://103.148.116.71:80/live/play/VVZOa1dtUlVXbVJ6YTNsM0szZ3pibVpMWTFwWlFYUmpaalJqVjBaVWNqbEhSekk0WWtreVpWaFBPRDA9/280812?video_type=application%2Foctet-stream&source_group=News
 #EXTINF:-1 tvg-id="Zee Business" tvg-logo="https://idfc.helioho.st/img/zeebusiness.png" group-title="News",Zee Business
-http://103.148.116.71:80/live/play/ZVhoNGJrbExXV3BhWmtVMmFYSlhURlpZUW5aWFVWRkRVMGQ2TUZWaVYyRlBXbFZRWnpCMGRra3JaejA9/156122?video_type=application%2Foctet-stream&source_group=News
+http://103.148.116.71:80/live/play/TUVWU1MwUlNibFpGY0VFMmRuSTRlV2MyV1hNdlJGSmhZVEJyT1hGRVJXSjNhR0UwTDNwWmF6SnRXVDA9/156122?video_type=application%2Foctet-stream&source_group=News
+#EXTINF:-1 tvg-id="India TV" tvg-logo="https://idfc.helioho.st/img/indiatv.png" group-title="News",India TV
+http://103.148.116.71:80/live/play/VG1kS2NsTnFWVWx2Y0Zkd2JqZENSWGhuWmpOemRsVldkekpRTkdWRVMyOVhZbk14WVhKYWNtdHVUVDA9/156047?video_type=application%2Foctet-stream&source_group=News
 
 #GROUP:Kids
-#EXTINF:-1 tvg-id="Disney Junior" tvg-logo="https://idfc.helioho.st/img/disneyjr.png" group-title="Kids",Disney Junior
-http://185.245.0.209:80/live/play/VVhoSE5EZElUblF5WTBVck5reFZLMlpWWTIxdU5GcGFSbVZMUkU5c1UzaHZNalJzUm5KVVl6ZzVORDA9/811469?video_type=application%2Foctet-stream&source_group=Kids
-#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="https://idfc.helioho.st/img/cartoonnetwork.png" group-title="Kids",Cartoon Network
-http://185.245.0.209:80/live/play/VDJGaWIxWjNRbTR4Y3pOYVoybE5lbVZ1WWpOVE5VNUJSVXcwU1RSYWMzSnlabEF5WmtwTlZVMU5UVDA9/280748?video_type=application%2Foctet-stream&source_group=Kids
+#EXTINF:-1 tvg-id="Disney" tvg-logo="https://idfc.helioho.st/img/disney.png" group-title="Kids",Disney
+http://185.245.0.209:80/live/play/VUVkMlNqRTFTREpxWTAxRE5tNUhSbkZxYlZkT2JWQnZRblZCWlhseE1XRllTa2t2UnpoeVRXRlZRVDA9/156000?video_type=application%2Foctet-stream&source_group=Kids
 #EXTINF:-1 tvg-id="Nick" tvg-logo="https://idfc.helioho.st/img/nick.png" group-title="Kids",Nick
-http://185.245.0.209:80/live/play/VDI1TGNVWm5TV0owWVZOaVNIcDVSek55V1ZsSFpuZFBabWc1ZW1WYVNIQkZVR0p2WVdwT1lrTTFPRDA9/1752848?video_type=application%2Foctet-stream&source_group=Kids
+http://185.245.0.209:80/live/play/UWxOdmFIQXZNMVoyUzNGSFdYaE1SVWxKVWxadVEzZDJSRlZsY2xObVVHNW1SRVI0TkZaR0syTlRjejA9/1752848?video_type=application%2Foctet-stream&source_group=Kids
+#EXTINF:-1 tvg-id="Cartoon Network" tvg-logo="https://idfc.helioho.st/img/cartoonnetwork.png" group-title="Kids",Cartoon Network
+http://185.245.0.209:80/live/play/TkU0eVRuWlZkMVZoVWl0RmJUUklTMlZXWmpJMEwxSkJXRVl5VWpOVVUySkxZelZLTW1rM1VXUnZhejA9/280748?video_type=application%2Foctet-stream&source_group=Kids
+#EXTINF:-1 tvg-id="Pogo" tvg-logo="https://idfc.helioho.st/img/pogo.png" group-title="Kids",Pogo
+http://185.245.0.209:80/live/play/Y2xsdFZpdFZZak5YWkdWdVIxQjZObGhZTmpKNlVYbGplVVJzVmtWbldtUnBhVkJMYVZsMWVtaDFNRDA9/156128?video_type=application%2Foctet-stream&source_group=Kids
+#EXTINF:-1 tvg-id="Disney Junior" tvg-logo="https://idfc.helioho.st/img/disneyjr.png" group-title="Kids",Disney Junior
+http://185.245.0.209:80/live/play/SzJjM1VEQjNPVEJKZW1sR1l5OUZMMU5TZW1aVGNUUTVNVEUyTWtwNWJ6VlZWRTVOTVRKbmVYbFBNRDA9/811469?video_type=application%2Foctet-stream&source_group=Kids
+#EXTINF:-1 tvg-id="Gubbare" tvg-logo="https://idfc.helioho.st/img/gubbare.png" group-title="Kids",Gubbare
+http://185.245.0.209:80/live/play/Y2xoRmNqQjRObmd4V0N0TGVuaFhNV1ZxY21kVVlVMXVORE52YVRoUGNFYzNNMjU1SzNOdFpqWTRjejA9/1529127?video_type=application%2Foctet-stream&source_group=Kids
 
 #GROUP:Infotainment
+#EXTINF:-1 tvg-id="Animal Planet HD" tvg-logo="https://idfc.helioho.st/img/animalplanethd.png" group-title="Infotainment",Animal Planet HD
+http://185.245.0.209:80/live/play/Tmk4ek1VVndPVlY0YVVWQ1ZXWlViVzE2ZWxsdE0ybEVabXg0U0dacVUwSnZZemNyUmpOUmFtbFVNRDA9/156168?video_type=application%2Foctet-stream&source_group=Infotainment
+#EXTINF:-1 tvg-id="National Geographic HD" tvg-logo="https://idfc.helioho.st/img/natgeohd.png" group-title="Infotainment",National Geographic HD
+http://185.245.0.209:80/live/play/WldKWWJEVk5OV0pqTVVKblRVOHJiRTloWlhaWlFubEtWRk16TTNGall6SnBSV1p0Tm5jdmEwVk9XVDA9/156011?video_type=application%2Foctet-stream&source_group=Infotainment
 #EXTINF:-1 tvg-id="Nat Geo Wild HD" tvg-logo="https://idfc.helioho.st/img/natgeowildhd.png" group-title="Infotainment",Nat Geo Wild HD
-http://185.245.0.209:80/live/play/WjNkNk5FVlVNMmR3V0hKR0wyMUxSa2R5Y0RSR1dGZEJNRk5ZZWxCRU9IRlVkR01ySzBoQ2FrdHFiejA9/155989?video_type=application%2Foctet-stream&source_group=Infotainment
+http://185.245.0.209:80/live/play/UVhwa2RUbEpURzFOYlZaTVZITjVjalU0VlROS1EwdHFNREppVWtKNlRqbEhRV05YUVdGTmJ6VkhhejA9/155989?video_type=application%2Foctet-stream&source_group=Infotainment
+#EXTINF:-1 tvg-id="Discovery HD" tvg-logo="https://idfc.helioho.st/img/discoveryhd.png" group-title="Infotainment",Discovery HD
+http://185.245.0.209:80/live/play/Vm1NNGVGZ3hZMEphZFhGRlREWjVPRUpSWTBjM1ZWQjJTMUp2UTFnelRHWnRiRTl3TmtWWE5GY3lNRDA9/155999?video_type=application%2Foctet-stream&source_group=Infotainment
 
 #GROUP:Sports
-#EXTINF:-1 tvg-id="Star Sports 3" tvg-logo="https://idfc.helioho.st/img/starsports3.png" group-title="Sports",Star Sports 3
-http://103.176.90.131/video/black.ts?video_type=video%2Fmp2t&source_group=Sports
 #EXTINF:-1 tvg-id="ts1191" tvg-logo="https://idfc.helioho.st/img/ddsports.png" group-title="Sports",DD Sports HD
-http://85.92.112.75:80/live/play/TTBFMlkxRnpjWGx6Wm05a1dVMXhNMUF4ZUdwNFUxSnhXVVY0U3pGNlFTdEhUM041TW1SWk9VVnVSVDA9/155983?video_type=application%2Foctet-stream&source_group=Sports
+http://85.92.112.75:80/live/play/WjA4elR5dFhOV0lyS3pWNlFrWTRTbmRoVW5sWGFIQk9PRmhhWjJOU1JsRndjVlpuZWtaWFUxRndNRDA9/155983?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="Sony Sports Ten 1 HD" tvg-logo="https://idfc.helioho.st/img/sonyten1hd.png" group-title="Sports",Sony Sports Ten 1 HD
-http://85.92.112.50:80/live/play/VEdKNE9GRm5kRzlQVTBSb05ITTFhR2hRYVZGSVNYWldXbkJaYVU1M1VESXlabE5aY1RKSVRDdGpTVDA9/1114576?video_type=application%2Foctet-stream&source_group=Sports
-#EXTINF:-1 tvg-id="Sony Sports Ten 2 HD" tvg-logo="https://idfc.helioho.st/img/sonyten2hd.png" group-title="Sports",Sony Sports Ten 2 HD
-http://85.92.112.50:80/live/play/VWs1dVpFUTRTbkJTZG5wTmQwSnZWbmRKVlZGNE1rSXpRVkpYZUZoRWRUbDVaRzF5YTJwSWRESkdXVDA9/1114577?video_type=application%2Foctet-stream&source_group=Sports
+http://85.92.112.50:80/live/play/VjFBNU5XdG9ORnBwVm1sWVRVeDZSVGhqT0ZJd1dtOVVVSEYxUXpGSUwybEdkV0UxVDBsUFdXTk1RVDA9/1114576?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports Select 1 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect1.png" group-title="Sports",Star Sports Select 1 HD
-http://185.245.0.146:80/live/play/TmtWQ1NuTXphVnBOUlhGRVpYUm9UakIwVWxKNFZFSjFTakJ2UmpneVdEbGtVbTFDWlZJNFNsbHpaejA9/1114583?video_type=video%2Fmp2t&source_group=Sports
+http://185.245.0.146:80/live/play/TDFsTmEyTlphRlZDYW1oUFoyVkdVbFZxYTNkdFExRlVkbEJ0ZVZKQlUwb3dWVzV0Ym1kQ1RscEVSVDA9/1114583?video_type=application%2Foctet-stream&source_group=Sports
+#EXTINF:-1 tvg-id="Star Sports Select 2 HD" tvg-logo="https://idfc.helioho.st/img/starsportsselect2.png" group-title="Sports",Star Sports Select 2 HD
+http://185.245.0.146:80/live/play/VDNoa09XaFpWRWRYTkZBek1YUkxRbEJKVDFNclVVdGlSbTV0U1ZsaGMyTktNRmREYm5OTU5WSlNUVDA9/1114584?video_type=application%2Foctet-stream&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 2 HD" tvg-logo="https://idfc.helioho.st/img/sonyten2hd.png" group-title="Sports",Sony Sports Ten 2 HD
+http://85.92.112.50:80/live/play/WWxWMldHMUZiWGQ2ZVdKd2VpOHdlakZXUjFBclZVcEllRVZGZFdJdmF6TkdkemhHT1dzMmEyOUxhejA9/1114577?video_type=application%2Foctet-stream&source_group=Sports
+#EXTINF:-1 tvg-id="Sony Sports Ten 3 HD" tvg-logo="https://idfc.helioho.st/img/sonyten3hd.png" group-title="Sports",Sony Sports Ten 3 HD
+http://85.92.112.50:80/live/play/ZDJRelUwZFFWa1puUlhad055OXlNbkJpY0M5Qk4wSXZPR1V5YmpKQ2FXSjZkbXN6TVZkd1VXaFVNRDA9/1114578?video_type=application%2Foctet-stream&source_group=Sports
 
 #GROUP:Religious
 #EXTINF:-1 tvg-id="Divya" tvg-logo="https://idfc.helioho.st/img/divya.png" group-title="Religious",Divya
-http://185.245.0.209:80/live/play/WVZvMVIyTldhVTlCUldWRmVsZFljRWg0T0ZGTlpFUkxjbVZQYzBkd04ySjRWSFp2TVZKTE5qSktkejA9/156132?video_type=application%2Foctet-stream&source_group=Religious
+http://185.245.0.209:80/live/play/U0Zwb1ZWaEhjRUoxVFZGeVRrdFNNSE5sYjBneGIzRk9WVzlTWVM5a1RDOXhPRTFxZVRFeWFUQmpiejA9/156132?video_type=application%2Foctet-stream&source_group=Religious
 
 #LANG:Bhojpuri
 
 #GROUP:Movies
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Movies",Bhojpuri Cinema
-http://185.245.0.207:80/live/play/YkRaQlZuWnBlWEJIYTNwTEwyZDRVRkpFVmtkS1YyMDBiaTh3TlhWSVNFWXllSGxEYVhsU1ltMVpPRDA9/282598?video_type=application%2Foctet-stream&source_group=Movies
+http://185.245.0.207:80/live/play/VkZJdmEzaEdiRWRXUm1kTFVFcG5XbkpMUWxCbWFtVXlVVUp1VjFWbU5FWk9WVWRhZW5WUGNsRTBZejA9/282598?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Movies",Filamchi Bhojpuri
+http://185.245.0.150:80/live/play/Y2xsTGRVb3lkVEZSWmxkYWVHWTVPV2hqUzNGbUsyTnJXV3RpUkhKWlduVndTa1o0YlhOb1FsaFdNRDA9/1531152?video_type=application%2Foctet-stream&source_group=Movies
 
 #GROUP:Bhojpuri
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri",Bhojpuri Cinema
-http://185.245.0.207:80/live/play/YkRaQlZuWnBlWEJIYTNwTEwyZDRVRkpFVmtkS1YyMDBiaTh3TlhWSVNFWXllSGxEYVhsU1ltMVpPRDA9/282598?video_type=application%2Foctet-stream&source_group=Movies
+http://185.245.0.207:80/live/play/VkZJdmEzaEdiRWRXUm1kTFVFcG5XbkpMUWxCbWFtVXlVVUp1VjFWbU5FWk9WVWRhZW5WUGNsRTBZejA9/282598?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri",Filamchi Bhojpuri
+http://185.245.0.150:80/live/play/Y2xsTGRVb3lkVEZSWmxkYWVHWTVPV2hqUzNGbUsyTnJXV3RpUkhKWlduVndTa1o0YlhOb1FsaFdNRDA9/1531152?video_type=application%2Foctet-stream&source_group=Movies
 
 #GROUP:Bhojpuri Movies
 #EXTINF:-1 tvg-id="Bhojpuri Cinema" tvg-logo="https://idfc.helioho.st/img/bhojpuricinema.png" group-title="Bhojpuri Movies",Bhojpuri Cinema
-http://185.245.0.207:80/live/play/YkRaQlZuWnBlWEJIYTNwTEwyZDRVRkpFVmtkS1YyMDBiaTh3TlhWSVNFWXllSGxEYVhsU1ltMVpPRDA9/282598?video_type=application%2Foctet-stream&source_group=Movies
-
-#LANG:Religious
-
-#GROUP:Religious
-#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious",Aastha Bhajan
-http://185.245.0.211:80/live/play/ZVZob1ZVc3ZUbGxHY0RkVFVWRTVhV2hFYlRobmRrWTJXSGN4VFZFck9XVjVNREpUWkRKUFQyOXBTVDA9/1533133?video_type=application%2Foctet-stream&source_group=Religious
-
-#GROUP:Religious Religious
-#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious Religious",Aastha Bhajan
-http://185.245.0.211:80/live/play/ZVZob1ZVc3ZUbGxHY0RkVFVWRTVhV2hFYlRobmRrWTJXSGN4VFZFck9XVjVNREpUWkRKUFQyOXBTVDA9/1533133?video_type=application%2Foctet-stream&source_group=Religious
+http://185.245.0.207:80/live/play/VkZJdmEzaEdiRWRXUm1kTFVFcG5XbkpMUWxCbWFtVXlVVUp1VjFWbU5FWk9WVWRhZW5WUGNsRTBZejA9/282598?video_type=application%2Foctet-stream&source_group=Movies
+#EXTINF:-1 tvg-id="Filamchi Bhojpuri" tvg-logo="https://idfc.helioho.st/img/filamchibhojpuri.png" group-title="Bhojpuri Movies",Filamchi Bhojpuri
+http://185.245.0.150:80/live/play/Y2xsTGRVb3lkVEZSWmxkYWVHWTVPV2hqUzNGbUsyTnJXV3RpUkhKWlduVndTa1o0YlhOb1FsaFdNRDA9/1531152?video_type=application%2Foctet-stream&source_group=Movies
 
 #LANG:Hindi
 
 #GROUP:Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Sports",Star Sports 1 Hindi HD
+http://185.245.0.146:80/live/play/UmpGTFJqRTVXWEJzWjBSTk1XOUtPWFpRTUdwT2JIRnVWVFJZVG5od1VYZFVhMlZaZWpoU1JFbGpUVDA9/1104672?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Sports",Star Sports 2 Hindi HD
-http://185.245.0.146:80/live/play/ZDBSaFVITkliV2czT0VKYVYxQjJaRkJIUTJKdmNVZDNLeTlaUzFBNU1FOHZXRWhQTmxZNVFVeG9VVDA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
+http://185.245.0.146:80/live/play/TldJMU56Y3hNbmNyYTFBMmJVeGtjMmhLZEV0RmRrTmFUa3QxVUhsVVMwTmpkRzFxUjI5dGIxZDViejA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
 
 #GROUP:Hindi
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi",Star Sports 1 Hindi HD
+http://185.245.0.146:80/live/play/UmpGTFJqRTVXWEJzWjBSTk1XOUtPWFpRTUdwT2JIRnVWVFJZVG5od1VYZFVhMlZaZWpoU1JFbGpUVDA9/1104672?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi",Star Sports 2 Hindi HD
-http://185.245.0.146:80/live/play/ZDBSaFVITkliV2czT0VKYVYxQjJaRkJIUTJKdmNVZDNLeTlaUzFBNU1FOHZXRWhQTmxZNVFVeG9VVDA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
+http://185.245.0.146:80/live/play/TldJMU56Y3hNbmNyYTFBMmJVeGtjMmhLZEV0RmRrTmFUa3QxVUhsVVMwTmpkRzFxUjI5dGIxZDViejA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="StarPlusHin.in@HD" tvg-logo="https://raw.githubusercontent.com/subirkumarpaul/Logo/main/Star%20Plus.png" group-title="Hindi",Star Plus HD
 http://103.229.254.25:7001/play/a09z/index.m3u8?video_type=application%2Fx-mpegurl&source_group=Entertainment
 #EXTINF:-1 tvg-id="ClassicHits.in@HD" group-title="Hindi",Classic Hits
 https://mumt03.tangotv.in/CLASSICHITS/index.m3u8?video_type=application%2Fx-mpegurl&source_group=Music
 
 #GROUP:Hindi Sports
+#EXTINF:-1 tvg-id="Star Sports 1 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports1hindi.png" group-title="Hindi Sports",Star Sports 1 Hindi HD
+http://185.245.0.146:80/live/play/UmpGTFJqRTVXWEJzWjBSTk1XOUtPWFpRTUdwT2JIRnVWVFJZVG5od1VYZFVhMlZaZWpoU1JFbGpUVDA9/1104672?video_type=application%2Foctet-stream&source_group=Sports
 #EXTINF:-1 tvg-id="Star Sports 2 Hindi HD" tvg-logo="https://idfc.helioho.st/img/starsports2.png" group-title="Hindi Sports",Star Sports 2 Hindi HD
-http://185.245.0.146:80/live/play/ZDBSaFVITkliV2czT0VKYVYxQjJaRkJIUTJKdmNVZDNLeTlaUzFBNU1FOHZXRWhQTmxZNVFVeG9VVDA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
+http://185.245.0.146:80/live/play/TldJMU56Y3hNbmNyYTFBMmJVeGtjMmhLZEV0RmRrTmFUa3QxVUhsVVMwTmpkRzFxUjI5dGIxZDViejA9/1698894?video_type=application%2Foctet-stream&source_group=Sports
 
 #GROUP:Entertainment
 #EXTINF:-1 tvg-id="StarPlusHin.in@HD" tvg-logo="https://raw.githubusercontent.com/subirkumarpaul/Logo/main/Star%20Plus.png" group-title="Entertainment",Star Plus HD
@@ -147,6 +221,16 @@ https://mumt03.tangotv.in/CLASSICHITS/index.m3u8?video_type=application%2Fx-mpeg
 #GROUP:Hindi Music
 #EXTINF:-1 tvg-id="ClassicHits.in@HD" group-title="Hindi Music",Classic Hits
 https://mumt03.tangotv.in/CLASSICHITS/index.m3u8?video_type=application%2Fx-mpegurl&source_group=Music
+
+#LANG:Religious
+
+#GROUP:Religious
+#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious",Aastha Bhajan
+http://185.245.0.211:80/live/play/VVVOWlRFWkxRV2xvV0daUWFsUTFSV0ZTT0dkdWNHNVdZakpDTUN0SFRYRnJLMVJMTm1wUWFGSTNSVDA9/1533133?video_type=application%2Foctet-stream&source_group=Religious
+
+#GROUP:Religious Religious
+#EXTINF:-1 tvg-id="Aastha Bhajan" tvg-logo="https://idfc.helioho.st/img/aasthabhajan.png" group-title="Religious Religious",Aastha Bhajan
+http://185.245.0.211:80/live/play/VVVOWlRFWkxRV2xvV0daUWFsUTFSV0ZTT0dkdWNHNVdZakpDTUN0SFRYRnJLMVJMTm1wUWFGSTNSVDA9/1533133?video_type=application%2Foctet-stream&source_group=Religious
 
 #LANG:English
 
