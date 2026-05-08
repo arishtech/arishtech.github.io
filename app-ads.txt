@@ -271,3 +271,4 @@ rubiconproject.com, 22412, RESELLER, 0bfd66d529a55807
 pubmatic.com, 160318, RESELLER, 5d62403b186f2ace
 rubiconproject.com, 28169, RESELLER, 0bfd66d529a55807
 openx.com, 561446248, RESELLER, 6a698e2ec38604c6
+facebook.com, 1320340042508100, DIRECT, c3e20eee3f780d68
