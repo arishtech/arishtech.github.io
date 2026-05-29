@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>IPTV Channel Explorer</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+body{
+    font-family:'Poppins',sans-serif;
+    background:
+        radial-gradient(circle at top left,#1f3b73,#0f172a 45%),
+        radial-gradient(circle at bottom right,#6d28d9,#111827 40%);
+    color:white;
+    min-height:100vh;
+    overflow-x:hidden;
+}
+
+header{
+    padding:30px;
+    text-align:center;
+}
+
+header h1{
+    font-size:42px;
+    font-weight:700;
+    background:linear-gradient(90deg,#60a5fa,#a78bfa);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+}
+
+header p{
+    opacity:.7;
+    margin-top:10px;
+}
+
+.container{
+    width:95%;
+    max-width:1500px;
+    margin:auto;
+}
+
+.controls{
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    margin-bottom:30px;
+    justify-content:center;
+}
+
+.search-box,
+.category-select{
+    background:rgba(255,255,255,0.08);
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    border-radius:16px;
+    padding:14px 18px;
+    color:white;
+    min-width:260px;
+    outline:none;
+    font-size:15px;
+}
+
+.search-box::placeholder{
+    color:#cbd5e1;
+}
+
+.stats{
+    display:flex;
+    gap:20px;
+    justify-content:center;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.stat-card{
+    background:rgba(255,255,255,0.08);
+    padding:18px 28px;
+    border-radius:18px;
+    backdrop-filter:blur(12px);
+    border:1px solid rgba(255,255,255,0.1);
+    text-align:center;
+    min-width:160px;
+}
+
+.stat-card h2{
+    font-size:30px;
+    color:#60a5fa;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:22px;
+    padding-bottom:50px;
+}
+
+.card{
+    background:rgba(255,255,255,0.08);
+    border:1px solid rgba(255,255,255,0.12);
+    border-radius:22px;
+    overflow:hidden;
+    transition:.35s ease;
+    backdrop-filter:blur(15px);
+    position:relative;
+}
+
+.card:hover{
+    transform:translateY(-8px) scale(1.02);
+    box-shadow:0 15px 40px rgba(0,0,0,.4);
+}
+
+.logo{
+    height:170px;
+    background:#0f172a;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.logo img{
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    padding:15px;
+}
+
+.content{
+    padding:18px;
+}
+
+.channel-name{
+    font-size:18px;
+    font-weight:600;
+    margin-bottom:10px;
+}
+
+.category{
+    display:inline-block;
+    padding:6px 12px;
+    border-radius:50px;
+    background:linear-gradient(90deg,#3b82f6,#8b5cf6);
+    font-size:12px;
+    margin-bottom:14px;
+}
+
+.play-btn{
+    width:100%;
+    padding:12px;
+    border:none;
+    border-radius:14px;
+    cursor:pointer;
+    color:white;
+    font-weight:600;
+    background:linear-gradient(90deg,#2563eb,#7c3aed);
+    transition:.3s;
+}
+
+.play-btn:hover{
+    opacity:.85;
+}
+
+.player-modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.8);
+    display:none;
+    align-items:center;
+    justify-content:center;
+    z-index:999;
+}
+
+.player-box{
+    width:90%;
+    max-width:900px;
+    background:#111827;
+    border-radius:20px;
+    overflow:hidden;
+    position:relative;
+}
+
+.close-btn{
+    position:absolute;
+    top:10px;
+    right:15px;
+    font-size:30px;
+    cursor:pointer;
+    color:white;
+    z-index:10;
+}
+
+video{
+    width:100%;
+    height:520px;
+    background:black;
+}
+
+@media(max-width:768px){
+    header h1{
+        font-size:30px;
+    }
+
+    video{
+        height:250px;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>IPTV Channel Explorer</h1>
+    <p>Search channels, browse categories, and stream instantly</p>
+</header>
+
+<div class="container">
+
+    <div class="stats">
+        <div class="stat-card">
+            <h2 id="totalChannels">0</h2>
+            <p>Total Channels</p>
+        </div>
+
+        <div class="stat-card">
+            <h2 id="totalCategories">0</h2>
+            <p>Categories</p>
+        </div>
+    </div>
+
+    <div class="controls">
+        <input type="text" class="search-box" id="searchInput" placeholder="Search channel...">
+
+        <select class="category-select" id="categoryFilter">
+            <option value="all">All Categories</option>
+        </select>
+    </div>
+
+    <div class="grid" id="channelGrid"></div>
+
+</div>
+
+<div class="player-modal" id="playerModal">
+    <div class="player-box">
+        <span class="close-btn" onclick="closePlayer()">×</span>
+        <video id="videoPlayer" controls autoplay></video>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+<script>
+
+const M3U_URL = "https://www.arishtech.com/mp.m3u";
+
+let channels = [];
+
+async function loadM3U() {
+    try {
+        const response = await fetch(M3U_URL);
+        const text = await response.text();
+
+        parseM3U(text);
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to load playlist");
+    }
+}
+
+function parseM3U(data) {
+
+    const lines = data.split("\n");
+    const parsed = [];
+
+    for(let i=0;i<lines.length;i++){
+
+        const line = lines[i];
+
+        if(line.startsWith("#EXTINF")){
+
+            const name = line.split(",").pop().trim();
+
+            const logoMatch = line.match(/tvg-logo="(.*?)"/);
+            const groupMatch = line.match(/group-title="(.*?)"/);
+
+            const logo = logoMatch ? logoMatch[1] : "https://via.placeholder.com/300x180?text=No+Logo";
+            const group = groupMatch ? groupMatch[1] : "Uncategorized";
+
+            const stream = lines[i+1]?.trim();
+
+            parsed.push({
+                name,
+                logo,
+                group,
+                stream
+            });
+        }
+    }
+
+    channels = parsed;
+
+    renderCategories();
+    renderChannels(parsed);
+    updateStats();
+}
+
+function renderCategories(){
+
+    const select = document.getElementById("categoryFilter");
+
+    const groups = [...new Set(channels.map(c => c.group))];
+
+    groups.sort();
+
+    groups.forEach(group => {
+
+        const option = document.createElement("option");
+        option.value = group;
+        option.innerText = group;
+
+        select.appendChild(option);
+    });
+
+    document.getElementById("totalCategories").innerText = groups.length;
+}
+
+function renderChannels(list){
+
+    const grid = document.getElementById("channelGrid");
+
+    grid.innerHTML = "";
+
+    list.forEach(channel => {
+
+        const card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML = `
+            <div class="logo">
+                <img src="${channel.logo}" loading="lazy"
+                onerror="this.src='https://via.placeholder.com/300x180?text=No+Logo'">
+            </div>
+
+            <div class="content">
+                <div class="channel-name">${channel.name}</div>
+
+                <div class="category">${channel.group}</div>
+
+                <button class="play-btn">
+                    ▶ Watch Channel
+                </button>
+            </div>
+        `;
+
+        card.querySelector(".play-btn").addEventListener("click", () => {
+            openPlayer(channel.stream);
+        });
+
+        grid.appendChild(card);
+    });
+
+    document.getElementById("totalChannels").innerText = list.length;
+}
+
+function updateStats(){
+
+    document.getElementById("totalChannels").innerText = channels.length;
+}
+
+document.getElementById("searchInput").addEventListener("input", filterChannels);
+
+document.getElementById("categoryFilter").addEventListener("change", filterChannels);
+
+function filterChannels(){
+
+    const search = document.getElementById("searchInput").value.toLowerCase();
+
+    const category = document.getElementById("categoryFilter").value;
+
+    const filtered = channels.filter(channel => {
+
+        const matchSearch =
+            channel.name.toLowerCase().includes(search);
+
+        const matchCategory =
+            category === "all" || channel.group === category;
+
+        return matchSearch && matchCategory;
+    });
+
+    renderChannels(filtered);
+}
+
+function openPlayer(url){
+
+    const modal = document.getElementById("playerModal");
+
+    const video = document.getElementById("videoPlayer");
+
+    modal.style.display = "flex";
+
+    if(Hls.isSupported()){
+
+        const hls = new Hls();
+
+        hls.loadSource(url);
+
+        hls.attachMedia(video);
+
+    } else {
+
+        video.src = url;
+    }
+}
+
+function closePlayer(){
+
+    const modal = document.getElementById("playerModal");
+
+    const video = document.getElementById("videoPlayer");
+
+    video.pause();
+
+    video.src = "";
+
+    modal.style.display = "none";
+}
+
+loadM3U();
+
+</script>
+
+</body>
+</html>
