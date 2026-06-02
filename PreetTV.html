@@ -7,52 +7,53 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
     <script>
-        (function() {
-            const playStoreUrl = "https://play.google.com/store/apps/details?id=com.arishtech.preetplayer";
-            const appStoreUrl = "https://apps.apple.com/in/app/iptv-smart-player/id6448987395";
+	(function () {
 
-            function performRedirect() {
-                // Force lowercase to eliminate any case-sensitivity bugs across custom mobile webviews
-                const ua = (navigator.userAgent || navigator.vendor || window.opera || "").toLowerCase();
-                let targetUrl = null;
+		const playStoreUrl = "https://play.google.com/store/apps/details?id=com.arishtech.preetplayer";
+		const appStoreUrl = "https://apps.apple.com/in/app/iptv-smart-player/id6448987395";
 
-                // Token absolute matching strategy
-                if (ua.indexOf("android") !== -1 || ua.indexOf("linux") !== -1 && ua.indexOf("mobi") !== -1) {
-                    targetUrl = playStoreUrl;
-                } 
-                else if (ua.indexOf("iphone") !== -1 || ua.indexOf("ipod") !== -1) {
-                    targetUrl = appStoreUrl;
-                } 
-                // Fallback for newer iPads mimicking desktop macOS architecture
-                else if (ua.indexOf("macintosh") !== -1 && navigator.maxTouchPoints > 1) {
-                    targetUrl = appStoreUrl;
-                }
-                // Universal mobile string catch-all
-                else if (ua.indexOf("mobi") !== -1 || ua.indexOf("mobile") !== -1) {
-                    targetUrl = playStoreUrl;
-                }
+		function performRedirect() {
 
-                if (targetUrl) {
-                    const notice = document.getElementById('mobileNotice');
-                    if(notice) {
-                        notice.style.display = 'block';
-                        notice.innerText = "Mobile environment identified. Initializing fast-lane handoff to official storefront...";
-                    }
-                    window.location.replace(targetUrl);
-                }
-            }
+			const ua = (
+				navigator.userAgent ||
+				navigator.vendor ||
+				window.opera ||
+				""
+			).toLowerCase();
 
-            // Execute immediately at header parse execution
-            performRedirect();
-            
-            // Re-verify fallback once DOM elements are fully painted
-            if (document.readyState === "loading") {
-                document.addEventListener("DOMContentLoaded", performRedirect);
-            } else {
-                performRedirect();
-            }
-        })();
-    </script>
+			let targetUrl = null;
+
+			if (ua.includes("android")) {
+				targetUrl = playStoreUrl;
+			}
+			else if (
+				ua.includes("iphone") ||
+				ua.includes("ipad") ||
+				ua.includes("ipod") ||
+				(ua.includes("macintosh") && navigator.maxTouchPoints > 1)
+			) {
+				targetUrl = appStoreUrl;
+			}
+
+			if (targetUrl) {
+
+				const notice = document.getElementById("mobileNotice");
+				if (notice) {
+					notice.style.display = "block";
+					notice.innerText = "Redirecting to store...";
+				}
+
+				// small delay improves compatibility
+				setTimeout(() => {
+					window.location.href = targetUrl;
+				}, 300);
+			}
+		}
+
+		window.addEventListener("load", performRedirect);
+
+	})();
+	</script>
 
     <style>
         :root {
@@ -294,7 +295,7 @@
         }
 
         .screenshot-section {
-            margin-top: 80px;
+            margin-top: 0px;
         }
 
         .screenshot-gallery {
@@ -411,19 +412,17 @@
         <!-- Managed dynamically by script safely -->
         <div class="redirect-notice" id="mobileNotice"></div>
 
-        <header>
-            <!-- New Premium Sub-header/Banner -->
-            <div class="top-announcement">
-                📺 Watch TV Anytime, Anywhere with over 10,000 global channels
-            </div>
-            
-            <br>
-            
+        <header>            
             <div class="logo-wrapper">
                 <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
             </div>
             <h1>The Ultimate <span>Preet Live Streaming Player</span></h1>
-            <p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
+            
+            <!-- New Premium Sub-header/Banner -->
+            <div class="top-announcement">
+                📺 Watch TV Anytime, Anywhere with over 10,000 global channels
+            </div>
+			<p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
             
             <div class="badge-container">
                 <!-- Google Play Badge -->
@@ -482,7 +481,7 @@
 
         <!-- Features Grid -->
         <section class="features-section">
-            <h2 class="section-title">Engine Features</h2>
+            <h2 class="section-title">Player Features</h2>
             <div class="features-grid">
                 <div class="feature-card">
                     <div class="feature-icon-wrapper">⚡</div>
@@ -541,7 +540,7 @@
         </section>
 
         <footer>
-            <p>&copy; 2026 Arishtech. Preet Player is an agnostic utility platform designed strictly to play media assets. We explicitly do not provide, lease, or host any digital content streams.</p>
+            <p>&copy; 2026 Arish Technology. Preet Player is an agnostic utility platform designed strictly to play media assets. We explicitly do not provide, lease, or host any digital content streams.</p>
         </footer>
     </div>
 </body>
