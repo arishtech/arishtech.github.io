@@ -12,40 +12,40 @@
             const appStoreUrl = "https://apps.apple.com/in/app/iptv-smart-player/id6448987395";
 
             function performRedirect() {
-                const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                // Force lowercase to eliminate any case-sensitivity bugs across custom mobile webviews
+                const ua = (navigator.userAgent || navigator.vendor || window.opera || "").toLowerCase();
                 let targetUrl = null;
 
-                // 1. Explicit Android check
-                if (/android/i.test(userAgent)) {
+                // Token absolute matching strategy
+                if (ua.indexOf("android") !== -1 || ua.indexOf("linux") !== -1 && ua.indexOf("mobi") !== -1) {
                     targetUrl = playStoreUrl;
                 } 
-                // 2. Explicit iPhone / iPod check
-                else if (/iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                else if (ua.indexOf("iphone") !== -1 || ua.indexOf("ipod") !== -1) {
                     targetUrl = appStoreUrl;
                 } 
-                // 3. Catch modern iPads and iOS devices running "Request Desktop Website"
-                else if (/Macintosh/.test(userAgent) && navigator.maxTouchPoints > 1) {
+                // Fallback for newer iPads mimicking desktop macOS architecture
+                else if (ua.indexOf("macintosh") !== -1 && navigator.maxTouchPoints > 1) {
                     targetUrl = appStoreUrl;
                 }
-                // 4. Secondary fallback for alternative mobile browsers
-                else if (/Mobi|Android/i.test(userAgent)) {
-                    targetUrl = playStoreUrl; 
+                // Universal mobile string catch-all
+                else if (ua.indexOf("mobi") !== -1 || ua.indexOf("mobile") !== -1) {
+                    targetUrl = playStoreUrl;
                 }
 
                 if (targetUrl) {
-                    // Update display banner state if it exists
                     const notice = document.getElementById('mobileNotice');
                     if(notice) {
                         notice.style.display = 'block';
                         notice.innerText = "Mobile environment identified. Initializing fast-lane handoff to official storefront...";
                     }
-                    
-                    // window.location.replace is more reliable than .href as it prevents back-button loops
                     window.location.replace(targetUrl);
                 }
             }
 
-            // Execute immediately if the DOM is already baking, otherwise bind to safe listener states
+            // Execute immediately at header parse execution
+            performRedirect();
+            
+            // Re-verify fallback once DOM elements are fully painted
             if (document.readyState === "loading") {
                 document.addEventListener("DOMContentLoaded", performRedirect);
             } else {
@@ -101,7 +101,7 @@
         }
 
         .redirect-notice {
-            display: none; /* Controlled dynamically by script above */
+            display: none;
             background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
             border: 1px solid rgba(59, 130, 246, 0.3);
             padding: 16px;
@@ -115,8 +115,23 @@
 
         header {
             text-align: center;
-            padding: 60px 20px 40px 20px;
+            padding: 40px 20px 40px 20px;
             position: relative;
+        }
+
+        /* Top Announcement Badge Style */
+        .top-announcement {
+            display: inline-block;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #60a5fa;
+            letter-spacing: 0.02em;
+            margin-bottom: 35px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
 
         .logo-wrapper {
@@ -386,6 +401,7 @@
             header h1 { font-size: 2.4rem; }
             header p.tagline { font-size: 1.1rem; }
             .tech-section { padding: 30px 20px; }
+            .top-announcement { font-size: 0.85rem; padding: 6px 16px; }
         }
     </style>
 </head>
@@ -396,6 +412,13 @@
         <div class="redirect-notice" id="mobileNotice"></div>
 
         <header>
+            <!-- New Premium Sub-header/Banner -->
+            <div class="top-announcement">
+                📺 Watch TV Anytime, Anywhere with over 10,000 global channels
+            </div>
+            
+            <br>
+            
             <div class="logo-wrapper">
                 <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
             </div>
