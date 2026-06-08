@@ -84,6 +84,25 @@ function isHlsCandidate(url) {
   );
 }
 
+// Returns true for any live stream URL that HLS.js should attempt, including
+// extensionless IPTV paths where the server returns m3u8 without a file extension.
+function shouldAttemptHlsJs(url) {
+  if (isHlsCandidate(url)) return true;
+  const s = (url || "").toLowerCase();
+  // Extensionless path-style IPTV URLs
+  if (s.includes("/live/play/") || s.includes("/live.php") ||
+      s.includes("/live/") || s.includes("/stream") || s.includes("/channel")) {
+    return true;
+  }
+  // URL with no file extension at all (no dot in the path)
+  try {
+    const u = new URL(url);
+    const path = u.pathname || "";
+    if (!path.substring(1).includes(".")) return true;
+  } catch (_e) {}
+  return false;
+}
+
 function isDashCandidate(url) {
   const s = (url || "").toLowerCase();
   return (
@@ -349,11 +368,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
         withM3u8Path.pathname = `${pathname}.m3u8`;
         push(withM3u8Path.toString());
       }
-      push(appendQueryParam(baseUrl, "type", "m3u8"));
-      push(appendQueryParam(baseUrl, "output", "m3u8"));
-      push(appendQueryParam(baseUrl, "format", "hls"));
-      push(appendQueryParam(baseUrl, "extension", "m3u8"));
-      push(appendQueryParam(baseUrl, "ext", "m3u8"));
     } catch (_e) {
       // best-effort candidate generation
     }
@@ -621,16 +635,6 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       activeCandidateIndex = 0;
     }
 
-    // If sender gave a path-style live URL, prefer an HLS-capable candidate first.
-    if (activeCandidateIndex === 0) {
-      const firstHlsIdx = activeCandidates.findIndex((c) => isHlsCandidate(c));
-      if (firstHlsIdx > 0) {
-        const first = activeCandidates[0];
-        activeCandidates[0] = activeCandidates[firstHlsIdx];
-        activeCandidates[firstHlsIdx] = first;
-      }
-    }
-
     const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
     const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
     if ((selectedUrl || "").toLowerCase().includes("/live.php")) {
@@ -649,11 +653,16 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       usingHlsJs: hlsIsAvailable() && isHlsCandidate(selectedUrl),
     });
 
-    if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+    if (hlsIsAvailable() && shouldAttemptHlsJs(selectedUrl)) {
       return new Promise((resolve) => {
         destroyHls();
         destroyDash();
-        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+        hlsInstance = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          manifestLoadingTimeOut: 8000,
+          manifestLoadingMaxRetry: 0,
+        });
         let settled = false;
 
         function settle(load) {
@@ -919,47 +928,114 @@ debugLog("receiver.started", {
     castVideoEl.addEventListener("canplay", () => debugLog("browser.video.canplay", {}));
   }
 
+  // ── Browser-mode player — ALL functions declared BEFORE the try block ──
+  let bcCandidates = [];
+  let bcCandidateIndex = 0;
+
+  function browserLoadCandidate(candidateUrl, candidateType) {
+    debugLog("browser.load_candidate", { candidateUrl, candidateType, bcCandidateIndex });
+
+    const looksLikeLiveStream = (() => {
+      const s = (candidateUrl || "").toLowerCase();
+      return s.includes("/live/") || s.includes("/live.php") ||
+             s.includes("/stream") || s.includes("/channel") ||
+             s.includes("/play/") || shouldAttemptHlsJs(candidateUrl);
+    })();
+
+    if (hlsIsAvailable() && (isHlsCandidate(candidateUrl) || looksLikeLiveStream)) {
+      destroyHls();
+      hlsInstance = new Hls({
+        enableWorker: true,
+        lowLatencyMode: false,
+        manifestLoadingTimeOut: 8000,
+        manifestLoadingMaxRetry: 0,
+      });
+
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        setStatus(`Playing (${bcCandidateIndex + 1}/${bcCandidates.length})`);
+        debugLog("browser.hls.manifest_parsed", { url: candidateUrl });
+        castVideoEl.play().catch((_e) => {});
+      });
+
+      hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+        debugLog("browser.hls.error", {
+          details: data && data.details ? data.details : "",
+          type: data && data.type ? data.type : "",
+          fatal: !!(data && data.fatal),
+        });
+        if (data && data.fatal) {
+          if (bcCandidateIndex < bcCandidates.length - 1) {
+            bcCandidateIndex += 1;
+            const next = bcCandidates[bcCandidateIndex];
+            debugLog("browser.candidate.retry", { reason: data.details, next, bcCandidateIndex });
+            destroyHls();
+            browserLoadCandidate(next, inferContentType(next));
+          } else {
+            setStatus("All candidates failed");
+            debugLog("browser.candidate.exhausted", {});
+          }
+        }
+      });
+
+      hlsInstance.loadSource(candidateUrl);
+      hlsInstance.attachMedia(castVideoEl);
+      return;
+    }
+
+    if (dashIsAvailable() && isDashCandidate(candidateUrl)) {
+      try {
+        destroyDash();
+        dashInstance = dashjs.MediaPlayer().create();
+        dashInstance.attachView(castVideoEl);
+        dashInstance.attachSource(candidateUrl);
+        dashInstance.play();
+        setStatus("Browser mode: DASH stream loaded");
+        debugLog("browser.dash.loaded", { candidateUrl });
+      } catch (e) {
+        debugLog("browser.dash.error", { message: e && e.message ? e.message : "unknown" });
+      }
+      return;
+    }
+
+    if (castVideoEl) {
+      castVideoEl.src = candidateUrl;
+      castVideoEl.type = candidateType;
+    }
+  }
+
+  function browserLoadUrl(url) {
+    if (!url) return;
+    destroyHls();
+    destroyDash();
+    if (castVideoEl) {
+      castVideoEl.removeAttribute("src");
+      castVideoEl.load();
+    }
+    bcCandidates = buildCompatibilityCandidates(url, {});
+    bcCandidateIndex = 0;
+    const first = bcCandidates[0] || url;
+    const firstType = inferContentType(first);
+    debugLog("browser.load", { url, first, firstType, candidates: bcCandidates });
+    browserLoadCandidate(first, firstType);
+  }
+
+  window.__bcLoadUrl = browserLoadUrl;
+  window.__bcStop = function () {
+    destroyHls();
+    destroyDash();
+    if (castVideoEl) {
+      castVideoEl.removeAttribute("src");
+      castVideoEl.load();
+    }
+    setStatus("Stopped");
+  };
+
+  // Now safe to call browserLoadUrl because it is declared above.
   try {
     const params = new URLSearchParams(window.location.search || "");
     const url = String(params.get("url") || "").trim();
     if (url && castVideoEl) {
-      const candidates = buildCompatibilityCandidates(url, {});
-      const selectedUrl = candidates[0] || url;
-      const selectedType = inferContentType(selectedUrl);
-      debugLog("browser.load", { url, selectedUrl, selectedType, candidates });
-
-      if (dashIsAvailable() && isDashCandidate(selectedUrl)) {
-        try {
-          destroyDash();
-          dashInstance = dashjs.MediaPlayer().create();
-          dashInstance.attachView(castVideoEl);
-          dashInstance.attachSource(selectedUrl);
-          dashInstance.play();
-          setStatus("Browser mode: DASH stream loaded");
-          debugLog("browser.dash.loaded", { selectedUrl });
-        } catch (e) {
-          debugLog("browser.dash.error", { message: e && e.message ? e.message : "unknown" });
-        }
-      } else if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
-        destroyHls();
-        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
-        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-          setStatus("Browser mode: HLS manifest parsed");
-          debugLog("browser.hls.manifest_parsed", { selectedUrl });
-          castVideoEl.play().catch(() => {});
-        });
-        hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
-          debugLog("browser.hls.error", {
-            details: data && data.details ? data.details : "",
-            fatal: !!(data && data.fatal),
-          });
-        });
-        hlsInstance.loadSource(selectedUrl);
-        hlsInstance.attachMedia(castVideoEl);
-      } else {
-        castVideoEl.src = selectedUrl;
-        castVideoEl.type = selectedType;
-      }
+      browserLoadUrl(url);
     }
   } catch (e) {
     debugLog("browser.mode.error", {
@@ -967,6 +1043,4 @@ debugLog("receiver.started", {
     });
   }
 }
-
-
 

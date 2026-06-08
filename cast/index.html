@@ -112,6 +112,31 @@
   </video>
   <div id="status">PreetTV Receiver Ready</div>
 
+  <!-- Browser-mode stream tester (hidden when Cast is active) -->
+  <div id="browserControls" style="
+    display:none;
+    position:absolute;
+    bottom:20px;left:20px;
+    background:rgba(0,0,0,0.85);
+    border:1px solid #4CAF50;
+    padding:14px;border-radius:4px;
+    z-index:100;max-width:340px;
+    font-family:Arial,sans-serif;
+    font-size:12px;color:#fff;">
+    <div style="color:#4CAF50;font-weight:bold;margin-bottom:8px;">Stream Tester (browser mode)</div>
+    <input id="bcStreamUrl" type="text" placeholder="http://... stream URL"
+      style="width:100%;padding:6px;margin-bottom:8px;background:#222;border:1px solid #4CAF50;
+             color:#fff;border-radius:3px;font-family:monospace;font-size:11px;box-sizing:border-box;" />
+    <button onclick="bcLoad()" style="background:#4CAF50;color:#000;border:none;
+      padding:7px 12px;border-radius:3px;cursor:pointer;font-weight:bold;font-size:12px;">
+      Load
+    </button>
+    <button onclick="bcStop()" style="background:#666;color:#fff;border:none;
+      padding:7px 12px;border-radius:3px;cursor:pointer;font-weight:bold;font-size:12px;margin-left:5px;">
+      Stop
+    </button>
+  </div>
+
   <!-- Debug Panel -->
   <button id="debugToggle">DEBUG: OFF</button>
   <div id="debugPanel" class="hidden">
@@ -259,6 +284,36 @@
         updateDebugDisplay();
       }
     }, 500);
+
+    // Browser-mode controls — always define in global scope so onclick works.
+    function bcLoad() {
+      const inp = document.getElementById('bcStreamUrl');
+      const url = (inp && inp.value) ? inp.value.trim() : '';
+      if (!url) return;
+      if (typeof window.__bcLoadUrl === 'function') {
+        window.__bcLoadUrl(url);
+      }
+    }
+
+    function bcStop() {
+      if (typeof window.__bcStop === 'function') window.__bcStop();
+    }
+
+    // Show the browser tester panel when Cast runtime is not present.
+    // receiver.js has already run at this point so hasCastFramework is set.
+    (function showBrowserControlsIfNeeded() {
+      const castPresent = !!(window.cast && window.cast.framework && window.cast.framework.CastReceiverContext);
+      if (!castPresent) {
+        const bc = document.getElementById('browserControls');
+        if (bc) bc.style.display = 'block';
+        const urlParam = new URLSearchParams(window.location.search).get('url');
+        if (urlParam) {
+          const inp = document.getElementById('bcStreamUrl');
+          if (inp) inp.value = urlParam;
+          setTimeout(bcLoad, 400);
+        }
+      }
+    })();
   </script>
 </body>
 </html>

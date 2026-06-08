@@ -316,6 +316,7 @@
         candidates.push(value);
       };
 
+      // Always try the original URL first — no modification.
       push(baseUrl);
 
       const lower = (baseUrl || "").toLowerCase();
@@ -329,6 +330,7 @@
       const looksTs = extensionHint === "ts" || lower.endsWith(".ts");
       const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
 
+      // Only add modified variants AFTER the original
       if (looksTs) {
         push(rewriteQueryParam(baseUrl, "extension", "m3u8"));
         push(rewriteQueryParam(baseUrl, "ext", "m3u8"));
@@ -384,40 +386,57 @@
     function loadCandidate(candidateUrl, contentType) {
       setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
 
-      if (contentType === "application/x-mpegURL" || candidateUrl.includes(".m3u8") || candidateUrl.includes("extension=m3u8")) {
+      // Try HLS.js for HLS hints OR any live stream URL that HLS.js can auto-detect.
+      // HLS.js handles m3u8 playlists even when the URL has no .m3u8 extension.
+      const looksLikeLiveStream = (() => {
+        const s = (candidateUrl || "").toLowerCase();
+        return s.includes("/live/") || s.includes("/live.php") || s.includes("/stream") ||
+               s.includes("/channel") || s.includes("/play/") || !s.includes(".");
+      })();
+
+      if (typeof Hls !== "undefined" && Hls.isSupported() &&
+          (contentType === "application/x-mpegURL" ||
+           candidateUrl.includes(".m3u8") ||
+           candidateUrl.includes("extension=m3u8") ||
+           candidateUrl.includes("ext=m3u8") ||
+           looksLikeLiveStream)) {
         debugLog("stream.using_hlsjs", { url: candidateUrl });
 
-        if (typeof Hls !== "undefined" && Hls.isSupported()) {
-          hlsInstance = new Hls({
-            enableWorker: true,
-            lowLatencyMode: false,
+        hlsInstance = new Hls({
+          enableWorker: true,
+          lowLatencyMode: false,
+          manifestLoadingTimeOut: 8000,
+          manifestLoadingMaxRetry: 0,
+        });
+
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          debugLog("hlsjs.manifest_parsed", { url: candidateUrl });
+          setStatus("HLS manifest loaded, starting playback...");
+          video.play().catch((e) => {
+            debugLog("video.play.error", { message: e.message });
           });
+        });
 
-          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-            debugLog("hlsjs.manifest_parsed", {});
-            setStatus("HLS manifest loaded, starting playback...");
-            video.play().catch((e) => {
-              debugLog("video.play.error", { message: e.message });
-            });
+        hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+          debugLog("hlsjs.error", {
+            type: data && data.type ? data.type : "",
+            details: data && data.details ? data.details : "",
+            fatal: !!(data && data.fatal),
           });
+          if (data && data.fatal) {
+            setStatus(`HLS Error: ${data.details || "unknown"} — trying next candidate`);
+            void tryNextCandidate(data.details || "hlsjs fatal");
+          } else {
+            setStatus(`HLS warning: ${data && data.details ? data.details : "unknown"}`);
+          }
+        });
 
-          hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
-            debugLog("hlsjs.error", {
-              type: data && data.type ? data.type : "",
-              details: data && data.details ? data.details : "",
-              fatal: !!(data && data.fatal),
-            });
-            setStatus(`HLS Error: ${data && data.details ? data.details : "unknown"}`);
-          });
-
-          hlsInstance.loadSource(candidateUrl);
-          hlsInstance.attachMedia(video);
-          debugLog("video.load", { url: candidateUrl, method: "hlsjs" });
-          return;
-        }
-
-        debugLog("stream.native_hls", { url: candidateUrl });
+        hlsInstance.loadSource(candidateUrl);
+        hlsInstance.attachMedia(video);
+        debugLog("video.load", { url: candidateUrl, method: "hlsjs" });
+        return;
       }
+
 
       debugLog("stream.native_video", { url: candidateUrl, contentType });
       video.src = candidateUrl;
@@ -472,55 +491,8 @@
         candidates: activeCandidates,
       });
 
-      // Try to fetch and diagnose first
-      setStatus("Checking stream availability...");
-      try {
-        const response = await fetch(url, { method: 'HEAD', mode: 'cors' }).catch(() =>
-          fetch(url, { method: 'GET', mode: 'cors' })
-        );
-
-        const headers = {
-          contentType: response.headers.get('content-type'),
-          contentLength: response.headers.get('content-length'),
-          cacheControl: response.headers.get('cache-control'),
-        };
-
-        debugLog("stream.fetch", {
-          url: url,
-          status: response.status,
-          statusText: response.statusText,
-          headers: headers,
-          detectedContentType: contentType,
-        });
-
-        if (!response.ok) {
-          setStatus(`Error: HTTP ${response.status} ${response.statusText}`);
-          return;
-        }
-
-        // Show first 100 chars of response
-        if (response.headers.get('content-type')?.includes('text')) {
-          const text = await response.text();
-          setStatus(`Stream returned HTML (not video data): ${text.substring(0, 80)}...`);
-          debugLog("stream.diagnosis", {
-            issue: "Server returned HTML instead of video stream",
-            firstChars: text.substring(0, 100),
-          });
-          return;
-        }
-      } catch (e) {
-        debugLog("stream.fetch.error", {
-          message: e.message,
-          url: url,
-        });
-        setStatus(`Network error: ${e.message}`);
-      }
-
-      const signature = await probeStreamSignature(activeCandidates[0] || url);
-      if (signature) {
-        debugLog("stream.signature", signature);
-      }
-
+      // NOTE: No preflight fetch — IPTV servers rate-limit on extra probe requests (HTTP 509).
+      // Load directly via HLS.js or native video.
       resetPlaybackState();
       loadCandidate(activeCandidates[0] || url, contentType);
     }
