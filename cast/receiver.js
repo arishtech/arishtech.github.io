@@ -102,7 +102,12 @@ window.addEventListener("unhandledrejection", (ev) => {
   if (typeof debugLog === "function") {
     debugLog("receiver.unhandledrejection", { reason: message });
   }
-  if (message === "HttpStatusCodeInvalid" || message.includes("HttpStatusCodeInvalid")) {
+  if (
+    message === "HttpStatusCodeInvalid" ||
+    message.includes("HttpStatusCodeInvalid") ||
+    message.includes("ReadableStream") ||
+    message.includes("locked stream")
+  ) {
     if (ev && typeof ev.preventDefault === "function") {
       ev.preventDefault();
     }
@@ -652,25 +657,7 @@ function iptvHttpGet(url, options) {
             proxied: fetchUrl !== target,
             fetchUrl,
           };
-          if (status >= 200 && status < 300 && response.body && typeof response.body.getReader === "function") {
-            const reader = response.body.getReader();
-            return reader.read().then((chunk) => {
-              try { reader.cancel(); } catch (_e) {}
-              cancelResponseBody(response);
-              const value = chunk && chunk.value;
-              const hasBody = !!(value && value.byteLength > 0);
-              attempt.hasBody = hasBody;
-              attempts.push(attempt);
-              if (hasBody) {
-                activeIptvUaIndex = uaIndex;
-                return { ok: true, status, data: value, hasBody, uaIndex, attempts };
-              }
-              activeIptvUaIndex = uaIndex;
-              return { ok: true, status, hasBody: false, uaIndex, attempts };
-            });
-          }
           attempts.push(attempt);
-          cancelResponseBody(response);
           if (status >= 200 && status < 300) {
             activeIptvUaIndex = uaIndex;
             return { ok: true, status, hasBody: false, uaIndex, attempts };
@@ -1376,11 +1363,31 @@ function buildMpegtsPlayerConfig() {
     enableWorker: false,
     lazyLoad: false,
     enableStashBuffer: true,
-    stashInitialSize: 1280 * 1024,
+    stashInitialSize: 1920 * 1024,
     liveBufferLatencyChasing: false,
     liveSync: true,
+    liveSyncMaxLatency: 8,
+    liveSyncTargetLatency: 3,
     autoCleanupSourceBuffer: true,
+    fixAudioTimestampGap: true,
   };
+}
+
+const CUSTOM_PLAYER_STUB_URL = "about:blank";
+
+function prepareCustomPlayerStubLoad(selectedLoad, sourceUrl, playerType) {
+  const stub = Object.assign({}, selectedLoad);
+  stub.media = Object.assign({}, selectedLoad.media);
+  stub.media.contentId = sourceUrl;
+  stub.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
+  stub.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
+  stub.media.streamType = cast.framework.messages.StreamType.LIVE;
+  stub.customData = Object.assign({}, asObject(selectedLoad.customData), {
+    _customPlayer: playerType,
+    _customPlayerUrl: sourceUrl,
+  });
+  pendingCustomPlayerBoot = playerType;
+  return stub;
 }
 
 function markCandidatesExhausted(reason) {
@@ -1444,22 +1451,18 @@ function readVideoBlobUrl() {
 function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
   activeCustomPlayer = playerType;
   activeCustomPlayerUrl = sourceUrl;
+  pendingCustomPlayerBoot = null;
 
-  const mediaSrc = readVideoBlobUrl();
-  if (mediaSrc) {
-    selectedLoad.media.contentUrl = mediaSrc;
-    selectedLoad.media.contentId = sourceUrl;
-    selectedLoad.media.contentType = "video/mp4";
-  } else {
-    selectedLoad.media.contentId = sourceUrl;
-    selectedLoad.media.contentUrl = sourceUrl;
-    selectedLoad.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
-  }
-
+  // Keep CAF metadata on the real stream URL but never hand CAF a blob/http URL to
+  // load natively — mpegts/hls.js already own castVideoEl via MSE.
+  selectedLoad.media.contentId = sourceUrl;
+  selectedLoad.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
+  selectedLoad.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
   selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
   selectedLoad.customData = Object.assign({}, asObject(selectedLoad.customData), {
     _customPlayer: playerType,
     _customPlayerUrl: sourceUrl,
+    _customPlayerActive: true,
   });
 
   return selectedLoad;
@@ -1685,16 +1688,15 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
       return resolveFetchUrl(sourceUrl, "segment");
     }
 
-    function settle(load) {
+    function settle() {
       if (settled) return;
       settled = true;
       if (mpegtsRetryTimer) {
         clearTimeout(mpegtsRetryTimer);
         mpegtsRetryTimer = null;
       }
-      pendingCustomPlayerBoot = null;
       clearStallWatchdog();
-      resolve(load);
+      resolve();
     }
 
     function failPreload(reason) {
@@ -1809,16 +1811,17 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
 
     const onPlaying = () => {
       if (settled) return;
-      const finalized = finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "mpegts");
+      finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "mpegts");
       debugLog("mpegts.playing", {
         url: sourceUrl,
         playbackUrl: getMpegtsPlaybackUrl(),
         index: activeCandidateIndex,
         mediaSrc: readVideoBlobUrl(),
         urlCheck: inspectStreamUrl(sourceUrl),
+        cafContentUrl: CUSTOM_PLAYER_STUB_URL,
       });
       setStatus("Playing (MPEG-TS)");
-      settle(finalized);
+      settle();
     };
 
     if (castVideoEl) {
@@ -2245,15 +2248,19 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     });
 
     if (strategy === "mpegts") {
-      return startMpegtsPlayback(selectedUrl, selectedLoad).catch((err) => (
-        handleCustomInterceptorFailure("mpegts", err, selectedLoad, selectedUrl)
+      const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "mpegts");
+      void startMpegtsPlayback(selectedUrl, selectedLoad).catch((err) => (
+        handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl)
       ));
+      return stubLoad;
     }
 
     if (strategy === "hlsjs") {
-      return startHlsJsPlayback(selectedUrl, selectedLoad).catch((err) => (
-        handleCustomInterceptorFailure("hlsjs", err, selectedLoad, selectedUrl)
+      const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "hlsjs");
+      void startHlsJsPlayback(selectedUrl, selectedLoad).catch((err) => (
+        handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl)
       ));
+      return stubLoad;
     }
 
     if (strategy === "dashjs") {
@@ -2303,6 +2310,18 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
 
   if (candidateAdvanceInFlight) {
     debugLog("player.error.suppressed_advance", {
+      detailedErrorCode: detailCode,
+      reason: event && event.reason ? event.reason : "",
+    });
+    return;
+  }
+
+  if (
+    activeCustomPlayer &&
+    (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)
+  ) {
+    debugLog("player.error.suppressed_custom_active", {
+      activeCustomPlayer,
       detailedErrorCode: detailCode,
       reason: event && event.reason ? event.reason : "",
     });
