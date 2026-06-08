@@ -1,0 +1,618 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>PreetTV Cast Receiver - Browser Test</title>
+  <!-- HLS.js for HLS stream support -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    html, body {
+      width: 100%;
+      height: 100%;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    #mainContainer {
+      display: flex;
+      width: 100%;
+      height: 100%;
+    }
+    #videoContainer {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #000;
+    }
+    #video {
+      width: 100%;
+      height: 100%;
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+    }
+    #controls {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 1px solid #4CAF50;
+      padding: 15px;
+      border-radius: 4px;
+      z-index: 100;
+      max-width: 350px;
+    }
+    #controls h3 {
+      color: #4CAF50;
+      margin-bottom: 10px;
+      font-size: 14px;
+    }
+    #controls label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 12px;
+    }
+    #controls input[type="text"] {
+      width: 100%;
+      padding: 6px;
+      margin-bottom: 10px;
+      background: #222;
+      border: 1px solid #4CAF50;
+      color: #fff;
+      border-radius: 3px;
+      font-family: monospace;
+      font-size: 11px;
+    }
+    #controls button {
+      background: #4CAF50;
+      color: #000;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-right: 5px;
+      margin-bottom: 5px;
+      font-size: 12px;
+    }
+    #controls button:hover {
+      background: #45a049;
+    }
+    #controls button.secondary {
+      background: #666;
+      color: #fff;
+    }
+    #controls button.secondary:hover {
+      background: #777;
+    }
+    #status {
+      font-size: 11px;
+      color: #00ff00;
+      margin-top: 10px;
+      padding: 8px;
+      background: #111;
+      border-radius: 3px;
+      max-height: 100px;
+      overflow-y: auto;
+      font-family: monospace;
+    }
+    #debugToggle {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #4CAF50;
+      color: #000;
+      border: none;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: bold;
+      font-size: 12px;
+      z-index: 10001;
+    }
+    #debugToggle:hover {
+      background: #45a049;
+    }
+    #debugPanel {
+      position: absolute;
+      right: 0;
+      top: 0;
+      width: 400px;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      border-left: 2px solid #4CAF50;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      font-family: monospace;
+      z-index: 10000;
+    }
+    #debugPanel.hidden {
+      display: none;
+    }
+    #debugHeader {
+      background: #1a1a1a;
+      border-bottom: 1px solid #4CAF50;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: bold;
+      color: #4CAF50;
+      cursor: pointer;
+      user-select: none;
+    }
+    #debugLogs {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px;
+      font-size: 10px;
+      line-height: 1.3;
+    }
+    .debugEntry {
+      margin-bottom: 6px;
+      padding: 4px;
+      border-left: 2px solid #4CAF50;
+      padding-left: 8px;
+      color: #00ff00;
+    }
+    .debugEntry .timestamp {
+      color: #888;
+      font-size: 9px;
+    }
+    .debugEntry .seq {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .debugEntry .event {
+      color: #4CAF50;
+      font-weight: bold;
+    }
+    .debugEntry .payload {
+      color: #00dd00;
+      font-size: 9px;
+      margin-top: 2px;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <div id="mainContainer">
+    <div id="videoContainer">
+      <video id="video" controls crossorigin="anonymous"></video>
+    </div>
+  </div>
+
+  <!-- Controls Panel -->
+  <div id="controls">
+    <h3>Stream Tester</h3>
+    <label>Stream URL:</label>
+    <input type="text" id="streamUrl" placeholder="https://example.com/stream.m3u8" />
+
+    <label>Content Type:</label>
+    <select id="contentType" style="width: 100%; padding: 6px; margin-bottom: 10px; background: #222; border: 1px solid #4CAF50; color: #fff;">
+      <option value="">Auto-detect</option>
+      <option value="application/x-mpegURL">HLS (.m3u8)</option>
+      <option value="application/dash+xml">DASH (.mpd)</option>
+      <option value="video/mp4">MP4</option>
+      <option value="video/mp2t">TS Stream</option>
+    </select>
+
+    <button onclick="loadStream()">Load Stream</button>
+    <button onclick="toggleDebugPanel()" class="secondary">Debug</button>
+
+    <div id="status">Ready</div>
+  </div>
+
+  <!-- Debug Panel -->
+  <button id="debugToggle">DEBUG: OFF</button>
+  <div id="debugPanel" class="hidden">
+    <div id="debugHeader">PreetTV Debug Logs (Click to collapse)</div>
+    <div id="debugLogs"></div>
+  </div>
+
+  <script>
+    // Debug system
+    const debugPanel = document.getElementById('debugPanel');
+    const debugToggle = document.getElementById('debugToggle');
+    const debugLogsContainer = document.getElementById('debugLogs');
+    const debugHeader = document.getElementById('debugHeader');
+    const statusEl = document.getElementById('status');
+    const video = document.getElementById('video');
+    const streamUrlInput = document.getElementById('streamUrl');
+    const contentTypeSelect = document.getElementById('contentType');
+
+    let debugPanelVisible = false;
+    let debugSequence = 0;
+    const debugHistory = [];
+    let hlsInstance = null; // HLS.js instance
+    let activeCandidates = [];
+    let activeCandidateIndex = 0;
+
+    // Simulated debug log (same as receiver.js)
+    function debugLog(event, payload) {
+      const entry = {
+        seq: ++debugSequence,
+        ts: new Date().toISOString(),
+        event,
+        payload: payload || {},
+      };
+      debugHistory.push(entry);
+      if (debugHistory.length > 100) {
+        debugHistory.splice(0, debugHistory.length - 100);
+      }
+      console.log("[PreetTV Browser Test]", entry);
+      updateDebugDisplay();
+    }
+
+    function setStatus(text) {
+      statusEl.textContent = text;
+      console.log("[Status]", text);
+    }
+
+    function updateDebugDisplay() {
+      const lastEntries = debugHistory.slice(-20);
+      debugLogsContainer.innerHTML = lastEntries
+        .map(entry => `
+          <div class="debugEntry">
+            <div class="timestamp">${entry.ts}</div>
+            <div><span class="seq">#${entry.seq}</span> <span class="event">${entry.event}</span></div>
+            <div class="payload">${JSON.stringify(entry.payload, null, 1)}</div>
+          </div>
+        `)
+        .join('');
+      debugLogsContainer.scrollTop = debugLogsContainer.scrollHeight;
+    }
+
+    function toggleDebugPanel() {
+      debugPanelVisible = !debugPanelVisible;
+      if (debugPanelVisible) {
+        debugPanel.classList.remove('hidden');
+        debugToggle.textContent = 'DEBUG: ON';
+        debugToggle.style.background = '#45a049';
+      } else {
+        debugPanel.classList.add('hidden');
+        debugToggle.textContent = 'DEBUG: OFF';
+        debugToggle.style.background = '#4CAF50';
+      }
+    }
+
+    debugToggle.addEventListener('click', toggleDebugPanel);
+    debugHeader.addEventListener('click', toggleDebugPanel);
+
+    function rewriteQueryParam(url, key, value) {
+      try {
+        const u = new URL(url);
+        if (!u.searchParams.has(key)) return null;
+        u.searchParams.set(key, value);
+        return u.toString();
+      } catch (_e) {
+        return null;
+      }
+    }
+
+    function appendQueryParam(url, key, value) {
+      try {
+        const u = new URL(url);
+        u.searchParams.set(key, value);
+        return u.toString();
+      } catch (_e) {
+        return null;
+      }
+    }
+
+    function buildCompatibilityCandidates(baseUrl) {
+      const candidates = [];
+      const seen = new Set();
+      const push = (value) => {
+        if (!value || seen.has(value)) return;
+        seen.add(value);
+        candidates.push(value);
+      };
+
+      push(baseUrl);
+
+      const lower = (baseUrl || "").toLowerCase();
+      const looksLikeLivePhp = lower.includes("/live.php");
+      let extensionHint = "";
+      try {
+        const u = new URL(baseUrl);
+        extensionHint = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
+      } catch (_e) {}
+
+      const looksTs = extensionHint === "ts" || lower.endsWith(".ts");
+      const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
+
+      if (looksTs) {
+        push(rewriteQueryParam(baseUrl, "extension", "m3u8"));
+        push(rewriteQueryParam(baseUrl, "ext", "m3u8"));
+      }
+
+      if (looksHls) {
+        push(rewriteQueryParam(baseUrl, "extension", "ts"));
+        push(rewriteQueryParam(baseUrl, "ext", "ts"));
+      }
+
+      if (looksLikeLivePhp && !extensionHint) {
+        push(appendQueryParam(baseUrl, "extension", "m3u8"));
+        push(appendQueryParam(baseUrl, "extension", "ts"));
+      }
+
+      return candidates;
+    }
+
+    async function probeStreamSignature(url) {
+      try {
+        const response = await fetch(url, {
+          method: "GET",
+          mode: "cors",
+          headers: { Range: "bytes=0-1023" },
+        });
+        if (!response.ok) return null;
+        if (!response.body || !response.body.getReader) return null;
+        const reader = response.body.getReader();
+        const firstChunk = await reader.read();
+        try {
+          reader.cancel();
+        } catch (_ignore) {}
+        const bytes = new Uint8Array(firstChunk && firstChunk.value ? firstChunk.value : []).slice(0, 16);
+        const hex = Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join(" ");
+        const textHead = new TextDecoder("utf-8", { fatal: false }).decode(bytes);
+        const likelyTs = bytes.length > 0 && bytes[0] === 0x47;
+        const likelyPlaylist = textHead.startsWith("#EXTM3U");
+        return { hex, textHead, likelyTs, likelyPlaylist };
+      } catch (_e) {
+        return null;
+      }
+    }
+
+    function resetPlaybackState() {
+      if (hlsInstance) {
+        hlsInstance.destroy();
+        hlsInstance = null;
+      }
+      video.removeAttribute("src");
+      video.load();
+    }
+
+    function loadCandidate(candidateUrl, contentType) {
+      setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
+
+      if (contentType === "application/x-mpegURL" || candidateUrl.includes(".m3u8") || candidateUrl.includes("extension=m3u8")) {
+        debugLog("stream.using_hlsjs", { url: candidateUrl });
+
+        if (typeof Hls !== "undefined" && Hls.isSupported()) {
+          hlsInstance = new Hls({
+            enableWorker: true,
+            lowLatencyMode: false,
+          });
+
+          hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+            debugLog("hlsjs.manifest_parsed", {});
+            setStatus("HLS manifest loaded, starting playback...");
+            video.play().catch((e) => {
+              debugLog("video.play.error", { message: e.message });
+            });
+          });
+
+          hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+            debugLog("hlsjs.error", {
+              type: data && data.type ? data.type : "",
+              details: data && data.details ? data.details : "",
+              fatal: !!(data && data.fatal),
+            });
+            setStatus(`HLS Error: ${data && data.details ? data.details : "unknown"}`);
+          });
+
+          hlsInstance.loadSource(candidateUrl);
+          hlsInstance.attachMedia(video);
+          debugLog("video.load", { url: candidateUrl, method: "hlsjs" });
+          return;
+        }
+
+        debugLog("stream.native_hls", { url: candidateUrl });
+      }
+
+      debugLog("stream.native_video", { url: candidateUrl, contentType });
+      video.src = candidateUrl;
+      video.type = contentType;
+    }
+
+    async function tryNextCandidate(reason) {
+      if (activeCandidateIndex >= activeCandidates.length - 1) {
+        debugLog("candidate.exhausted", {
+          reason,
+          candidateCount: activeCandidates.length,
+        });
+        setStatus("All compatibility candidates failed");
+        return;
+      }
+
+      activeCandidateIndex += 1;
+      const nextUrl = activeCandidates[activeCandidateIndex];
+      const nextType = inferContentType(nextUrl);
+      debugLog("candidate.retry", {
+        reason,
+        nextIndex: activeCandidateIndex,
+        nextUrl,
+        nextType,
+      });
+      resetPlaybackState();
+      loadCandidate(nextUrl, nextType);
+    }
+
+    // Stream loading with diagnostic
+    async function loadStream() {
+      const url = streamUrlInput.value.trim();
+      if (!url) {
+        setStatus("Error: Stream URL is empty");
+        return;
+      }
+
+      debugLog("load.received", {
+        mediaContentUrl: url,
+      });
+
+      let contentType = contentTypeSelect.value;
+      if (!contentType) {
+        contentType = inferContentType(url);
+      }
+
+      activeCandidates = buildCompatibilityCandidates(url);
+      activeCandidateIndex = 0;
+      debugLog("load.candidates", {
+        selectedUrl: activeCandidates[0] || url,
+        contentType: contentType,
+        candidates: activeCandidates,
+      });
+
+      // Try to fetch and diagnose first
+      setStatus("Checking stream availability...");
+      try {
+        const response = await fetch(url, { method: 'HEAD', mode: 'cors' }).catch(() =>
+          fetch(url, { method: 'GET', mode: 'cors' })
+        );
+
+        const headers = {
+          contentType: response.headers.get('content-type'),
+          contentLength: response.headers.get('content-length'),
+          cacheControl: response.headers.get('cache-control'),
+        };
+
+        debugLog("stream.fetch", {
+          url: url,
+          status: response.status,
+          statusText: response.statusText,
+          headers: headers,
+          detectedContentType: contentType,
+        });
+
+        if (!response.ok) {
+          setStatus(`Error: HTTP ${response.status} ${response.statusText}`);
+          return;
+        }
+
+        // Show first 100 chars of response
+        if (response.headers.get('content-type')?.includes('text')) {
+          const text = await response.text();
+          setStatus(`Stream returned HTML (not video data): ${text.substring(0, 80)}...`);
+          debugLog("stream.diagnosis", {
+            issue: "Server returned HTML instead of video stream",
+            firstChars: text.substring(0, 100),
+          });
+          return;
+        }
+      } catch (e) {
+        debugLog("stream.fetch.error", {
+          message: e.message,
+          url: url,
+        });
+        setStatus(`Network error: ${e.message}`);
+      }
+
+      const signature = await probeStreamSignature(activeCandidates[0] || url);
+      if (signature) {
+        debugLog("stream.signature", signature);
+      }
+
+      resetPlaybackState();
+      loadCandidate(activeCandidates[0] || url, contentType);
+    }
+
+    function inferContentType(url) {
+      const lower = (url || "").toLowerCase();
+      if (lower.includes(".m3u8") || lower.includes("m3u8")) return "application/x-mpegURL";
+      if (lower.includes(".mpd") || lower.includes("dash")) return "application/dash+xml";
+      if (lower.includes(".mp4")) return "video/mp4";
+      if (lower.includes(".ts") || lower.includes("ts")) return "video/mp2t";
+      return "video/*";
+    }
+
+    // Video events
+    video.addEventListener('loadstart', () => {
+      setStatus("Starting to load...");
+      debugLog("video.loadstart", {});
+    });
+
+    video.addEventListener('progress', () => {
+      const buffered = video.buffered.length > 0 ? `${Math.round(video.buffered.end(0) / video.duration * 100)}%` : "0%";
+      setStatus(`Loading... (${buffered} buffered)`);
+      debugLog("video.progress", {
+        bufferedPercentage: buffered,
+      });
+    });
+
+    video.addEventListener('canplay', () => {
+      setStatus("Ready to play");
+      debugLog("video.canplay", {
+        duration: video.duration,
+        currentTime: video.currentTime,
+      });
+    });
+
+    video.addEventListener('play', () => {
+      setStatus("Playing");
+      debugLog("video.play", {
+        duration: video.duration,
+      });
+    });
+
+    video.addEventListener('pause', () => {
+      setStatus("Paused");
+      debugLog("video.pause", {
+        currentTime: video.currentTime,
+      });
+    });
+
+    video.addEventListener('error', (e) => {
+      const error = video.error;
+      const errorMsg = error ? `${error.code}: ${error.message}` : "Unknown error";
+      setStatus(`Error: ${errorMsg}`);
+      debugLog("video.error", {
+        code: error ? error.code : "",
+        message: error ? error.message : "",
+        url: activeCandidates[activeCandidateIndex] || streamUrlInput.value,
+        candidateIndex: activeCandidateIndex,
+        candidateCount: activeCandidates.length,
+      });
+      void tryNextCandidate(errorMsg);
+    });
+
+    video.addEventListener('ended', () => {
+      setStatus("Playback ended");
+      debugLog("video.ended", {});
+    });
+
+    // Test with a sample URL (optional)
+    window.loadSampleHls = function() {
+      streamUrlInput.value = "https://test-streams.mux.dev/x36xhzz/x3iqvq.m3u8";
+      loadStream();
+    };
+
+    // Initial log
+    debugLog("receiver.started", {
+      href: window.location.href,
+      userAgent: navigator.userAgent,
+    });
+
+    // Load from URL param if provided
+    const urlParams = new URLSearchParams(window.location.search);
+    const initialUrl = urlParams.get("url");
+    if (initialUrl) {
+      streamUrlInput.value = initialUrl;
+      setTimeout(loadStream, 500);
+    }
+  </script>
+</body>
+</html>
+
+
+
+
+

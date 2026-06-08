@@ -4,6 +4,21 @@ const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
 const statusEl = document.getElementById("status");
 
+const DEBUG_QUERY_FLAG = (() => {
+  try {
+    const query = new URLSearchParams(window.location.search || "");
+    const value = String(query.get("debug") || "").trim().toLowerCase();
+    return value === "1" || value === "true" || value === "yes" || value === "verbose";
+  } catch (_e) {
+    return false;
+  }
+})();
+
+let debugEnabled = DEBUG_QUERY_FLAG;
+let debugSequence = 0;
+const debugHistory = [];
+const DEBUG_HISTORY_LIMIT = 200;
+
 let activeCandidates = [];
 let activeCandidateIndex = 0;
 let lastLoadTemplate = null;
@@ -22,6 +37,39 @@ let activeContract = {
 function setStatus(text) {
   if (statusEl) statusEl.textContent = text;
   console.log("[PreetTV Receiver]", text);
+}
+
+function serializeForDebug(value) {
+  try {
+    return JSON.parse(JSON.stringify(value));
+  } catch (_e) {
+    return String(value);
+  }
+}
+
+function debugLog(event, payload) {
+  if (!debugEnabled) return;
+  const entry = {
+    seq: ++debugSequence,
+    ts: new Date().toISOString(),
+    event,
+    payload: serializeForDebug(payload),
+  };
+  debugHistory.push(entry);
+  if (debugHistory.length > DEBUG_HISTORY_LIMIT) {
+    debugHistory.splice(0, debugHistory.length - DEBUG_HISTORY_LIMIT);
+  }
+  window.__preettvDebug = debugHistory;
+  console.log("[PreetTV Receiver][DEBUG]", entry);
+}
+
+function summarizeHeaders(headers) {
+  const h = asObject(headers);
+  const keys = Object.keys(h);
+  return {
+    count: keys.length,
+    keys,
+  };
 }
 
 function asObject(value) {
@@ -43,7 +91,19 @@ function normalizeContract(customData) {
     proxy: asObject(root.proxy),
     networkPolicy: asObject(root.networkPolicy),
     channelName: String(root.channelName || ""),
+    debug: asObject(root.debug),
   };
+}
+
+function applyDebugConfigFromContract(contract) {
+  const cfg = asObject(contract && contract.debug);
+  const verbose = cfg.verbose === true || String(cfg.level || "").toLowerCase() === "verbose";
+  debugEnabled = DEBUG_QUERY_FLAG || verbose;
+  debugLog("debug.config", {
+    fromQuery: DEBUG_QUERY_FLAG,
+    fromContractVerbose: verbose,
+    enabled: debugEnabled,
+  });
 }
 
 function rewriteQueryParam(url, key, value) {
@@ -219,13 +279,30 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
     let rewritten = String(networkRequestInfo.url || "");
     if (!rewritten) return;
 
+    const before = {
+      requestType,
+      url: rewritten,
+      headers: summarizeHeaders(networkRequestInfo.headers),
+    };
+
     rewritten = applyTokenQueryPolicy(rewritten);
     rewritten = applyProxyPolicy(rewritten, requestType);
     networkRequestInfo.url = rewritten;
 
     mergeRequestHeaders(networkRequestInfo);
+
+    const after = {
+      requestType,
+      url: String(networkRequestInfo.url || ""),
+      headers: summarizeHeaders(networkRequestInfo.headers),
+    };
+    debugLog("network.policy.applied", { before, after });
   } catch (e) {
     setStatus(`Network policy hook failed (${requestType}): ${e && e.message ? e.message : "unknown"}`);
+    debugLog("network.policy.error", {
+      requestType,
+      message: e && e.message ? e.message : "unknown",
+    });
   }
 }
 
@@ -243,6 +320,10 @@ async function tryLoadNextCandidateOnReceiverError() {
   if (!lastLoadTemplate) return;
   if (activeCandidateIndex >= activeCandidates.length - 1) {
     setStatus("All receiver fallback candidates exhausted");
+    debugLog("candidate.exhausted", {
+      activeCandidateIndex,
+      candidateCount: activeCandidates.length,
+    });
     return;
   }
 
@@ -250,11 +331,20 @@ async function tryLoadNextCandidateOnReceiverError() {
   const nextUrl = activeCandidates[activeCandidateIndex];
   const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl);
   setStatus(`Retrying candidate ${activeCandidateIndex + 1}/${activeCandidates.length}`);
+  debugLog("candidate.retry", {
+    nextIndex: activeCandidateIndex,
+    nextUrl,
+    candidateCount: activeCandidates.length,
+    contentType: nextLoad && nextLoad.media ? nextLoad.media.contentType : "",
+  });
 
   try {
     await playerManager.load(nextLoad);
   } catch (e) {
     setStatus(`Receiver retry failed: ${e && e.message ? e.message : "unknown"}`);
+    debugLog("candidate.retry.error", {
+      message: e && e.message ? e.message : "unknown",
+    });
   }
 }
 
@@ -266,6 +356,13 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     if (!baseUrl) return loadRequestData;
 
     activeContract = normalizeContract(customData);
+    applyDebugConfigFromContract(activeContract);
+    debugLog("load.received", {
+      mediaContentUrl: baseUrl,
+      customDataKeys: Object.keys(customData),
+      schemaVersion: activeContract.schemaVersion,
+      channelName: activeContract.channelName,
+    });
 
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
     activeCandidateIndex = Number.isInteger(customData.candidateIndex)
@@ -275,17 +372,72 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
     const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
     lastLoadTemplate = loadRequestData;
+    debugLog("load.candidates", {
+      selectedIndex: activeCandidateIndex,
+      selectedUrl,
+      candidates: activeCandidates,
+      selectedContentType: selectedLoad && selectedLoad.media ? selectedLoad.media.contentType : "",
+    });
 
     setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}`);
     return selectedLoad;
   } catch (e) {
     setStatus(`LOAD interceptor error: ${e && e.message ? e.message : "unknown"}`);
+    debugLog("load.interceptor.error", {
+      message: e && e.message ? e.message : "unknown",
+    });
     return loadRequestData;
   }
 });
 
-playerManager.addEventListener(cast.framework.events.EventType.ERROR, () => {
+playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
+  const errorDetail = {
+    type: event && event.type ? event.type : "",
+    detailedErrorCode: event && event.detailedErrorCode ? event.detailedErrorCode : "",
+    reason: event && event.reason ? event.reason : "",
+    currentIndex: activeCandidateIndex,
+    candidateCount: activeCandidates.length,
+    currentUrl: activeCandidates[activeCandidateIndex] || "unknown",
+  };
+  setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): ${errorDetail.reason || errorDetail.detailedErrorCode}`);
+  debugLog("player.error", errorDetail);
   void tryLoadNextCandidateOnReceiverError();
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event) => {
+  const status = playerManager.getMediaInformation();
+  debugLog("player.media_status", {
+    eventType: event && event.type ? event.type : "",
+    mediaContentId: status && status.contentId ? status.contentId : "",
+    mediaContentType: status && status.contentType ? status.contentType : "",
+  });
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
+  debugLog("player.request_load", {
+    eventType: event && event.type ? event.type : "",
+    hasRequestData: !!(event && event.requestData),
+  });
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
+  setStatus("Loading...");
+  debugLog("player.loading", {
+    eventType: event && event.type ? event.type : "",
+  });
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event) => {
+  debugLog("player.pause", {
+    eventType: event && event.type ? event.type : "",
+  });
+});
+
+playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
+  setStatus("Playing");
+  debugLog("player.play", {
+    eventType: event && event.type ? event.type : "",
+  });
 });
 
 const playbackConfig = new cast.framework.PlaybackConfig();
@@ -304,6 +456,10 @@ context.start({
 });
 
 setStatus("PreetTV Receiver started");
+debugLog("receiver.started", {
+  href: window.location.href,
+  debugEnabled,
+});
 
 
 
