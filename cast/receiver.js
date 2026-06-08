@@ -554,12 +554,61 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     });
 
     if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
-      debugLog("hlsjs.attach_pending", {
-        url: selectedUrl,
-        index: activeCandidateIndex,
+      return new Promise((resolve) => {
+        destroyHls();
+        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+        let settled = false;
+
+        function settle(load) {
+          if (settled) return;
+          settled = true;
+          clearStallWatchdog();
+          resolve(load);
+        }
+
+        debugLog("hlsjs.preload_start", {
+          url: selectedUrl,
+          index: activeCandidateIndex,
+        });
+
+        hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
+          const mseUrl = castVideoEl && castVideoEl.src ? castVideoEl.src : "";
+          if (mseUrl && mseUrl.startsWith("blob:")) {
+            // Feed CAF the MSE-backed URL after HLS.js transmuxes TS to fMP4.
+            selectedLoad.media.contentId = mseUrl;
+            selectedLoad.media.contentUrl = mseUrl;
+            selectedLoad.media.contentType = "video/mp4";
+            debugLog("hlsjs.preload_manifest_parsed", {
+              url: selectedUrl,
+              mseUrl,
+              index: activeCandidateIndex,
+            });
+            settle(selectedLoad);
+            return;
+          }
+
+          debugLog("hlsjs.preload_missing_mse", {
+            url: selectedUrl,
+            index: activeCandidateIndex,
+          });
+          settle(selectedLoad);
+        });
+
+        hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+          if (!data || !data.fatal) return;
+          debugLog("hlsjs.preload_fatal_error", {
+            details: data.details,
+            type: data.type,
+            url: selectedUrl,
+            index: activeCandidateIndex,
+          });
+          settle(selectedLoad);
+        });
+
+        armStallWatchdog("hlsjs.preload");
+        hlsInstance.loadSource(selectedUrl);
+        hlsInstance.attachMedia(castVideoEl);
       });
-      armStallWatchdog("hlsjs.attach_pending");
-      return selectedLoad;
     }
 
     // ── Native Cast player path (MP4, DASH, or non-HLS) ────────────────────
@@ -659,42 +708,11 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
     hlsJsAvailable: hlsIsAvailable(),
   });
 
-  if (!shouldUseHlsJs) return;
-
-  try {
-    destroyHls();
-    hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
-
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-      debugLog("hlsjs.manifest_parsed", {
-        url: currentUrl,
-        index: activeCandidateIndex,
-      });
-      setStatus(`HLS parsed (${activeCandidateIndex + 1}/${activeCandidates.length})`);
-      castVideoEl.play().catch((_e) => {});
-    });
-
-    hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
-      if (!data || !data.fatal) return;
-      debugLog("hlsjs.fatal_error", {
-        details: data.details,
-        type: data.type,
-        url: currentUrl,
-        index: activeCandidateIndex,
-      });
-      setStatus(`HLS error on ${activeCandidateIndex + 1}/${activeCandidates.length}: ${data.details}`);
-      void tryLoadNextCandidateOnReceiverError();
-    });
-
-    hlsInstance.loadSource(currentUrl);
-    hlsInstance.attachMedia(castVideoEl);
-    armStallWatchdog("hlsjs.attached");
-  } catch (e) {
-    debugLog("hlsjs.attach_error", {
-      message: e && e.message ? e.message : "unknown",
+  if (shouldUseHlsJs) {
+    debugLog("hlsjs.load_complete_observed", {
       url: currentUrl,
+      index: activeCandidateIndex,
     });
-    void tryLoadNextCandidateOnReceiverError();
   }
 }, "PLAYER_LOAD_COMPLETE");
 
