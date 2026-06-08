@@ -94,6 +94,7 @@ let hlsJsFallbackUsedForIndex = -1;
 let pendingCustomPlayerBoot = null;
 let candidateAdvanceInFlight = false;
 let candidatesExhausted = false;
+let iptvDirectBlocked458 = false;
 
 window.addEventListener("unhandledrejection", (ev) => {
   const reason = ev && ev.reason;
@@ -297,6 +298,89 @@ function rotateIptvUserAgent(reason) {
   });
 }
 
+function isProxyEnabled() {
+  const proxyCfg = asObject(activeContract.proxy);
+  return proxyCfg.enabled === true && String(proxyCfg.baseUrl || proxyCfg.manifestBaseUrl || "").trim() !== "";
+}
+
+function isStaticHosting() {
+  const hosting = asObject(activeContract.hosting);
+  if (hosting.mode === "static" || hosting.static === true) return true;
+  try {
+    const host = new URL(window.location.href).hostname.toLowerCase();
+    return (
+      host.endsWith(".github.io") ||
+      host === "github.io" ||
+      host.endsWith(".gitlab.io") ||
+      host.endsWith(".pages.dev") ||
+      host.endsWith(".netlify.app")
+    );
+  } catch (_e) {}
+  return false;
+}
+
+function isVueottStyleUrl(url) {
+  const lower = String(url || "").toLowerCase();
+  return lower.includes("vueott") || lower.includes("/play/live.php");
+}
+
+function toTsVariant(url) {
+  return (
+    rewriteQueryParam(url, "extension", "ts") ||
+    rewriteQueryParam(url, "ext", "ts") ||
+    appendQueryParam(url, "extension", "ts")
+  );
+}
+
+function vueottNeedsDirectTsOnly() {
+  const playback = asObject(activeContract.playback);
+  if (playback.vueottPreferTs === true) return true;
+  return isStaticHosting() || !isProxyEnabled();
+}
+
+function tryEnableExplicitProxy(reason) {
+  if (isProxyEnabled()) return true;
+  const proxyCfg = asObject(activeContract.proxy);
+  const explicitBase = String(proxyCfg.baseUrl || proxyCfg.manifestBaseUrl || "").trim();
+  if (!explicitBase) {
+    debugLog("proxy.unavailable", {
+      reason,
+      staticHosting: isStaticHosting(),
+      message: "no_explicit_backend_proxy",
+    });
+    return false;
+  }
+  activeContract.proxy = Object.assign({}, proxyCfg, {
+    enabled: true,
+    baseUrl: explicitBase,
+    manifestBaseUrl: String(proxyCfg.manifestBaseUrl || explicitBase).trim(),
+    segmentBaseUrl: String(proxyCfg.segmentBaseUrl || explicitBase).trim(),
+    licenseBaseUrl: String(proxyCfg.licenseBaseUrl || explicitBase).trim(),
+  });
+  debugLog("proxy.enabled", { reason, baseUrl: explicitBase });
+  return true;
+}
+
+function resolveFetchUrl(url, requestType) {
+  const normalized = normalizeCandidateUrl(url);
+  if (!isProxyEnabled()) {
+    return normalized;
+  }
+  // Vueott often returns HTTP 458 for m3u8 from Cast, but raw TS may work direct.
+  if (isTsCandidate(normalized)) {
+    return normalized;
+  }
+  const netInfo = { url: normalized, headers: {} };
+  applyProxyPolicy(netInfo, requestType || "manifest");
+  return netInfo.url;
+}
+
+function probeIndicates458Block(attempts) {
+  const list = Array.isArray(attempts) ? attempts : [];
+  if (list.length === 0) return false;
+  return list.every((item) => Number(item.status) === 458 && !item.hasBody && !item.playlist);
+}
+
 function buildIptvRequestHeaders(requestUrl, uaIndex) {
   const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
   const chosenUa = IPTV_USER_AGENTS[
@@ -335,10 +419,11 @@ function iptvHttpGet(url, options) {
 
   function tryUa(uaIndex) {
     const headers = buildIptvRequestHeaders(target, uaIndex);
+    const fetchUrl = resolveFetchUrl(target, options && options.requestType ? options.requestType : "manifest");
     if (typeof fetch !== "function") {
       return Promise.resolve({ ok: false, attempts: [{ uaIndex, error: "fetch_unavailable" }] });
     }
-    return fetch(target, { method: "GET", headers, cache: "no-store" })
+    return fetch(fetchUrl, { method: "GET", headers, cache: "no-store" })
       .then((response) => {
         const status = response.status;
         const reader = responseType === "arraybuffer" ? response.arrayBuffer() : response.text();
@@ -351,6 +436,8 @@ function iptvHttpGet(url, options) {
             hasBody,
             playlist,
             userAgent: headers["User-Agent"],
+            proxied: fetchUrl !== target,
+            fetchUrl,
           };
           attempts.push(attempt);
           if (hasBody || playlist || (status >= 200 && status < 300)) {
@@ -497,6 +584,8 @@ function normalizeContract(customData) {
     token: asObject(root.token),
     proxy: asObject(root.proxy),
     networkPolicy: asObject(root.networkPolicy),
+    hosting: asObject(root.hosting),
+    playback: asObject(root.playback),
     channelName: String(root.channelName || ""),
     debug: asObject(root.debug),
   };
@@ -625,8 +714,24 @@ function buildCompatibilityCandidates(baseUrl, customData) {
 
   const looksTs = extensionHint === "ts" || lower.endsWith(".ts");
   const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
+  const isVueottStyle = isVueottStyleUrl(baseUrl);
+  const vueottTsOnly = isVueottStyle && vueottNeedsDirectTsOnly();
 
-  if (looksTs) {
+  if (vueottTsOnly) {
+    // Static Cast receivers (github.io) cannot proxy; vueott m3u8 returns HTTP 458 on Cast.
+    push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
+    if (looksTs) {
+      push(normalizeCandidateUrl(baseUrl));
+    }
+  } else if (isVueottStyle) {
+    push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
+    push(normalizeCandidateUrl(baseUrl));
+    const m3u8Base = looksHls ? normalizeCandidateUrl(baseUrl) : toM3u8Variant(baseUrl);
+    push(m3u8Base);
+    push(appendQueryParam(m3u8Base, "type", "m3u8"));
+    push(appendQueryParam(m3u8Base, "output", "m3u8"));
+    push(appendQueryParam(m3u8Base, "format", "hls"));
+  } else if (looksTs) {
     const m3u8Base = toM3u8Variant(baseUrl);
     push(m3u8Base);
     push(appendQueryParam(m3u8Base, "type", "m3u8"));
@@ -637,7 +742,7 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     push(normalizeCandidateUrl(baseUrl));
   }
 
-  if (looksLikeLivePhp && !extensionHint) {
+  if (looksLikeLivePhp && !extensionHint && !vueottTsOnly) {
     push(appendQueryParam(baseUrl, "extension", "m3u8"));
     push(appendQueryParam(baseUrl, "extension", "ts"));
     push(appendQueryParam(baseUrl, "type", "m3u8"));
@@ -657,13 +762,24 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     } catch (_e) {}
   }
 
-  if (looksHls) {
+  if (looksHls && !vueottTsOnly) {
     push(rewriteQueryParam(baseUrl, "extension", "ts"));
     push(rewriteQueryParam(baseUrl, "ext", "ts"));
   }
 
   if (customData && Array.isArray(customData.candidateUrls)) {
-    customData.candidateUrls.forEach(push);
+    customData.candidateUrls.forEach((candidateUrl) => {
+      if (!vueottTsOnly) {
+        push(candidateUrl);
+        return;
+      }
+      if (isTsCandidate(candidateUrl)) {
+        push(candidateUrl);
+        return;
+      }
+      const tsOnly = toTsVariant(candidateUrl);
+      if (tsOnly) push(tsOnly);
+    });
   }
 
   return candidates;
@@ -846,7 +962,11 @@ function createIptvHlsLoaderClass() {
         callbacks.onTimeout({ code: 0, text: "iptv fetch timeout" }, context, null);
       }, timeoutMs);
 
-      iptvHttpGet(url, { responseType })
+      const requestType =
+        context && typeof Hls !== "undefined" && context.type === Hls.UrlTypes.MANIFEST
+          ? "manifest"
+          : "segment";
+      iptvHttpGet(url, { responseType, requestType })
         .then((result) => {
           if (timedOut) return;
           clearTimeout(timer);
@@ -885,13 +1005,15 @@ function createIptvHlsLoaderClass() {
 
 function probeStreamUrl(url) {
   const target = normalizeCandidateUrl(url);
-  return iptvHttpGet(target, { responseType: "text" }).then((result) => {
+
+  function finalizeProbe(result) {
     if (!result.ok) {
       return {
         status: 0,
         isPlaylist: false,
         head: "",
         attempts: result.attempts || [],
+        proxied: isProxyEnabled(),
       };
     }
     const text = String(result.data || "");
@@ -901,7 +1023,27 @@ function probeStreamUrl(url) {
       head: text.slice(0, 200),
       uaIndex: result.uaIndex,
       attempts: result.attempts || [],
+      proxied: isProxyEnabled(),
     };
+  }
+
+  return iptvHttpGet(target, { responseType: "text", requestType: "manifest" }).then((result) => {
+    if (!result.ok && probeIndicates458Block(result.attempts)) {
+      iptvDirectBlocked458 = true;
+      debugLog("iptv.direct_blocked_458", {
+        url: target,
+        staticHosting: isStaticHosting(),
+        vueottTsOnly: vueottNeedsDirectTsOnly(),
+      });
+      if (tryEnableExplicitProxy("probe_458_empty")) {
+        return iptvHttpGet(target, { responseType: "text", requestType: "manifest" }).then((proxied) => {
+          const out = finalizeProbe(proxied);
+          debugLog("probe.proxy_retry", { url: target, out });
+          return out;
+        });
+      }
+    }
+    return finalizeProbe(result);
   });
 }
 
@@ -931,7 +1073,7 @@ function buildMpegtsPlayerConfig() {
     enableWorker: false,
     lazyLoad: false,
     enableStashBuffer: true,
-    stashInitialSize: 768 * 1024,
+    stashInitialSize: 1280 * 1024,
     liveBufferLatencyChasing: false,
     liveSync: true,
     autoCleanupSourceBuffer: true,
@@ -1155,12 +1297,23 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
 
       const isManifestNetworkError = String(data.type || "").toLowerCase() === "networkerror" &&
         String(data.details || "").toLowerCase().indexOf("manifest") >= 0;
+      const netErr = summarizeHlsNetworkError(data);
+
+      if (!settled && isManifestNetworkError && Number(netErr.httpStatus) === 458) {
+        iptvDirectBlocked458 = true;
+        if (tryEnableExplicitProxy("hlsjs_fatal_458")) {
+          try {
+            hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
+            return;
+          } catch (_e) {}
+        }
+      }
 
       if (!settled && isManifestNetworkError && hlsUaAttempts < IPTV_USER_AGENTS.length - 1) {
         hlsUaAttempts += 1;
         rotateIptvUserAgent("hlsjs_manifest_retry");
         try {
-          hlsInstance.loadSource(normalizedUrl);
+          hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
         } catch (_e) {
           failPreload(data.details || "hlsjs fatal");
         }
@@ -1191,14 +1344,14 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
         userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
         probePlaylist: !!probe.isPlaylist,
       });
-      hlsInstance.loadSource(normalizedUrl);
+      hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
     }).catch((probeErr) => {
       debugLog("hlsjs.probe.error", {
         url: normalizedUrl,
         message: probeErr && probeErr.message ? probeErr.message : "unknown",
       });
       if (!settled) {
-        hlsInstance.loadSource(normalizedUrl);
+        hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
       }
     });
   });
@@ -1240,7 +1393,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
     }
 
     function attachMpegtsPlayer(playbackUrl) {
-      const headers = buildIptvRequestHeaders(playbackUrl);
+      const headers = buildIptvRequestHeaders(sourceUrl);
       destroyMpegts();
       mpegtsInstance = mpegts.createPlayer({
         type: "mpegts",
@@ -1264,7 +1417,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
           mpegtsUaAttempts += 1;
           rotateIptvUserAgent("mpegts_status_retry");
           try {
-            attachMpegtsPlayer(playbackUrl);
+            attachMpegtsPlayer(getMpegtsPlaybackUrl());
             mpegtsInstance.attachMediaElement(castVideoEl);
             mpegtsInstance.load();
             const playResult = mpegtsInstance.play();
@@ -1286,7 +1439,10 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       });
     }
 
-    const playbackUrl = normalizeCandidateUrl(sourceUrl);
+    function getMpegtsPlaybackUrl() {
+      const normalized = normalizeCandidateUrl(sourceUrl);
+      return resolveFetchUrl(normalized, "segment");
+    }
 
     const onPlaying = () => {
       if (settled) return;
@@ -1305,13 +1461,16 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       castVideoEl.addEventListener("canplay", onPlaying, { once: true });
     }
 
-    try {
+    function beginMpegtsPlayback() {
+      const playbackUrl = getMpegtsPlaybackUrl();
       attachMpegtsPlayer(playbackUrl);
       debugLog("mpegts.start", {
-        url: playbackUrl,
+        url: sourceUrl,
+        playbackUrl,
+        proxied: isProxyEnabled(),
         index: activeCandidateIndex,
-        headers: Object.keys(buildIptvRequestHeaders(playbackUrl)),
-        urlCheck: inspectStreamUrl(playbackUrl),
+        headers: Object.keys(buildIptvRequestHeaders(sourceUrl)),
+        urlCheck: inspectStreamUrl(sourceUrl),
         userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
       });
       armStallWatchdog("mpegts.start");
@@ -1323,6 +1482,16 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
           failPreload(playErr && playErr.message ? playErr.message : "mpegts play failed");
         });
       }
+    }
+
+    try {
+      void probeStreamUrl(sourceUrl).then((probe) => {
+        debugLog("mpegts.probe", { url: sourceUrl, index: activeCandidateIndex, probe });
+        if (settled) return;
+        beginMpegtsPlayback();
+      }).catch(() => {
+        if (!settled) beginMpegtsPlayback();
+      });
     } catch (e) {
       debugLog("mpegts.attach_error", {
         message: e && e.message ? e.message : "unknown",
@@ -1663,6 +1832,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     applyDebugConfigFromContract(activeContract);
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
+    iptvDirectBlocked458 = false;
     activeIptvUaIndex = pickInitialUaIndex(baseUrl);
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
