@@ -431,6 +431,8 @@ function getReceiverErrorHint(detailCode, reason) {
 function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
   const cloned = Object.assign({}, loadRequestData);
   cloned.media = Object.assign({}, loadRequestData.media);
+  // CAF commonly keys on contentId; keep both fields aligned.
+  cloned.media.contentId = candidateUrl;
   cloned.media.contentUrl = candidateUrl;
   // Always re-infer content type from the candidate URL — do not inherit
   // the sender's original type (e.g. video/mp2t) which Cast cannot play.
@@ -441,7 +443,8 @@ function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
   // of rebuilding from the new (already-modified) URL and looping forever.
   if (retryIndex !== undefined) {
     const originalCustomData = asObject(loadRequestData.customData);
-    const originalBaseUrl = String(originalCustomData._retryBaseUrl || (loadRequestData.media || {}).contentUrl || "");
+    const originalMedia = asObject(loadRequestData.media);
+    const originalBaseUrl = String(originalCustomData._retryBaseUrl || originalMedia.contentUrl || originalMedia.contentId || "");
     cloned.customData = Object.assign({}, originalCustomData, {
       _retryBaseUrl: originalBaseUrl,
       _retryCandidateIndex: retryIndex,
@@ -493,7 +496,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     // On a retry call, _retryBaseUrl carries the original sender URL so we can
     // rebuild the same candidate list and honour the correct _retryCandidateIndex.
-    const baseUrl = String(customData._retryBaseUrl || media.contentUrl || "");
+    const baseUrl = String(customData._retryBaseUrl || media.contentUrl || media.contentId || "");
     if (!baseUrl) return loadRequestData;
 
     activeContract = normalizeContract(customData);
@@ -508,6 +511,10 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     // Rebuild candidates from the canonical base URL so retries don't re-root.
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
+    if (activeCandidates.length === 0) {
+      activeCandidates = [baseUrl];
+      debugLog("candidate.fallback_base_only", { baseUrl });
+    }
 
     if (customData._retryCandidateIndex != null) {
       // Honour explicit retry index coming from tryLoadNextCandidateOnReceiverError.
@@ -520,6 +527,12 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
     const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
+    if ((selectedUrl || "").toLowerCase().includes("/live.php")) {
+      selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
+    }
+    selectedLoad.customData = Object.assign({}, asObject(selectedLoad.customData), {
+      _retryBaseUrl: baseUrl,
+    });
     lastLoadTemplate = loadRequestData;
 
     debugLog("load.candidates", {
@@ -527,47 +540,13 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       selectedUrl,
       candidates: activeCandidates,
       selectedContentType: selectedLoad && selectedLoad.media ? selectedLoad.media.contentType : "",
-      usingHlsJs: hlsIsAvailable() && isHlsCandidate(selectedUrl),
-    });
-
-    setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}`);
-
-    // ── HLS.js path (mirrors test-browser.html loadCandidate) ──────────────
-    if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
-      return new Promise((resolve) => {
-        destroyHls();
-        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
-        let settled = false;
-
-        function settle(load) {
-          if (settled) return;
-          settled = true;
-          clearStallWatchdog();
-          resolve(load);
-        }
-
-        hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
-          debugLog("hlsjs.manifest_parsed", { url: selectedUrl, index: activeCandidateIndex });
-          setStatus(`Playing (${activeCandidateIndex + 1}/${activeCandidates.length})`);
-          // HLS.js has set castVideoEl.src to a blob:// MSE URL.
-          // Hand that URL to CAF so Cast's state machine tracks the right element.
-          selectedLoad.media.contentUrl = castVideoEl.src;
-          selectedLoad.media.contentType = "video/mp4";
-          settle(selectedLoad);
-        });
-
-        hlsInstance.on(Hls.Events.ERROR, (_, data) => {
-          if (!data.fatal || settled) return;
-          debugLog("hlsjs.fatal_error", {
-            details: data.details,
-            type: data.type,
+        if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+          debugLog("hlsjs.attach_pending", {
             url: selectedUrl,
             index: activeCandidateIndex,
           });
-          setStatus(`HLS error on ${activeCandidateIndex + 1}/${activeCandidates.length}: ${data.details}`);
-          // Let Cast surface the error → triggers safeAddPlayerEventListener ERROR handler
-          // which calls tryLoadNextCandidateOnReceiverError for the next candidate.
-          settle(selectedLoad);
+          armStallWatchdog("hlsjs.attach_pending");
+          return selectedLoad;
         });
 
         armStallWatchdog("hlsjs.load");
@@ -662,6 +641,60 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) 
   });
 }, "PLAYER_PLAY");
 
+safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE, (event) => {
+  const currentUrl = activeCandidates[activeCandidateIndex] || "";
+  const shouldUseHlsJs = hlsIsAvailable() && isHlsCandidate(currentUrl);
+
+  debugLog("player.load_complete", {
+    eventType: event && event.type ? event.type : "",
+    currentUrl,
+    shouldUseHlsJs,
+    hlsJsAvailable: hlsIsAvailable(),
+  });
+
+  if (!shouldUseHlsJs) return;
+
+  try {
+    destroyHls();
+    hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+
+    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+      debugLog("hlsjs.manifest_parsed", {
+        url: currentUrl,
+        index: activeCandidateIndex,
+      });
+      setStatus(`HLS parsed (${activeCandidateIndex + 1}/${activeCandidates.length})`);
+      castVideoEl.play().catch((_e) => {});
+    });
+
+    hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+      if (!data || !data.fatal) return;
+      debugLog("hlsjs.fatal_error", {
+        details: data.details,
+        type: data.type,
+        url: currentUrl,
+        index: activeCandidateIndex,
+      });
+      setStatus(`HLS error on ${activeCandidateIndex + 1}/${activeCandidates.length}: ${data.details}`);
+      void tryLoadNextCandidateOnReceiverError();
+    });
+
+    hlsInstance.loadSource(currentUrl);
+    hlsInstance.attachMedia(castVideoEl);
+    armStallWatchdog("hlsjs.attached");
+  } catch (e) {
+    debugLog("hlsjs.attach_error", {
+      message: e && e.message ? e.message : "unknown",
+      url: currentUrl,
+    });
+    void tryLoadNextCandidateOnReceiverError();
+  }
+}, "PLAYER_LOAD_COMPLETE");
+
+safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_FINISHED, () => {
+  destroyHls();
+}, "MEDIA_FINISHED");
+
 const playbackConfig = new cast.framework.PlaybackConfig();
 playbackConfig.manifestRequestHandler = (networkRequestInfo) => {
   applyNetworkPolicy(networkRequestInfo, "manifest");
@@ -682,6 +715,8 @@ debugLog("receiver.started", {
   href: window.location.href,
   debugEnabled,
   hlsJsAvailable: typeof Hls !== "undefined" && Hls.isSupported(),
+  hlsGlobalPresent: typeof Hls !== "undefined",
+  mediaSourcePresent: typeof window.MediaSource !== "undefined",
   customVideoElement: !!castVideoEl,
 });
 
