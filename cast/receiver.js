@@ -95,6 +95,8 @@ let pendingCustomPlayerBoot = null;
 let candidateAdvanceInFlight = false;
 let candidatesExhausted = false;
 let iptvDirectBlocked458 = false;
+let vueottCafNativeAttempted = false;
+let vueottMpegtsAfterCafAttempted = false;
 
 window.addEventListener("unhandledrejection", (ev) => {
   const reason = ev && ev.reason;
@@ -322,7 +324,11 @@ function getPlaybackStrategy(url, options) {
   const forBrowser = !!(options && options.forBrowser);
   if (isProgressiveCandidate(url)) return "native";
   if (isDashCandidate(url)) return "dashjs";
-  if (isTsCandidate(url)) return "mpegts";
+  if (isTsCandidate(url)) {
+    // CAF segment handlers can set User-Agent; browser fetch/mpegts cannot.
+    if (isVueottStyleUrl(url) && useCastReceiver) return "caf-ts";
+    return "mpegts";
+  }
   // IPTV m3u8 playlists usually carry MPEG-TS segments — Chromecast native HLS (905).
   if (isHlsCandidate(url)) return (isLikelyLiveStream(url) || forBrowser) ? "hlsjs" : "caf-hls";
   if (shouldAttemptHlsJs(url)) return "hlsjs";
@@ -1375,6 +1381,36 @@ function buildMpegtsPlayerConfig() {
 
 const CUSTOM_PLAYER_STUB_URL = "about:blank";
 
+function buildCafNativeTsLoad(selectedLoad, sourceUrl) {
+  const nativeLoad = Object.assign({}, selectedLoad);
+  const normalized = normalizeCandidateUrl(sourceUrl);
+  nativeLoad.media = Object.assign({}, selectedLoad.media, {
+    contentId: normalized,
+    contentUrl: normalized,
+    contentType: "video/mp2t",
+    streamType: cast.framework.messages.StreamType.LIVE,
+  });
+  return nativeLoad;
+}
+
+async function startMpegtsFromCafFailure(sourceUrl) {
+  if (!lastLoadTemplate || !useCastReceiver) return false;
+  const normalized = normalizeCandidateUrl(sourceUrl);
+  const selectedLoad = prepareLoadForCandidate(lastLoadTemplate, normalized, activeCandidateIndex);
+  prepareCustomPlayerStubLoad(selectedLoad, normalized, "mpegts");
+  debugLog("caf-ts.mpegts_fallback", { url: normalized, index: activeCandidateIndex });
+  try {
+    await startMpegtsPlayback(normalized, selectedLoad);
+    return true;
+  } catch (e) {
+    debugLog("caf-ts.mpegts_fallback.failed", {
+      url: normalized,
+      message: e && e.message ? e.message : "unknown",
+    });
+    return false;
+  }
+}
+
 function prepareCustomPlayerStubLoad(selectedLoad, sourceUrl, playerType) {
   const stub = Object.assign({}, selectedLoad);
   stub.media = Object.assign({}, selectedLoad.media);
@@ -1723,10 +1759,53 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
       reject(new Error(reason || "mpegts preload failed"));
     }
 
+    function attemptCafNativeTsFromMpegts(reason) {
+      if (settled) return;
+      if (vueottCafNativeAttempted) {
+        failPreload(reason || "mpegts status invalid");
+        return;
+      }
+      if (!playerManager || typeof playerManager.load !== "function") {
+        failPreload(reason || "mpegts status invalid");
+        return;
+      }
+      settled = true;
+      if (mpegtsRetryTimer) {
+        clearTimeout(mpegtsRetryTimer);
+        mpegtsRetryTimer = null;
+      }
+      pendingCustomPlayerBoot = null;
+      clearStallWatchdog();
+      destroyMpegts();
+      vueottCafNativeAttempted = true;
+      const nativeLoad = buildCafNativeTsLoad(selectedLoad, sourceUrl);
+      debugLog("mpegts.caf_ts_fallback", {
+        reason,
+        url: sourceUrl,
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+        urlCheck: inspectStreamUrl(sourceUrl),
+      });
+      playerManager.load(nativeLoad).then(() => {
+        setStatus("Playing (CAF TS)");
+        resolve();
+      }).catch((e) => {
+        pendingCustomPlayerBoot = null;
+        debugLog("mpegts.caf_ts_fallback.failed", {
+          message: e && e.message ? e.message : "unknown",
+          url: sourceUrl,
+        });
+        reject(new Error(e && e.message ? e.message : reason || "caf-ts fallback failed"));
+      });
+    }
+
     function scheduleMpegtsUaRetry(reason) {
       if (settled || mpegtsRetryInFlight) return;
       if (mpegtsUaAttempts >= IPTV_USER_AGENTS.length - 1) {
-        failPreload(reason || "mpegts status invalid");
+        if (useCastReceiver && isVueottStyleUrl(sourceUrl)) {
+          attemptCafNativeTsFromMpegts(reason || "mpegts status invalid");
+        } else {
+          failPreload(reason || "mpegts status invalid");
+        }
         return;
       }
       mpegtsUaAttempts += 1;
@@ -2201,6 +2280,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
     iptvDirectBlocked458 = false;
+    vueottCafNativeAttempted = false;
+    vueottMpegtsAfterCafAttempted = false;
     activeIptvUaIndex = pickInitialUaIndex(baseUrl);
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
@@ -2255,6 +2336,27 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       hlsJsAvailable: hlsIsAvailable(),
       dashJsAvailable: dashIsAvailable(),
     });
+
+    if (strategy === "caf-ts") {
+      destroyHls();
+      destroyDash();
+      destroyMpegts();
+      clearCustomPlayer();
+      vueottCafNativeAttempted = true;
+      selectedLoad.media.contentId = selectedUrl;
+      selectedLoad.media.contentUrl = selectedUrl;
+      selectedLoad.media.contentType = "video/mp2t";
+      selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
+      debugLog("caf-ts.start", {
+        url: selectedUrl,
+        index: activeCandidateIndex,
+        headers: Object.keys(buildIptvRequestHeaders(selectedUrl)),
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+        urlCheck: inspectStreamUrl(selectedUrl),
+      });
+      armStallWatchdog("caf-ts.start");
+      return selectedLoad;
+    }
 
     if (strategy === "mpegts") {
       const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "mpegts");
@@ -2337,7 +2439,31 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     return;
   }
 
-  if ((pendingCustomPlayerBoot || getPlaybackStrategy(activeCandidates[activeCandidateIndex] || "") === "mpegts") &&
+  const currentUrlForError = activeCandidates[activeCandidateIndex] || "";
+  const currentStrategy = getPlaybackStrategy(currentUrlForError);
+  if (
+    !activeCustomPlayer &&
+    !pendingCustomPlayerBoot &&
+    !vueottMpegtsAfterCafAttempted &&
+    isTsCandidate(currentUrlForError) &&
+    isVueottStyleUrl(currentUrlForError) &&
+    vueottCafNativeAttempted &&
+    (errorCode === 104 || errorCode === 905 || errorCode === 301)
+  ) {
+    vueottMpegtsAfterCafAttempted = true;
+    void startMpegtsFromCafFailure(currentUrlForError).then((started) => {
+      if (!started) {
+        void advanceCandidateAfterCustomFailure("caf_ts_mpegts_failed");
+      }
+    });
+    debugLog("player.error.caf_ts_mpegts_handoff", {
+      detailedErrorCode: detailCode,
+      url: currentUrlForError,
+    });
+    return;
+  }
+
+  if ((pendingCustomPlayerBoot || currentStrategy === "mpegts" || currentStrategy === "caf-ts") &&
       (errorCode === 905 || errorCode === 104 || errorCode === 301)) {
     debugLog("player.error.suppressed_boot", {
       pendingCustomPlayerBoot,
@@ -2373,7 +2499,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     }
   }
 
-  const currentUrl = activeCandidates[activeCandidateIndex] || "";
+  const currentUrl = currentUrlForError;
   const errorDetail = {
     type: event && event.type ? event.type : "",
     detailedErrorCode: detailCode,
