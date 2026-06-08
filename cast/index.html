@@ -298,18 +298,33 @@
       if (typeof window.__bcStop === 'function') window.__bcStop();
     }
 
-    // Show the browser tester panel when Cast runtime is not present.
-    // receiver.js has already run at this point so hasCastFramework is set.
+    // Show browser tester when ?url= / ?browser=1 is used (even if Cast SDK script is loaded).
     (function showBrowserControlsIfNeeded() {
-      const castPresent = !!(window.cast && window.cast.framework && window.cast.framework.CastReceiverContext);
-      if (!castPresent) {
+      const getUrl = typeof window.__getStreamUrlFromPage === 'function'
+        ? window.__getStreamUrlFromPage
+        : function () {
+            const search = window.location.search || '';
+            const marker = 'url=';
+            const idx = search.toLowerCase().indexOf(marker);
+            if (idx === -1) return '';
+            try {
+              return decodeURIComponent(search.substring(idx + marker.length).replace(/\+/g, ' ')).trim();
+            } catch (_e) {
+              return search.substring(idx + marker.length).trim();
+            }
+          };
+
+      const query = new URLSearchParams(window.location.search || '');
+      const browserFlag = String(query.get('browser') || query.get('test') || '').toLowerCase();
+      const browserTest = !!getUrl() || browserFlag === '1' || browserFlag === 'true' || browserFlag === 'yes';
+
+      if (browserTest) {
         const bc = document.getElementById('browserControls');
         if (bc) bc.style.display = 'block';
-        const urlParam = new URLSearchParams(window.location.search).get('url');
+        const urlParam = getUrl();
         if (urlParam) {
           const inp = document.getElementById('bcStreamUrl');
           if (inp) inp.value = urlParam;
-          setTimeout(bcLoad, 400);
         }
       }
     })();

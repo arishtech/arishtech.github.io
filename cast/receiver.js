@@ -13,10 +13,45 @@ const context = hasCastFramework
 const playerManager = context ? context.getPlayerManager() : null;
 const statusEl = document.getElementById("status");
 
+// Extract stream URL from ?url=... even when the target URL has its own query string.
+// URLSearchParams.get("url") truncates at the first "&" — e.g. drops &stream= &extension=.
+function getStreamUrlFromPage() {
+  const search = window.location.search || "";
+  if (!search) return "";
+
+  const marker = "url=";
+  const idx = search.toLowerCase().indexOf(marker);
+  if (idx === -1) return "";
+
+  const raw = search.substring(idx + marker.length);
+  if (!raw) return "";
+
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, " ")).trim();
+  } catch (_e) {
+    return raw.trim();
+  }
+}
+
+function isBrowserTestMode() {
+  try {
+    const query = new URLSearchParams(window.location.search || "");
+    const flag = String(query.get("browser") || query.get("test") || "").trim().toLowerCase();
+    if (flag === "1" || flag === "true" || flag === "yes") return true;
+  } catch (_e) {}
+  return !!getStreamUrlFromPage();
+}
+
+const browserTestMode = isBrowserTestMode();
+const useCastReceiver = !!(hasCastFramework && playerManager && context && !browserTestMode);
+
 const castVideoEl = document.getElementById("castVideo");
-if (castVideoEl && playerManager && typeof playerManager.setMediaElement === "function") {
+if (castVideoEl && playerManager && useCastReceiver && typeof playerManager.setMediaElement === "function") {
   playerManager.setMediaElement(castVideoEl);
 }
+
+const DEFAULT_IPTV_USER_AGENT =
+  "Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
 
 const DEBUG_QUERY_FLAG = (() => {
   try {
@@ -458,6 +493,25 @@ function applyProxyPolicy(url, requestType) {
   }
 }
 
+function applyDefaultIptvHeaders(networkRequestInfo) {
+  const headers = asObject(networkRequestInfo.headers);
+  const hasUserAgent = Object.keys(headers).some((name) => name.toLowerCase() === "user-agent");
+  if (!hasUserAgent) {
+    headers["User-Agent"] = DEFAULT_IPTV_USER_AGENT;
+  }
+
+  try {
+    const origin = new URL(String(networkRequestInfo.url || ""));
+    const referer = `${origin.protocol}//${origin.host}/`;
+    const hasReferer = Object.keys(headers).some((name) => name.toLowerCase() === "referer");
+    if (!hasReferer) {
+      headers["Referer"] = referer;
+    }
+  } catch (_e) {}
+
+  networkRequestInfo.headers = headers;
+}
+
 function mergeRequestHeaders(networkRequestInfo) {
   const authCfg = asObject(activeContract.auth);
   const policyCfg = asObject(activeContract.networkPolicy);
@@ -519,6 +573,7 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
     networkRequestInfo.url = rewritten;
 
     mergeRequestHeaders(networkRequestInfo);
+    applyDefaultIptvHeaders(networkRequestInfo);
 
     const after = {
       requestType,
@@ -843,7 +898,135 @@ function isCustomPlayerHealthy() {
   return isPlaying || hasTime || hasBuffer;
 }
 
-if (hasCastFramework && playerManager && context) {
+function initBrowserPlayback() {
+  setStatus("Browser test mode");
+  debugLog("browser.mode", {
+    hasCastFramework,
+    browserTestMode,
+    hlsGlobalPresent: typeof Hls !== "undefined",
+    hlsJsAvailable: hlsIsAvailable(),
+    customVideoElement: !!castVideoEl,
+    href: window.location.href,
+    streamUrl: getStreamUrlFromPage(),
+  });
+
+  if (castVideoEl) {
+    castVideoEl.controls = true;
+    castVideoEl.addEventListener("error", () => {
+      const err = castVideoEl.error;
+      debugLog("browser.video.error", {
+        code: err && err.code ? err.code : "",
+        message: err && err.message ? err.message : "",
+      });
+    });
+    castVideoEl.addEventListener("play", () => debugLog("browser.video.play", {}));
+    castVideoEl.addEventListener("canplay", () => debugLog("browser.video.canplay", {}));
+  }
+
+  let bcCandidates = [];
+  let bcCandidateIndex = 0;
+
+  function browserLoadCandidate(candidateUrl) {
+    const strategy = getPlaybackStrategy(candidateUrl);
+    debugLog("browser.load_candidate", { candidateUrl, strategy, bcCandidateIndex });
+
+    if (strategy === "hlsjs" && hlsIsAvailable()) {
+      destroyHls();
+      hlsInstance = new Hls(buildHlsConfig());
+
+      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+        setStatus(`Playing (${bcCandidateIndex + 1}/${bcCandidates.length})`);
+        debugLog("browser.hls.manifest_parsed", { url: candidateUrl });
+        castVideoEl.play().catch((_e) => {});
+      });
+
+      hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+        debugLog("browser.hls.error", {
+          details: data && data.details ? data.details : "",
+          type: data && data.type ? data.type : "",
+          fatal: !!(data && data.fatal),
+        });
+        if (data && data.fatal) {
+          if (bcCandidateIndex < bcCandidates.length - 1) {
+            bcCandidateIndex += 1;
+            const next = bcCandidates[bcCandidateIndex];
+            debugLog("browser.candidate.retry", { reason: data.details, next, bcCandidateIndex });
+            destroyHls();
+            browserLoadCandidate(next);
+          } else {
+            setStatus("All candidates failed");
+            debugLog("browser.candidate.exhausted", {});
+          }
+        }
+      });
+
+      hlsInstance.attachMedia(castVideoEl);
+      hlsInstance.loadSource(candidateUrl);
+      return;
+    }
+
+    if (strategy === "dashjs" && dashIsAvailable()) {
+      try {
+        destroyDash();
+        dashInstance = dashjs.MediaPlayer().create();
+        dashInstance.attachView(castVideoEl);
+        dashInstance.attachSource(candidateUrl);
+        dashInstance.play();
+        setStatus("Browser mode: DASH stream loaded");
+        debugLog("browser.dash.loaded", { candidateUrl });
+      } catch (e) {
+        debugLog("browser.dash.error", { message: e && e.message ? e.message : "unknown" });
+      }
+      return;
+    }
+
+    if (castVideoEl) {
+      castVideoEl.src = candidateUrl;
+      castVideoEl.type = inferContentType(candidateUrl);
+      castVideoEl.play().catch((_e) => {});
+    }
+  }
+
+  function browserLoadUrl(url) {
+    if (!url) return;
+    destroyHls();
+    destroyDash();
+    if (castVideoEl) {
+      castVideoEl.removeAttribute("src");
+      castVideoEl.load();
+    }
+    bcCandidates = buildCompatibilityCandidates(url, {});
+    bcCandidateIndex = 0;
+    const first = bcCandidates[0] || url;
+    debugLog("browser.load", { url, first, candidates: bcCandidates, strategy: getPlaybackStrategy(first) });
+    browserLoadCandidate(first);
+  }
+
+  window.__bcLoadUrl = browserLoadUrl;
+  window.__bcStop = function () {
+    destroyHls();
+    destroyDash();
+    if (castVideoEl) {
+      castVideoEl.removeAttribute("src");
+      castVideoEl.load();
+    }
+    setStatus("Stopped");
+  };
+  window.__getStreamUrlFromPage = getStreamUrlFromPage;
+
+  try {
+    const url = getStreamUrlFromPage();
+    if (url && castVideoEl) {
+      browserLoadUrl(url);
+    }
+  } catch (e) {
+    debugLog("browser.mode.error", {
+      message: e && e.message ? e.message : "unknown",
+    });
+  }
+}
+
+if (useCastReceiver) {
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
   try {
     const media = loadRequestData.media || {};
@@ -1044,6 +1227,8 @@ setStatus("PreetTV Receiver started");
 debugLog("receiver.started", {
   href: window.location.href,
   debugEnabled,
+  browserTestMode,
+  useCastReceiver,
   hlsJsAvailable: typeof Hls !== "undefined" && Hls.isSupported(),
   hlsGlobalPresent: typeof Hls !== "undefined",
   dashJsAvailable: typeof dashjs !== "undefined",
@@ -1051,127 +1236,5 @@ debugLog("receiver.started", {
   customVideoElement: !!castVideoEl,
 });
 } else {
-  setStatus("Browser test mode (Cast runtime not detected)");
-  debugLog("browser.mode", {
-    hasCastFramework,
-    hlsGlobalPresent: typeof Hls !== "undefined",
-    hlsJsAvailable: hlsIsAvailable(),
-    customVideoElement: !!castVideoEl,
-    href: window.location.href,
-  });
-
-  if (castVideoEl) {
-    castVideoEl.controls = true;
-    castVideoEl.addEventListener("error", () => {
-      const err = castVideoEl.error;
-      debugLog("browser.video.error", {
-        code: err && err.code ? err.code : "",
-        message: err && err.message ? err.message : "",
-      });
-    });
-    castVideoEl.addEventListener("play", () => debugLog("browser.video.play", {}));
-    castVideoEl.addEventListener("canplay", () => debugLog("browser.video.canplay", {}));
-  }
-
-  let bcCandidates = [];
-  let bcCandidateIndex = 0;
-
-  function browserLoadCandidate(candidateUrl) {
-    const strategy = getPlaybackStrategy(candidateUrl);
-    debugLog("browser.load_candidate", { candidateUrl, strategy, bcCandidateIndex });
-
-    if (strategy === "hlsjs" && hlsIsAvailable()) {
-      destroyHls();
-      hlsInstance = new Hls(buildHlsConfig());
-
-      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-        setStatus(`Playing (${bcCandidateIndex + 1}/${bcCandidates.length})`);
-        debugLog("browser.hls.manifest_parsed", { url: candidateUrl });
-        castVideoEl.play().catch((_e) => {});
-      });
-
-      hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
-        debugLog("browser.hls.error", {
-          details: data && data.details ? data.details : "",
-          type: data && data.type ? data.type : "",
-          fatal: !!(data && data.fatal),
-        });
-        if (data && data.fatal) {
-          if (bcCandidateIndex < bcCandidates.length - 1) {
-            bcCandidateIndex += 1;
-            const next = bcCandidates[bcCandidateIndex];
-            debugLog("browser.candidate.retry", { reason: data.details, next, bcCandidateIndex });
-            destroyHls();
-            browserLoadCandidate(next);
-          } else {
-            setStatus("All candidates failed");
-            debugLog("browser.candidate.exhausted", {});
-          }
-        }
-      });
-
-      hlsInstance.attachMedia(castVideoEl);
-      hlsInstance.loadSource(candidateUrl);
-      return;
-    }
-
-    if (strategy === "dashjs" && dashIsAvailable()) {
-      try {
-        destroyDash();
-        dashInstance = dashjs.MediaPlayer().create();
-        dashInstance.attachView(castVideoEl);
-        dashInstance.attachSource(candidateUrl);
-        dashInstance.play();
-        setStatus("Browser mode: DASH stream loaded");
-        debugLog("browser.dash.loaded", { candidateUrl });
-      } catch (e) {
-        debugLog("browser.dash.error", { message: e && e.message ? e.message : "unknown" });
-      }
-      return;
-    }
-
-    if (castVideoEl) {
-      castVideoEl.src = candidateUrl;
-      castVideoEl.type = inferContentType(candidateUrl);
-      castVideoEl.play().catch((_e) => {});
-    }
-  }
-
-  function browserLoadUrl(url) {
-    if (!url) return;
-    destroyHls();
-    destroyDash();
-    if (castVideoEl) {
-      castVideoEl.removeAttribute("src");
-      castVideoEl.load();
-    }
-    bcCandidates = buildCompatibilityCandidates(url, {});
-    bcCandidateIndex = 0;
-    const first = bcCandidates[0] || url;
-    debugLog("browser.load", { url, first, candidates: bcCandidates, strategy: getPlaybackStrategy(first) });
-    browserLoadCandidate(first);
-  }
-
-  window.__bcLoadUrl = browserLoadUrl;
-  window.__bcStop = function () {
-    destroyHls();
-    destroyDash();
-    if (castVideoEl) {
-      castVideoEl.removeAttribute("src");
-      castVideoEl.load();
-    }
-    setStatus("Stopped");
-  };
-
-  try {
-    const params = new URLSearchParams(window.location.search || "");
-    const url = String(params.get("url") || "").trim();
-    if (url && castVideoEl) {
-      browserLoadUrl(url);
-    }
-  } catch (e) {
-    debugLog("browser.mode.error", {
-      message: e && e.message ? e.message : "unknown",
-    });
-  }
+  initBrowserPlayback();
 }
