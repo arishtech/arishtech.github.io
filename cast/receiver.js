@@ -216,7 +216,7 @@ function rewriteQueryParam(url, key, value) {
     const u = new URL(url);
     if (!u.searchParams.has(key)) return null;
     u.searchParams.set(key, value);
-    return u.toString();
+    return normalizeCandidateUrl(u.toString());
   } catch (_e) {
     return null;
   }
@@ -226,9 +226,30 @@ function appendQueryParam(url, key, value) {
   try {
     const u = new URL(url);
     u.searchParams.set(key, value);
-    return u.toString();
+    return normalizeCandidateUrl(u.toString());
   } catch (_e) {
     return null;
+  }
+}
+
+function normalizeCandidateUrl(url) {
+  const input = String(url || "");
+  if (!input) return input;
+
+  // Recover malformed query fragments sometimes seen in provider URLs/log copy,
+  // e.g. ?ext-m3u8 / &extension-m3u8 -> proper key=value form.
+  let out = input
+    .replace(/([?&])ext-m3u8(?=&|$)/gi, "$1ext=m3u8")
+    .replace(/([?&])extension-m3u8(?=&|$)/gi, "$1extension=m3u8")
+    .replace(/([?&])output-m3u8(?=&|$)/gi, "$1output=m3u8")
+    .replace(/([?&])type-m3u8(?=&|$)/gi, "$1type=m3u8")
+    .replace(/([?&])format-hls(?=&|$)/gi, "$1format=hls");
+
+  try {
+    const u = new URL(out);
+    return u.toString();
+  } catch (_e) {
+    return out;
   }
 }
 
@@ -252,9 +273,10 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const candidates = [];
   const seen = new Set();
   const push = (value) => {
-    if (!value || seen.has(value)) return;
-    seen.add(value);
-    candidates.push(value);
+    const normalized = normalizeCandidateUrl(value);
+    if (!normalized || seen.has(normalized)) return;
+    seen.add(normalized);
+    candidates.push(normalized);
   };
 
   const lower = (baseUrl || "").toLowerCase();
