@@ -61,7 +61,16 @@ function destroyHls() {
 
 function isHlsCandidate(url) {
   const s = (url || "").toLowerCase();
-  return s.includes("extension=m3u8") || s.includes(".m3u8") || s.includes("type=m3u8");
+  return (
+    s.includes("extension=m3u8") ||
+    s.includes("ext=m3u8") ||
+    s.includes(".m3u8") ||
+    s.includes("type=m3u8") ||
+    s.includes("output=m3u8") ||
+    s.includes("format=m3u8") ||
+    s.includes("output=hls") ||
+    s.includes("format=hls")
+  );
 }
 
 function hlsIsAvailable() {
@@ -228,10 +237,11 @@ function inferContentType(url) {
   try {
     const u = new URL(url);
     const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
-    if (lower.endsWith(".m3u8") || ext === "m3u8") return "application/x-mpegURL";
-    if (lower.endsWith(".mpd") || ext === "mpd") return "application/dash+xml";
-    if (lower.endsWith(".ts") || ext === "ts") return "video/mp2t";
-    if (lower.endsWith(".mp4") || ext === "mp4") return "video/mp4";
+    const type = (u.searchParams.get("type") || u.searchParams.get("output") || u.searchParams.get("format") || "").toLowerCase();
+    if (lower.endsWith(".m3u8") || ext === "m3u8" || type === "m3u8" || type === "hls") return "application/x-mpegURL";
+    if (lower.endsWith(".mpd") || ext === "mpd" || type === "mpd" || type === "dash") return "application/dash+xml";
+    if (lower.endsWith(".ts") || ext === "ts" || type === "ts") return "video/mp2t";
+    if (lower.endsWith(".mp4") || ext === "mp4" || type === "mp4") return "video/mp4";
   } catch (_e) {}
   return "video/*";
 }
@@ -249,6 +259,7 @@ function buildCompatibilityCandidates(baseUrl, customData) {
 
   const lower = (baseUrl || "").toLowerCase();
   const looksLikeLivePhp = lower.includes("/live.php");
+  const looksLikeLivePlayPath = /\/live\/play\//.test(lower);
   let extensionHint = "";
   try {
     const u = new URL(baseUrl);
@@ -272,6 +283,29 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   if (looksLikeLivePhp && !extensionHint) {
     push(appendQueryParam(baseUrl, "extension", "m3u8"));
     push(appendQueryParam(baseUrl, "extension", "ts"));
+    push(appendQueryParam(baseUrl, "type", "m3u8"));
+    push(appendQueryParam(baseUrl, "output", "m3u8"));
+    push(appendQueryParam(baseUrl, "format", "hls"));
+  }
+
+  // For path-style IPTV URLs like /live/play/<token>/<id>, try common HLS variants.
+  if (looksLikeLivePlayPath) {
+    try {
+      const u = new URL(baseUrl);
+      const pathname = u.pathname || "";
+      if (!pathname.toLowerCase().endsWith(".m3u8")) {
+        const withM3u8Path = new URL(baseUrl);
+        withM3u8Path.pathname = `${pathname}.m3u8`;
+        push(withM3u8Path.toString());
+      }
+      push(appendQueryParam(baseUrl, "type", "m3u8"));
+      push(appendQueryParam(baseUrl, "output", "m3u8"));
+      push(appendQueryParam(baseUrl, "format", "hls"));
+      push(appendQueryParam(baseUrl, "extension", "m3u8"));
+      push(appendQueryParam(baseUrl, "ext", "m3u8"));
+    } catch (_e) {
+      // best-effort candidate generation
+    }
   }
 
   // For m3u8 streams: also try ts variant as fallback.
@@ -533,6 +567,16 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       activeCandidateIndex = Math.max(0, Math.min(customData.candidateIndex, activeCandidates.length - 1));
     } else {
       activeCandidateIndex = 0;
+    }
+
+    // If sender gave a path-style live URL, prefer an HLS-capable candidate first.
+    if (activeCandidateIndex === 0) {
+      const firstHlsIdx = activeCandidates.findIndex((c) => isHlsCandidate(c));
+      if (firstHlsIdx > 0) {
+        const first = activeCandidates[0];
+        activeCandidates[0] = activeCandidates[firstHlsIdx];
+        activeCandidates[firstHlsIdx] = first;
+      }
     }
 
     const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
