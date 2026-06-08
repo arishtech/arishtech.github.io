@@ -1840,10 +1840,19 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
           if (probeIndicates458Block(probe.attempts)) {
             iptvDirectBlocked458 = true;
           }
-          failPreload("mpegts probe failed");
-          return;
+          // Fetch probes cannot set User-Agent on Chromecast; vueott often returns
+          // HTTP 458 to fetch while mpegts fetch-stream-loader still works.
+          if (probe.likelyCorsBlocked) {
+            failPreload("mpegts probe cors blocked");
+            return;
+          }
+          debugLog("mpegts.probe_bypass", {
+            url: sourceUrl,
+            reason: "probe_advisory_failed",
+            attempts: probe.attempts,
+          });
         }
-        beginMpegtsSession("probe_ok");
+        beginMpegtsSession(probe.ok ? "probe_ok" : "probe_bypass");
       }).catch((probeErr) => {
         debugLog("mpegts.probe.error", {
           url: sourceUrl,
