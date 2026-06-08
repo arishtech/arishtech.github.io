@@ -117,6 +117,31 @@
     <div id="debugLogs"></div>
   </div>
 
+  <script>
+    (function () {
+      const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
+      window.__preettvDebug = history;
+      function push(event, payload) {
+        const seq = history.length > 0 ? Number(history[history.length - 1].seq || history.length) + 1 : 1;
+        history.push({ seq, ts: new Date().toISOString(), event, payload: payload || {} });
+      }
+      push("ui.bootstrap", { href: window.location.href });
+      window.addEventListener("error", function (ev) {
+        push("ui.error.early", {
+          message: ev && ev.message ? ev.message : "unknown",
+          filename: ev && ev.filename ? ev.filename : "",
+          lineno: ev && ev.lineno ? ev.lineno : 0,
+          colno: ev && ev.colno ? ev.colno : 0,
+        });
+      });
+      window.addEventListener("unhandledrejection", function (ev) {
+        const reason = ev && ev.reason;
+        push("ui.unhandledrejection.early", {
+          reason: reason && reason.message ? reason.message : String(reason || "unknown"),
+        });
+      });
+    })();
+  </script>
   <script src="receiver.js"></script>
   <script>
     // Debug panel UI controller

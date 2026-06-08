@@ -1,13 +1,22 @@
 /* global cast, Hls */
 
-const context = cast.framework.CastReceiverContext.getInstance();
-const playerManager = context.getPlayerManager();
+const castGlobal = typeof window !== "undefined" ? window.cast : undefined;
+const hasCastFramework = !!(
+  castGlobal &&
+  castGlobal.framework &&
+  castGlobal.framework.CastReceiverContext
+);
+
+const context = hasCastFramework
+  ? castGlobal.framework.CastReceiverContext.getInstance()
+  : null;
+const playerManager = context ? context.getPlayerManager() : null;
 const statusEl = document.getElementById("status");
 
 // Register the custom <video> element so Cast uses it instead of its own internal element.
 // This lets us attach HLS.js to the same element that Cast manages state for.
 const castVideoEl = document.getElementById("castVideo");
-if (castVideoEl) {
+if (castVideoEl && playerManager && typeof playerManager.setMediaElement === "function") {
   playerManager.setMediaElement(castVideoEl);
 }
 
@@ -489,6 +498,7 @@ async function tryLoadNextCandidateOnReceiverError() {
   }
 }
 
+if (hasCastFramework && playerManager && context) {
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
   try {
     const media = loadRequestData.media || {};
@@ -719,6 +729,66 @@ debugLog("receiver.started", {
   mediaSourcePresent: typeof window.MediaSource !== "undefined",
   customVideoElement: !!castVideoEl,
 });
+} else {
+  // Browser fallback mode: lets you validate index.html locally without Cast runtime.
+  setStatus("Browser test mode (Cast runtime not detected)");
+  debugLog("browser.mode", {
+    hasCastFramework,
+    hlsGlobalPresent: typeof Hls !== "undefined",
+    hlsJsAvailable: hlsIsAvailable(),
+    customVideoElement: !!castVideoEl,
+    href: window.location.href,
+  });
+
+  if (castVideoEl) {
+    castVideoEl.controls = true;
+    castVideoEl.addEventListener("error", () => {
+      const err = castVideoEl.error;
+      debugLog("browser.video.error", {
+        code: err && err.code ? err.code : "",
+        message: err && err.message ? err.message : "",
+      });
+    });
+    castVideoEl.addEventListener("play", () => debugLog("browser.video.play", {}));
+    castVideoEl.addEventListener("canplay", () => debugLog("browser.video.canplay", {}));
+  }
+
+  try {
+    const params = new URLSearchParams(window.location.search || "");
+    const url = String(params.get("url") || "").trim();
+    if (url && castVideoEl) {
+      const candidates = buildCompatibilityCandidates(url, {});
+      const selectedUrl = candidates[0] || url;
+      const selectedType = inferContentType(selectedUrl);
+      debugLog("browser.load", { url, selectedUrl, selectedType, candidates });
+
+      if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+        destroyHls();
+        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+        hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+          setStatus("Browser mode: HLS manifest parsed");
+          debugLog("browser.hls.manifest_parsed", { selectedUrl });
+          castVideoEl.play().catch(() => {});
+        });
+        hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+          debugLog("browser.hls.error", {
+            details: data && data.details ? data.details : "",
+            fatal: !!(data && data.fatal),
+          });
+        });
+        hlsInstance.loadSource(selectedUrl);
+        hlsInstance.attachMedia(castVideoEl);
+      } else {
+        castVideoEl.src = selectedUrl;
+        castVideoEl.type = selectedType;
+      }
+    }
+  } catch (e) {
+    debugLog("browser.mode.error", {
+      message: e && e.message ? e.message : "unknown",
+    });
+  }
+}
 
 
 
