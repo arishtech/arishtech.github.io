@@ -52,10 +52,21 @@ const STALL_WATCHDOG_MS = 12000;
 // HLS.js instance for IPTV stream playback (mirrors test-browser.html logic).
 let hlsInstance = null;
 
+// DASH.js instance for DASH/MPD stream playback.
+let dashInstance = null;
+
 function destroyHls() {
   if (hlsInstance) {
     try { hlsInstance.destroy(); } catch (_e) {}
     hlsInstance = null;
+  }
+}
+
+function destroyDash() {
+  if (dashInstance) {
+    try { dashInstance.off(dashjs.MediaPlayer.events.ERROR); } catch (_e) {}
+    try { dashInstance.reset(); } catch (_e) {}
+    dashInstance = null;
   }
 }
 
@@ -73,8 +84,26 @@ function isHlsCandidate(url) {
   );
 }
 
+function isDashCandidate(url) {
+  const s = (url || "").toLowerCase();
+  return (
+    s.includes(".mpd") ||
+    s.includes("extension=mpd") ||
+    s.includes("ext=mpd") ||
+    s.includes("type=mpd") ||
+    s.includes("output=mpd") ||
+    s.includes("format=mpd") ||
+    s.includes("format=dash") ||
+    s.includes("output=dash")
+  );
+}
+
 function hlsIsAvailable() {
   return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
+}
+
+function dashIsAvailable() {
+  return castVideoEl && typeof dashjs !== "undefined";
 }
 
 // Phase 2 / 2.1 hardening state derived from sender customData.
@@ -521,6 +550,7 @@ function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
 async function tryLoadNextCandidateOnReceiverError() {
   clearStallWatchdog();
   destroyHls();
+  destroyDash();
   if (!lastLoadTemplate) return;
   if (activeCandidateIndex >= activeCandidates.length - 1) {
     setStatus("All receiver fallback candidates exhausted");
@@ -622,6 +652,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
       return new Promise((resolve) => {
         destroyHls();
+        destroyDash();
         hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
         let settled = false;
 
@@ -674,6 +705,58 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
         armStallWatchdog("hlsjs.preload");
         hlsInstance.loadSource(selectedUrl);
         hlsInstance.attachMedia(castVideoEl);
+      });
+    }
+
+    if (dashIsAvailable() && isDashCandidate(selectedUrl)) {
+      return new Promise((resolve) => {
+        destroyHls();
+        destroyDash();
+        dashInstance = dashjs.MediaPlayer().create();
+        let settled = false;
+
+        function settle(load) {
+          if (settled) return;
+          settled = true;
+          clearStallWatchdog();
+          resolve(load);
+        }
+
+        debugLog("dashjs.preload_start", {
+          url: selectedUrl,
+          index: activeCandidateIndex,
+        });
+
+        dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+          debugLog("dashjs.stream_initialized", {
+            url: selectedUrl,
+            index: activeCandidateIndex,
+          });
+          selectedLoad.media.contentType = "application/dash+xml";
+          settle(selectedLoad);
+        });
+
+        dashInstance.on(dashjs.MediaPlayer.events.ERROR, (error) => {
+          debugLog("dashjs.error", {
+            code: error && error.code ? error.code : "",
+            message: error && error.message ? error.message : "",
+            url: selectedUrl,
+            index: activeCandidateIndex,
+          });
+          settle(selectedLoad);
+        });
+
+        try {
+          dashInstance.attachView(castVideoEl);
+          dashInstance.attachSource(selectedUrl);
+          armStallWatchdog("dashjs.preload");
+        } catch (e) {
+          debugLog("dashjs.attach_error", {
+            message: e && e.message ? e.message : "unknown",
+            url: selectedUrl,
+          });
+          settle(selectedLoad);
+        }
       });
     }
 
@@ -784,6 +867,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
 
 safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_FINISHED, () => {
   destroyHls();
+  destroyDash();
 }, "MEDIA_FINISHED");
 
 const playbackConfig = new cast.framework.PlaybackConfig();
@@ -807,6 +891,7 @@ debugLog("receiver.started", {
   debugEnabled,
   hlsJsAvailable: typeof Hls !== "undefined" && Hls.isSupported(),
   hlsGlobalPresent: typeof Hls !== "undefined",
+  dashJsAvailable: typeof dashjs !== "undefined",
   mediaSourcePresent: typeof window.MediaSource !== "undefined",
   customVideoElement: !!castVideoEl,
 });
@@ -843,7 +928,19 @@ debugLog("receiver.started", {
       const selectedType = inferContentType(selectedUrl);
       debugLog("browser.load", { url, selectedUrl, selectedType, candidates });
 
-      if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+      if (dashIsAvailable() && isDashCandidate(selectedUrl)) {
+        try {
+          destroyDash();
+          dashInstance = dashjs.MediaPlayer().create();
+          dashInstance.attachView(castVideoEl);
+          dashInstance.attachSource(selectedUrl);
+          dashInstance.play();
+          setStatus("Browser mode: DASH stream loaded");
+          debugLog("browser.dash.loaded", { selectedUrl });
+        } catch (e) {
+          debugLog("browser.dash.error", { message: e && e.message ? e.message : "unknown" });
+        }
+      } else if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
         destroyHls();
         hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
         hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
