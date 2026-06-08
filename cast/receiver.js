@@ -20,6 +20,9 @@ const debugHistory = [];
 const DEBUG_HISTORY_LIMIT = 200;
 const DEFAULT_DEBUG_ENABLED = true;
 
+// Expose log buffer immediately so index.html can render even if later init fails.
+window.__preettvDebug = debugHistory;
+
 // Keep debug on by default so receiver issues are visible without inspect tooling.
 debugEnabled = DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG;
 
@@ -68,6 +71,21 @@ function debugLog(event, payload) {
   }
   window.__preettvDebug = debugHistory;
   console.log("[PreetTV Receiver][DEBUG]", entry);
+}
+
+function safeAddPlayerEventListener(eventType, handler, label) {
+  try {
+    if (!eventType) {
+      debugLog("player.event.unsupported", { label });
+      return;
+    }
+    playerManager.addEventListener(eventType, handler);
+  } catch (e) {
+    debugLog("player.event.register_error", {
+      label,
+      message: e && e.message ? e.message : "unknown",
+    });
+  }
 }
 
 function clearStallWatchdog() {
@@ -436,7 +454,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
   }
 });
 
-playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   clearStallWatchdog();
   const errorDetail = {
     type: event && event.type ? event.type : "",
@@ -449,25 +467,25 @@ playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) =>
   setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): ${errorDetail.reason || errorDetail.detailedErrorCode}`);
   debugLog("player.error", errorDetail);
   void tryLoadNextCandidateOnReceiverError();
-});
+}, "ERROR");
 
-playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event) => {
   const status = playerManager.getMediaInformation();
   debugLog("player.media_status", {
     eventType: event && event.type ? event.type : "",
     mediaContentId: status && status.contentId ? status.contentId : "",
     mediaContentType: status && status.contentType ? status.contentType : "",
   });
-});
+}, "MEDIA_STATUS");
 
-playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
   debugLog("player.request_load", {
     eventType: event && event.type ? event.type : "",
     hasRequestData: !!(event && event.requestData),
   });
-});
+}, "REQUEST_LOAD");
 
-playerManager.addEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
   setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
   debugLog("player.loading", {
     eventType: event && event.type ? event.type : "",
@@ -475,21 +493,21 @@ playerManager.addEventListener(cast.framework.events.EventType.PLAYER_LOADING, (
     candidateCount: activeCandidates.length,
   });
   armStallWatchdog("player.loading");
-});
+}, "PLAYER_LOADING");
 
-playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event) => {
   debugLog("player.pause", {
     eventType: event && event.type ? event.type : "",
   });
-});
+}, "PLAYER_PAUSE");
 
-playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
+safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
   clearStallWatchdog();
   setStatus("Playing");
   debugLog("player.play", {
     eventType: event && event.type ? event.type : "",
   });
-});
+}, "PLAYER_PLAY");
 
 const playbackConfig = new cast.framework.PlaybackConfig();
 playbackConfig.manifestRequestHandler = (networkRequestInfo) => {

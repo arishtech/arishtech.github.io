@@ -183,6 +183,35 @@
     debugToggle.addEventListener('click', toggleDebugPanel);
     debugHeader.addEventListener('click', toggleDebugPanel);
 
+    function pushUiErrorLog(event, payload) {
+      const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
+      const seq = history.length > 0 ? Number(history[history.length - 1].seq || history.length) + 1 : 1;
+      history.push({
+        seq,
+        ts: new Date().toISOString(),
+        event,
+        payload,
+      });
+      window.__preettvDebug = history;
+      if (debugPanelVisible) updateDebugDisplay();
+    }
+
+    window.addEventListener('error', (ev) => {
+      pushUiErrorLog('ui.error', {
+        message: ev && ev.message ? ev.message : 'unknown',
+        filename: ev && ev.filename ? ev.filename : '',
+        lineno: ev && ev.lineno ? ev.lineno : 0,
+        colno: ev && ev.colno ? ev.colno : 0,
+      });
+    });
+
+    window.addEventListener('unhandledrejection', (ev) => {
+      const reason = ev && ev.reason;
+      pushUiErrorLog('ui.unhandledrejection', {
+        reason: reason && reason.message ? reason.message : String(reason || 'unknown'),
+      });
+    });
+
     if (debugPanelVisible) {
       debugPanel.classList.remove('hidden');
       debugToggle.textContent = 'DEBUG: ON';
