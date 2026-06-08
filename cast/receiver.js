@@ -1,8 +1,15 @@
-/* global cast */
+/* global cast, Hls */
 
 const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
 const statusEl = document.getElementById("status");
+
+// Register the custom <video> element so Cast uses it instead of its own internal element.
+// This lets us attach HLS.js to the same element that Cast manages state for.
+const castVideoEl = document.getElementById("castVideo");
+if (castVideoEl) {
+  playerManager.setMediaElement(castVideoEl);
+}
 
 const DEBUG_QUERY_FLAG = (() => {
   try {
@@ -32,6 +39,25 @@ let lastLoadTemplate = null;
 let stallWatchdogTimer = null;
 let stallWatchdogSerial = 0;
 const STALL_WATCHDOG_MS = 12000;
+
+// HLS.js instance for IPTV stream playback (mirrors test-browser.html logic).
+let hlsInstance = null;
+
+function destroyHls() {
+  if (hlsInstance) {
+    try { hlsInstance.destroy(); } catch (_e) {}
+    hlsInstance = null;
+  }
+}
+
+function isHlsCandidate(url) {
+  const s = (url || "").toLowerCase();
+  return s.includes("extension=m3u8") || s.includes(".m3u8") || s.includes("type=m3u8");
+}
+
+function hlsIsAvailable() {
+  return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
+}
 
 // Phase 2 / 2.1 hardening state derived from sender customData.
 // Backend proxy contract: see cast-receiver/BACKEND_PROXY_REFERENCE.md
@@ -202,6 +228,8 @@ function inferContentType(url) {
 }
 
 function buildCompatibilityCandidates(baseUrl, customData) {
+  // Cast built-in player supports HLS (m3u8) natively but NOT raw TS streams.
+  // Always place the m3u8 variant FIRST so Cast can use its native HLS pipeline.
   const candidates = [];
   const seen = new Set();
   const push = (value) => {
@@ -209,12 +237,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     seen.add(value);
     candidates.push(value);
   };
-
-  push(baseUrl);
-
-  if (customData && Array.isArray(customData.candidateUrls)) {
-    customData.candidateUrls.forEach(push);
-  }
 
   const lower = (baseUrl || "").toLowerCase();
   const looksLikeLivePhp = lower.includes("/live.php");
@@ -227,19 +249,31 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const looksTs = extensionHint === "ts" || lower.endsWith(".ts");
   const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
 
+  // For TS streams: try m3u8 first (Cast native HLS), then original TS as last resort.
   if (looksTs) {
-    push(rewriteQueryParam(baseUrl, "extension", "m3u8"));
-    push(rewriteQueryParam(baseUrl, "ext", "m3u8"));
+    const m3u8Url = rewriteQueryParam(baseUrl, "extension", "m3u8")
+      || rewriteQueryParam(baseUrl, "ext", "m3u8");
+    if (m3u8Url) push(m3u8Url);
+    push(baseUrl); // TS original as fallback
+  } else {
+    push(baseUrl); // Non-TS: start with original
   }
 
+  // For live.php with no extension: try m3u8 first, then ts.
+  if (looksLikeLivePhp && !extensionHint) {
+    push(appendQueryParam(baseUrl, "extension", "m3u8"));
+    push(appendQueryParam(baseUrl, "extension", "ts"));
+  }
+
+  // For m3u8 streams: also try ts variant as fallback.
   if (looksHls) {
     push(rewriteQueryParam(baseUrl, "extension", "ts"));
     push(rewriteQueryParam(baseUrl, "ext", "ts"));
   }
 
-  if (looksLikeLivePhp && !extensionHint) {
-    push(appendQueryParam(baseUrl, "extension", "m3u8"));
-    push(appendQueryParam(baseUrl, "extension", "ts"));
+  // Append any sender-specified custom candidate URLs.
+  if (customData && Array.isArray(customData.candidateUrls)) {
+    customData.candidateUrls.forEach(push);
   }
 
   return candidates;
@@ -372,11 +406,15 @@ function getReceiverErrorHint(detailCode, reason) {
   const normalizedReason = String(reason || "").toLowerCase();
 
   if (code === 104) {
-    return "104: receiver could not load/open stream (check token, URL reachability, and server response)";
+    return "104: media src not supported (Cast cannot open this URL/format)";
+  }
+
+  if (code === 301) {
+    return "301: LOAD_FAILED — Cast could not start playback, likely wrong content type or unreachable URL";
   }
 
   if (code === 905) {
-    return "905: media pipeline failed (often TS/codec/container not playable by Cast)";
+    return "905: pipeline failed — Cast cannot play raw TS; will retry with m3u8 variant";
   }
 
   if (normalizedReason.includes("demux") || normalizedReason.includes("parse")) {
@@ -390,18 +428,31 @@ function getReceiverErrorHint(detailCode, reason) {
   return "Playback failure: try fallback candidate and verify stream format compatibility";
 }
 
-function prepareLoadForCandidate(loadRequestData, candidateUrl) {
+function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
   const cloned = Object.assign({}, loadRequestData);
   cloned.media = Object.assign({}, loadRequestData.media);
   cloned.media.contentUrl = candidateUrl;
-  if (!cloned.media.contentType || cloned.media.contentType === "video/*") {
-    cloned.media.contentType = inferContentType(candidateUrl);
+  // Always re-infer content type from the candidate URL — do not inherit
+  // the sender's original type (e.g. video/mp2t) which Cast cannot play.
+  cloned.media.contentType = inferContentType(candidateUrl);
+
+  // Carry the original base URL and candidate index in customData so the
+  // LOAD interceptor can restore the same candidate list on retry instead
+  // of rebuilding from the new (already-modified) URL and looping forever.
+  if (retryIndex !== undefined) {
+    const originalCustomData = asObject(loadRequestData.customData);
+    const originalBaseUrl = String(originalCustomData._retryBaseUrl || (loadRequestData.media || {}).contentUrl || "");
+    cloned.customData = Object.assign({}, originalCustomData, {
+      _retryBaseUrl: originalBaseUrl,
+      _retryCandidateIndex: retryIndex,
+    });
   }
   return cloned;
 }
 
 async function tryLoadNextCandidateOnReceiverError() {
   clearStallWatchdog();
+  destroyHls();
   if (!lastLoadTemplate) return;
   if (activeCandidateIndex >= activeCandidates.length - 1) {
     setStatus("All receiver fallback candidates exhausted");
@@ -414,7 +465,8 @@ async function tryLoadNextCandidateOnReceiverError() {
 
   activeCandidateIndex += 1;
   const nextUrl = activeCandidates[activeCandidateIndex];
-  const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl);
+  // Pass retryIndex so the LOAD interceptor restores the same candidate list.
+  const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl, activeCandidateIndex);
   setStatus(`Retrying candidate ${activeCandidateIndex + 1}/${activeCandidates.length}`);
   debugLog("candidate.retry", {
     nextIndex: activeCandidateIndex,
@@ -438,35 +490,94 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
   try {
     const media = loadRequestData.media || {};
     const customData = asObject(loadRequestData.customData);
-    const baseUrl = media.contentUrl;
+
+    // On a retry call, _retryBaseUrl carries the original sender URL so we can
+    // rebuild the same candidate list and honour the correct _retryCandidateIndex.
+    const baseUrl = String(customData._retryBaseUrl || media.contentUrl || "");
     if (!baseUrl) return loadRequestData;
 
     activeContract = normalizeContract(customData);
     applyDebugConfigFromContract(activeContract);
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
+      isRetry: !!customData._retryBaseUrl,
       customDataKeys: Object.keys(customData),
       schemaVersion: activeContract.schemaVersion,
       channelName: activeContract.channelName,
     });
 
+    // Rebuild candidates from the canonical base URL so retries don't re-root.
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
-    activeCandidateIndex = Number.isInteger(customData.candidateIndex)
-      ? Math.max(0, Math.min(customData.candidateIndex, activeCandidates.length - 1))
-      : 0;
+
+    if (customData._retryCandidateIndex != null) {
+      // Honour explicit retry index coming from tryLoadNextCandidateOnReceiverError.
+      activeCandidateIndex = Math.max(0, Math.min(Number(customData._retryCandidateIndex), activeCandidates.length - 1));
+    } else if (Number.isInteger(customData.candidateIndex)) {
+      activeCandidateIndex = Math.max(0, Math.min(customData.candidateIndex, activeCandidates.length - 1));
+    } else {
+      activeCandidateIndex = 0;
+    }
 
     const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
     const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
     lastLoadTemplate = loadRequestData;
+
     debugLog("load.candidates", {
       selectedIndex: activeCandidateIndex,
       selectedUrl,
       candidates: activeCandidates,
       selectedContentType: selectedLoad && selectedLoad.media ? selectedLoad.media.contentType : "",
+      usingHlsJs: hlsIsAvailable() && isHlsCandidate(selectedUrl),
     });
 
     setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}`);
-    armStallWatchdog("load.interceptor");
+
+    // ── HLS.js path (mirrors test-browser.html loadCandidate) ──────────────
+    if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+      return new Promise((resolve) => {
+        destroyHls();
+        hlsInstance = new Hls({ enableWorker: true, lowLatencyMode: false });
+        let settled = false;
+
+        function settle(load) {
+          if (settled) return;
+          settled = true;
+          clearStallWatchdog();
+          resolve(load);
+        }
+
+        hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
+          debugLog("hlsjs.manifest_parsed", { url: selectedUrl, index: activeCandidateIndex });
+          setStatus(`Playing (${activeCandidateIndex + 1}/${activeCandidates.length})`);
+          // HLS.js has set castVideoEl.src to a blob:// MSE URL.
+          // Hand that URL to CAF so Cast's state machine tracks the right element.
+          selectedLoad.media.contentUrl = castVideoEl.src;
+          selectedLoad.media.contentType = "video/mp4";
+          settle(selectedLoad);
+        });
+
+        hlsInstance.on(Hls.Events.ERROR, (_, data) => {
+          if (!data.fatal || settled) return;
+          debugLog("hlsjs.fatal_error", {
+            details: data.details,
+            type: data.type,
+            url: selectedUrl,
+            index: activeCandidateIndex,
+          });
+          setStatus(`HLS error on ${activeCandidateIndex + 1}/${activeCandidates.length}: ${data.details}`);
+          // Let Cast surface the error → triggers safeAddPlayerEventListener ERROR handler
+          // which calls tryLoadNextCandidateOnReceiverError for the next candidate.
+          settle(selectedLoad);
+        });
+
+        armStallWatchdog("hlsjs.load");
+        hlsInstance.loadSource(selectedUrl);
+        hlsInstance.attachMedia(castVideoEl);
+      });
+    }
+
+    // ── Native Cast player path (MP4, DASH, or non-HLS) ────────────────────
+    armStallWatchdog("load.interceptor.native");
     return selectedLoad;
   } catch (e) {
     setStatus(`LOAD interceptor error: ${e && e.message ? e.message : "unknown"}`);
@@ -482,6 +593,21 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
   const reason = event && event.reason ? event.reason : "";
   const hint = getReceiverErrorHint(detailCode, reason);
+
+  // Guard: if candidates weren't built yet (e.g. error fired before interceptor),
+  // rebuild them now from the last known load template.
+  if (activeCandidates.length === 0 && lastLoadTemplate) {
+    const baseUrl = (lastLoadTemplate.media || {}).contentUrl || "";
+    if (baseUrl) {
+      activeCandidates = buildCompatibilityCandidates(baseUrl, asObject(lastLoadTemplate.customData));
+      activeCandidateIndex = 0;
+      debugLog("candidate.rebuilt_on_error", {
+        baseUrl,
+        candidates: activeCandidates,
+      });
+    }
+  }
+
   const errorDetail = {
     type: event && event.type ? event.type : "",
     detailedErrorCode: detailCode,
@@ -491,7 +617,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     candidateCount: activeCandidates.length,
     currentUrl: activeCandidates[activeCandidateIndex] || "unknown",
   };
-  setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): ${errorDetail.reason || errorDetail.detailedErrorCode} | ${hint}`);
+  setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): code ${detailCode} | ${hint}`);
   debugLog("player.error", errorDetail);
   void tryLoadNextCandidateOnReceiverError();
 }, "ERROR");
@@ -555,6 +681,8 @@ setStatus("PreetTV Receiver started");
 debugLog("receiver.started", {
   href: window.location.href,
   debugEnabled,
+  hlsJsAvailable: typeof Hls !== "undefined" && Hls.isSupported(),
+  customVideoElement: !!castVideoEl,
 });
 
 

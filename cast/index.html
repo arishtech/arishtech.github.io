@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>PreetTV Cast Receiver</title>
   <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+  <!-- HLS.js: handles IPTV streams that Cast's native player cannot (same as test-browser.html) -->
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.4.0/dist/hls.min.js"></script>
   <style>
     html, body {
       margin: 0;
@@ -100,7 +102,12 @@
   </style>
 </head>
 <body>
-  <cast-media-player></cast-media-player>
+  <!-- Custom video element: allows HLS.js to be attached (replaces <cast-media-player>) -->
+  <video id="castVideo"
+         crossorigin="anonymous"
+         playsinline
+         style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;">
+  </video>
   <div id="status">PreetTV Receiver Ready</div>
 
   <!-- Debug Panel -->
