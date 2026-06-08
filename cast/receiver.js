@@ -132,7 +132,85 @@ function destroyDash() {
   }
 }
 
+let activeIptvNetworkShim = null;
+
+function streamHostsMatch(requestUrl, candidateUrl) {
+  try {
+    const a = new URL(normalizeCandidateUrl(requestUrl));
+    const b = new URL(normalizeCandidateUrl(candidateUrl));
+    return a.host === b.host;
+  } catch (_e) {
+    return false;
+  }
+}
+
+function installIptvNetworkShim(requestUrl) {
+  removeIptvNetworkShim();
+  const target = normalizeCandidateUrl(requestUrl);
+  const headers = buildIptvRequestHeaders(target);
+  const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
+  const OriginalXHR = window.XMLHttpRequest;
+
+  function shouldShim(url) {
+    return streamHostsMatch(target, url);
+  }
+
+  if (originalFetch) {
+    window.fetch = function patchedFetch(input, init) {
+      const url = typeof input === "string" ? input : (input && input.url ? input.url : "");
+      if (shouldShim(url)) {
+        const mergedInit = Object.assign({}, init || {});
+        mergedInit.headers = Object.assign({}, headers, asObject(mergedInit.headers));
+        return originalFetch(input, mergedInit);
+      }
+      return originalFetch(input, init);
+    };
+  }
+
+  function PatchedXHR() {
+    const xhr = new OriginalXHR();
+    let xhrUrl = "";
+    const nativeOpen = xhr.open;
+    xhr.open = function patchedOpen(method, url) {
+      xhrUrl = String(url || "");
+      return nativeOpen.apply(xhr, arguments);
+    };
+    const nativeSetHeader = xhr.setRequestHeader;
+    xhr.setRequestHeader = function patchedSetHeader(name, value) {
+      return nativeSetHeader.call(xhr, name, value);
+    };
+    const nativeSend = xhr.send;
+    xhr.send = function patchedSend() {
+      if (shouldShim(xhrUrl)) {
+        Object.keys(headers).forEach((name) => {
+          try { nativeSetHeader.call(xhr, name, headers[name]); } catch (_e) {}
+        });
+      }
+      return nativeSend.apply(xhr, arguments);
+    };
+    return xhr;
+  }
+  PatchedXHR.prototype = OriginalXHR.prototype;
+  window.XMLHttpRequest = PatchedXHR;
+
+  activeIptvNetworkShim = {
+    restore() {
+      if (originalFetch) window.fetch = originalFetch;
+      window.XMLHttpRequest = OriginalXHR;
+      activeIptvNetworkShim = null;
+    },
+  };
+  return activeIptvNetworkShim;
+}
+
+function removeIptvNetworkShim() {
+  if (activeIptvNetworkShim && typeof activeIptvNetworkShim.restore === "function") {
+    activeIptvNetworkShim.restore();
+  }
+}
+
 function destroyMpegts() {
+  removeIptvNetworkShim();
   if (mpegtsInstance) {
     try { mpegtsInstance.off(mpegts.Events.ERROR); } catch (_e) {}
     try { mpegtsInstance.pause(); } catch (_e) {}
@@ -414,8 +492,18 @@ function isPlaylistText(data) {
 function iptvHttpGet(url, options) {
   const target = normalizeCandidateUrl(url);
   const responseType = options && options.responseType === "arraybuffer" ? "arraybuffer" : "text";
+  const probeOnly = !!(options && options.probeOnly);
   const uaStart = options && Number.isInteger(options.uaStart) ? options.uaStart : activeIptvUaIndex;
   const attempts = [];
+
+  function cancelResponseBody(response) {
+    if (!response || !response.body) return;
+    try {
+      if (typeof response.body.cancel === "function") {
+        response.body.cancel();
+      }
+    } catch (_e) {}
+  }
 
   function tryUa(uaIndex) {
     const headers = buildIptvRequestHeaders(target, uaIndex);
@@ -426,6 +514,41 @@ function iptvHttpGet(url, options) {
     return fetch(fetchUrl, { method: "GET", headers, cache: "no-store" })
       .then((response) => {
         const status = response.status;
+        if (probeOnly) {
+          const attempt = {
+            uaIndex,
+            status,
+            hasBody: false,
+            playlist: false,
+            userAgent: headers["User-Agent"],
+            proxied: fetchUrl !== target,
+            fetchUrl,
+          };
+          if (status >= 200 && status < 300 && response.body && typeof response.body.getReader === "function") {
+            const reader = response.body.getReader();
+            return reader.read().then((chunk) => {
+              try { reader.cancel(); } catch (_e) {}
+              cancelResponseBody(response);
+              const value = chunk && chunk.value;
+              const hasBody = !!(value && value.byteLength > 0);
+              attempt.hasBody = hasBody;
+              attempts.push(attempt);
+              if (hasBody) {
+                activeIptvUaIndex = uaIndex;
+                return { ok: true, status, data: value, hasBody, uaIndex, attempts };
+              }
+              activeIptvUaIndex = uaIndex;
+              return { ok: true, status, hasBody: false, uaIndex, attempts };
+            });
+          }
+          attempts.push(attempt);
+          cancelResponseBody(response);
+          if (status >= 200 && status < 300) {
+            activeIptvUaIndex = uaIndex;
+            return { ok: true, status, hasBody: false, uaIndex, attempts };
+          }
+          return null;
+        }
         const reader = responseType === "arraybuffer" ? response.arrayBuffer() : response.text();
         return reader.then((data) => {
           const hasBody = responseType === "arraybuffer" ? hasBinaryBody(data) : hasTextBody(data);
@@ -607,7 +730,7 @@ function applyDebugConfigFromContract(contract) {
 
 function rewriteQueryParam(url, key, value) {
   try {
-    const u = new URL(url);
+    const u = new URL(repairStreamUrl(url));
     if (!u.searchParams.has(key)) return null;
     u.searchParams.set(key, value);
     return normalizeCandidateUrl(u.toString());
@@ -618,7 +741,7 @@ function rewriteQueryParam(url, key, value) {
 
 function appendQueryParam(url, key, value) {
   try {
-    const u = new URL(url);
+    const u = new URL(repairStreamUrl(url));
     u.searchParams.set(key, value);
     return normalizeCandidateUrl(u.toString());
   } catch (_e) {
@@ -634,12 +757,18 @@ function repairStreamUrl(url) {
     [/([?&])source_group-/gi, "$1source_group="],
     [/([?&])play_token-/gi, "$1play_token="],
     [/([?&])extension-/gi, "$1extension="],
+    [/([?&])extension@/gi, "$1extension="],
     [/([?&])stream-/gi, "$1stream="],
     [/([?&])mac-/gi, "$1mac="],
     [/([?&])output-/gi, "$1output="],
     [/([?&])format-/gi, "$1format="],
     [/([?&])type-/gi, "$1type="],
     [/([?&])ext-(?!ension)/gi, "$1ext="],
+    [/([?&])play_token@/gi, "$1play_token="],
+    [/([?&])source_group@/gi, "$1source_group="],
+    [/([?&])source_group\s+/gi, "$1source_group="],
+    [/([?&])play_token\s+/gi, "$1play_token="],
+    [/([?&])extension\s+/gi, "$1extension="],
   ];
   separatorFixes.forEach(([pattern, replacement]) => {
     out = out.replace(pattern, replacement);
@@ -647,8 +776,19 @@ function repairStreamUrl(url) {
 
   out = out.replace(/source group/gi, "source_group");
   out = out.replace(/play token/gi, "play_token");
+  out = out.replace(/(play_token=[^&\s]+)\s*source_group/gi, "$1&source_group");
+  out = out.replace(/(play_token=[^&\s]+)source_group/gi, "$1&source_group=");
 
   return out;
+}
+
+function isPlayInterruptedError(err) {
+  const msg = String((err && err.message) || err || "");
+  return (
+    msg.indexOf("interrupted by a call to pause") >= 0 ||
+    msg.indexOf("interrupted by a new load") >= 0 ||
+    msg.indexOf("The play() request was interrupted") >= 0
+  );
 }
 
 function toM3u8Variant(url) {
@@ -703,6 +843,7 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     candidates.push(normalized);
   };
 
+  baseUrl = normalizeCandidateUrl(baseUrl);
   const lower = (baseUrl || "").toLowerCase();
   const looksLikeLivePhp = lower.includes("/live.php");
   const looksLikeLivePlayPath = /\/live\/play\//.test(lower);
@@ -1001,6 +1142,23 @@ function createIptvHlsLoaderClass() {
         });
     }
   };
+}
+
+function probeBinaryStreamUrl(url) {
+  const target = normalizeCandidateUrl(url);
+  return iptvHttpGet(target, {
+    responseType: "arraybuffer",
+    requestType: "segment",
+    probeOnly: true,
+  }).then((result) => ({
+    ok: !!result.ok,
+    status: result.ok ? result.status : 0,
+    hasBinary: !!(result.ok && result.hasBody),
+    uaIndex: result.uaIndex,
+    attempts: result.attempts || [],
+    urlCheck: inspectStreamUrl(target),
+    proxied: isProxyEnabled(),
+  }));
 }
 
 function probeStreamUrl(url) {
@@ -1357,7 +1515,8 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
   });
 }
 
-function startMpegtsPlayback(sourceUrl, selectedLoad) {
+function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
+  const sourceUrl = normalizeCandidateUrl(rawSourceUrl);
   return new Promise((resolve, reject) => {
     destroyHls();
     destroyDash();
@@ -1374,10 +1533,20 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
 
     let settled = false;
     let mpegtsUaAttempts = 0;
+    let mpegtsRetryTimer = null;
+    let mpegtsRetryInFlight = false;
+
+    function getMpegtsPlaybackUrl() {
+      return resolveFetchUrl(sourceUrl, "segment");
+    }
 
     function settle(load) {
       if (settled) return;
       settled = true;
+      if (mpegtsRetryTimer) {
+        clearTimeout(mpegtsRetryTimer);
+        mpegtsRetryTimer = null;
+      }
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       resolve(load);
@@ -1385,16 +1554,55 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
 
     function failPreload(reason) {
       if (settled) return;
+      if (mpegtsRetryInFlight && isPlayInterruptedError(reason)) {
+        debugLog("mpegts.play_interrupted_ignored", { reason, index: activeCandidateIndex });
+        return;
+      }
       settled = true;
+      if (mpegtsRetryTimer) {
+        clearTimeout(mpegtsRetryTimer);
+        mpegtsRetryTimer = null;
+      }
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
-      debugLog("mpegts.preload_failed", { url: sourceUrl, reason, index: activeCandidateIndex, mpegtsUaAttempts });
+      debugLog("mpegts.preload_failed", {
+        url: sourceUrl,
+        playbackUrl: getMpegtsPlaybackUrl(),
+        reason,
+        index: activeCandidateIndex,
+        mpegtsUaAttempts,
+        urlCheck: inspectStreamUrl(sourceUrl),
+      });
       reject(new Error(reason || "mpegts preload failed"));
     }
 
-    function attachMpegtsPlayer(playbackUrl) {
+    function scheduleMpegtsUaRetry(reason) {
+      if (settled || mpegtsRetryInFlight) return;
+      if (mpegtsUaAttempts >= IPTV_USER_AGENTS.length - 1) {
+        failPreload(reason || "mpegts status invalid");
+        return;
+      }
+      mpegtsUaAttempts += 1;
+      rotateIptvUserAgent("mpegts_status_retry");
+      mpegtsRetryInFlight = true;
+      if (mpegtsRetryTimer) clearTimeout(mpegtsRetryTimer);
+      mpegtsRetryTimer = setTimeout(() => {
+        mpegtsRetryTimer = null;
+        if (settled) return;
+        try {
+          beginMpegtsSession("mpegts_status_retry");
+        } catch (retryErr) {
+          mpegtsRetryInFlight = false;
+          failPreload(retryErr && retryErr.message ? retryErr.message : "mpegts retry failed");
+        }
+      }, 400);
+    }
+
+    function beginMpegtsSession(trigger) {
+      const playbackUrl = getMpegtsPlaybackUrl();
       const headers = buildIptvRequestHeaders(sourceUrl);
       destroyMpegts();
+      installIptvNetworkShim(sourceUrl);
       mpegtsInstance = mpegts.createPlayer({
         type: "mpegts",
         isLive: true,
@@ -1408,27 +1616,15 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
         debugLog("mpegts.error", {
           errorType,
           errorDetail,
-          url: playbackUrl,
+          url: sourceUrl,
+          playbackUrl,
           index: activeCandidateIndex,
           mpegtsUaAttempts,
+          urlCheck: inspectStreamUrl(sourceUrl),
         });
         const invalidStatus = String(errorDetail || "").indexOf("HttpStatusCodeInvalid") >= 0;
-        if (!settled && invalidStatus && mpegtsUaAttempts < IPTV_USER_AGENTS.length - 1) {
-          mpegtsUaAttempts += 1;
-          rotateIptvUserAgent("mpegts_status_retry");
-          try {
-            attachMpegtsPlayer(getMpegtsPlaybackUrl());
-            mpegtsInstance.attachMediaElement(castVideoEl);
-            mpegtsInstance.load();
-            const playResult = mpegtsInstance.play();
-            if (playResult && typeof playResult.catch === "function") {
-              playResult.catch((playErr) => {
-                failPreload(playErr && playErr.message ? playErr.message : "mpegts play failed");
-              });
-            }
-          } catch (retryErr) {
-            failPreload(retryErr && retryErr.message ? retryErr.message : "mpegts retry failed");
-          }
+        if (!settled && invalidStatus) {
+          scheduleMpegtsUaRetry(String(errorDetail || errorType || "mpegts status invalid"));
           return;
         }
         if (!settled) {
@@ -1437,11 +1633,33 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
         }
         onCustomPlayerFatalError("mpegts", String(errorDetail || errorType || "fatal"));
       });
-    }
 
-    function getMpegtsPlaybackUrl() {
-      const normalized = normalizeCandidateUrl(sourceUrl);
-      return resolveFetchUrl(normalized, "segment");
+      debugLog("mpegts.start", {
+        trigger: trigger || "initial",
+        url: sourceUrl,
+        playbackUrl,
+        proxied: isProxyEnabled(),
+        index: activeCandidateIndex,
+        headers: Object.keys(headers),
+        urlCheck: inspectStreamUrl(sourceUrl),
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+        features: typeof mpegts.getFeatureList === "function" ? mpegts.getFeatureList() : null,
+      });
+      armStallWatchdog("mpegts.start");
+      mpegtsInstance.attachMediaElement(castVideoEl);
+      mpegtsInstance.load();
+      const playResult = mpegtsInstance.play();
+      mpegtsRetryInFlight = false;
+      if (playResult && typeof playResult.catch === "function") {
+        playResult.catch((playErr) => {
+          const message = playErr && playErr.message ? playErr.message : "mpegts play failed";
+          if (isPlayInterruptedError(message)) {
+            debugLog("mpegts.play_interrupted_ignored", { message, index: activeCandidateIndex });
+            return;
+          }
+          failPreload(message);
+        });
+      }
     }
 
     const onPlaying = () => {
@@ -1449,8 +1667,10 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       const finalized = finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "mpegts");
       debugLog("mpegts.playing", {
         url: sourceUrl,
+        playbackUrl: getMpegtsPlaybackUrl(),
         index: activeCandidateIndex,
         mediaSrc: readVideoBlobUrl(),
+        urlCheck: inspectStreamUrl(sourceUrl),
       });
       setStatus("Playing (MPEG-TS)");
       settle(finalized);
@@ -1461,36 +1681,27 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       castVideoEl.addEventListener("canplay", onPlaying, { once: true });
     }
 
-    function beginMpegtsPlayback() {
-      const playbackUrl = getMpegtsPlaybackUrl();
-      attachMpegtsPlayer(playbackUrl);
-      debugLog("mpegts.start", {
-        url: sourceUrl,
-        playbackUrl,
-        proxied: isProxyEnabled(),
-        index: activeCandidateIndex,
-        headers: Object.keys(buildIptvRequestHeaders(sourceUrl)),
-        urlCheck: inspectStreamUrl(sourceUrl),
-        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
-      });
-      armStallWatchdog("mpegts.start");
-      mpegtsInstance.attachMediaElement(castVideoEl);
-      mpegtsInstance.load();
-      const playResult = mpegtsInstance.play();
-      if (playResult && typeof playResult.catch === "function") {
-        playResult.catch((playErr) => {
-          failPreload(playErr && playErr.message ? playErr.message : "mpegts play failed");
-        });
-      }
-    }
-
     try {
-      void probeStreamUrl(sourceUrl).then((probe) => {
+      void probeBinaryStreamUrl(sourceUrl).then((probe) => {
         debugLog("mpegts.probe", { url: sourceUrl, index: activeCandidateIndex, probe });
         if (settled) return;
-        beginMpegtsPlayback();
-      }).catch(() => {
-        if (!settled) beginMpegtsPlayback();
+        if (Number.isInteger(probe.uaIndex)) {
+          activeIptvUaIndex = probe.uaIndex;
+        }
+        if (!probe.ok) {
+          if (probeIndicates458Block(probe.attempts)) {
+            iptvDirectBlocked458 = true;
+          }
+          failPreload("mpegts probe failed");
+          return;
+        }
+        beginMpegtsSession("probe_ok");
+      }).catch((probeErr) => {
+        debugLog("mpegts.probe.error", {
+          url: sourceUrl,
+          message: probeErr && probeErr.message ? probeErr.message : "unknown",
+        });
+        if (!settled) beginMpegtsSession("probe_error_fallback");
       });
     } catch (e) {
       debugLog("mpegts.attach_error", {
@@ -1845,7 +2056,9 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
     });
 
-    activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
+    activeCandidates = buildCompatibilityCandidates(baseUrl, customData).map((candidate) => (
+      normalizeCandidateUrl(candidate)
+    ));
     if (activeCandidates.length === 0) {
       activeCandidates = [baseUrl];
       debugLog("candidate.fallback_base_only", { baseUrl });
@@ -1859,7 +2072,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       activeCandidateIndex = 0;
     }
 
-    const selectedUrl = activeCandidates[activeCandidateIndex] || baseUrl;
+    const selectedUrl = normalizeCandidateUrl(activeCandidates[activeCandidateIndex] || baseUrl);
+    activeCandidates[activeCandidateIndex] = selectedUrl;
     const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
     if ((selectedUrl || "").toLowerCase().includes("/live.php") || isLikelyLiveStream(selectedUrl)) {
       selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
