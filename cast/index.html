@@ -119,7 +119,7 @@
     const debugHeader = document.getElementById('debugHeader');
 
     const query = new URLSearchParams(window.location.search || "");
-    const debugQuery = String(query.get("debug") || "").toLowerCase();
+    const debugQuery = "1";//String(query.get("debug") || "").toLowerCase();
     let debugPanelVisible = debugQuery === "1" || debugQuery === "true" || debugQuery === "yes" || debugQuery === "verbose";
 
     function createEntryNode(entry) {
