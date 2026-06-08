@@ -230,6 +230,7 @@ function inspectStreamUrl(url) {
     const raw = u.href;
     if (raw.includes("mac-") && !raw.includes("mac=")) issues.push("mac_separator_corrupt");
     if (raw.includes("extension-") && !raw.includes("extension=")) issues.push("extension_separator_corrupt");
+    if (raw.includes("stream-") && !raw.includes("stream=")) issues.push("stream_separator_corrupt");
     if (u.pathname.toLowerCase().includes("live.php") && !u.searchParams.has("stream")) {
       issues.push("missing_stream_param");
     }
@@ -238,7 +239,9 @@ function inspectStreamUrl(url) {
       issues,
       host: u.host,
       extension: u.searchParams.get("extension") || u.searchParams.get("ext") || "",
+      stream: u.searchParams.get("stream") || "",
       hasStream: u.searchParams.has("stream"),
+      hasPlayToken: u.searchParams.has("play_token"),
     };
   } catch (e) {
     return { ok: false, issues: ["invalid_url"], error: e && e.message ? e.message : "unknown" };
@@ -258,11 +261,27 @@ function mpegtsIsAvailable() {
 }
 
 function buildIptvRequestHeaders(requestUrl) {
-  const info = { url: requestUrl, headers: {} };
+  const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
   applyDefaultIptvHeaders(info);
   mergeRequestHeaders(info);
   applyDefaultIptvHeaders(info);
+  try {
+    const origin = new URL(info.url);
+    info.headers.Origin = `${origin.protocol}//${origin.host}`;
+  } catch (_e) {}
   return info.headers;
+}
+
+function summarizeHlsNetworkError(data) {
+  const response = data && data.response ? data.response : null;
+  return {
+    details: data && data.details ? data.details : "",
+    type: data && data.type ? data.type : "",
+    fatal: !!(data && data.fatal),
+    httpStatus: response && response.code != null ? response.code : null,
+    httpText: response && response.text ? String(response.text).slice(0, 240) : "",
+    url: response && response.url ? response.url : "",
+  };
 }
 
 function setStatus(text) {
@@ -406,8 +425,41 @@ function appendQueryParam(url, key, value) {
   }
 }
 
+function repairStreamUrl(url) {
+  let out = String(url || "");
+  if (!out) return out;
+
+  const separatorFixes = [
+    [/([?&])source_group-/gi, "$1source_group="],
+    [/([?&])play_token-/gi, "$1play_token="],
+    [/([?&])extension-/gi, "$1extension="],
+    [/([?&])stream-/gi, "$1stream="],
+    [/([?&])mac-/gi, "$1mac="],
+    [/([?&])output-/gi, "$1output="],
+    [/([?&])format-/gi, "$1format="],
+    [/([?&])type-/gi, "$1type="],
+    [/([?&])ext-(?!ension)/gi, "$1ext="],
+  ];
+  separatorFixes.forEach(([pattern, replacement]) => {
+    out = out.replace(pattern, replacement);
+  });
+
+  out = out.replace(/source group/gi, "source_group");
+  out = out.replace(/play token/gi, "play_token");
+
+  return out;
+}
+
+function toM3u8Variant(url) {
+  const repaired = repairStreamUrl(url);
+  const rewritten = rewriteQueryParam(repaired, "extension", "m3u8")
+    || rewriteQueryParam(repaired, "ext", "m3u8");
+  if (rewritten) return normalizeCandidateUrl(rewritten);
+  return normalizeCandidateUrl(appendQueryParam(repaired, "extension", "m3u8") || repaired);
+}
+
 function normalizeCandidateUrl(url) {
-  const input = String(url || "");
+  const input = repairStreamUrl(String(url || ""));
   if (!input) return input;
 
   let out = input
@@ -463,16 +515,14 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
 
   if (looksTs) {
-    const m3u8Url = rewriteQueryParam(baseUrl, "extension", "m3u8")
-      || rewriteQueryParam(baseUrl, "ext", "m3u8");
-    if (m3u8Url) push(m3u8Url);
-    push(appendQueryParam(baseUrl, "extension", "m3u8"));
-    push(appendQueryParam(baseUrl, "type", "m3u8"));
-    push(appendQueryParam(baseUrl, "output", "m3u8"));
-    push(appendQueryParam(baseUrl, "format", "hls"));
-    push(baseUrl);
+    const m3u8Base = toM3u8Variant(baseUrl);
+    push(m3u8Base);
+    push(appendQueryParam(m3u8Base, "type", "m3u8"));
+    push(appendQueryParam(m3u8Base, "output", "m3u8"));
+    push(appendQueryParam(m3u8Base, "format", "hls"));
+    push(normalizeCandidateUrl(baseUrl));
   } else {
-    push(baseUrl);
+    push(normalizeCandidateUrl(baseUrl));
   }
 
   if (looksLikeLivePhp && !extensionHint) {
@@ -877,12 +927,11 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
 
     hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
       if (!data || !data.fatal) return;
-      debugLog("hlsjs.fatal_error", {
-        details: data.details,
-        type: data.type,
+      debugLog("hlsjs.fatal_error", Object.assign({
         url: sourceUrl,
         index: activeCandidateIndex,
-      });
+        urlCheck: inspectStreamUrl(sourceUrl),
+      }, summarizeHlsNetworkError(data)));
       if (!settled) {
         failPreload(data.details || "hlsjs fatal");
         return;
@@ -898,7 +947,7 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     });
     armStallWatchdog("hlsjs.start");
     hlsInstance.attachMedia(castVideoEl);
-    hlsInstance.loadSource(sourceUrl);
+    hlsInstance.loadSource(normalizeCandidateUrl(sourceUrl));
   });
 }
 
@@ -936,12 +985,13 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       reject(new Error(reason || "mpegts preload failed"));
     }
 
-    const headers = buildIptvRequestHeaders(sourceUrl);
+    const playbackUrl = normalizeCandidateUrl(sourceUrl);
+    const headers = buildIptvRequestHeaders(playbackUrl);
 
     mpegtsInstance = mpegts.createPlayer({
       type: "mpegts",
       isLive: true,
-      url: sourceUrl,
+      url: playbackUrl,
       headers: headers,
     }, {
       enableWorker: false,
@@ -982,10 +1032,10 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
 
     try {
       debugLog("mpegts.start", {
-        url: sourceUrl,
+        url: playbackUrl,
         index: activeCandidateIndex,
         headers: Object.keys(headers),
-        urlCheck: inspectStreamUrl(sourceUrl),
+        urlCheck: inspectStreamUrl(playbackUrl),
       });
       armStallWatchdog("mpegts.start");
       mpegtsInstance.attachMediaElement(castVideoEl);
@@ -1069,7 +1119,9 @@ function startDashJsPlayback(sourceUrl, selectedLoad) {
 async function tryHlsJsFallbackOnCurrentCandidate() {
   const currentUrl = activeCandidates[activeCandidateIndex] || "";
   if (!currentUrl || hlsJsFallbackUsedForIndex === activeCandidateIndex) return false;
-  if (!isHlsCandidate(currentUrl) && !isLikelyLiveStream(currentUrl)) return false;
+  if (isTsCandidate(currentUrl)) return false;
+  if (!isHlsCandidate(currentUrl)) return false;
+  if (getPlaybackStrategy(currentUrl) === "mpegts") return false;
   if (!hlsIsAvailable() || !lastLoadTemplate || !playerManager) return false;
 
   hlsJsFallbackUsedForIndex = activeCandidateIndex;
@@ -1088,7 +1140,9 @@ async function tryHlsJsFallbackOnCurrentCandidate() {
     debugLog("candidate.hlsjs_fallback.error", {
       message: e && e.message ? e.message : "unknown",
       url: currentUrl,
+      urlCheck: inspectStreamUrl(currentUrl),
     });
+    await advanceCandidateAfterCustomFailure("hlsjs_fallback_failed");
     return false;
   }
 }
@@ -1315,8 +1369,12 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     const media = loadRequestData.media || {};
     const customData = asObject(loadRequestData.customData);
 
-    const baseUrl = String(customData._retryBaseUrl || media.contentUrl || media.contentId || "");
-    if (!baseUrl) return loadRequestData;
+    const rawBaseUrl = String(customData._retryBaseUrl || media.contentUrl || media.contentId || "");
+    if (!rawBaseUrl) return loadRequestData;
+    const baseUrl = normalizeCandidateUrl(rawBaseUrl);
+    if (baseUrl !== rawBaseUrl) {
+      debugLog("load.url_repaired", { rawBaseUrl, baseUrl, urlCheck: inspectStreamUrl(baseUrl) });
+    }
 
     activeContract = normalizeContract(customData);
     applyDebugConfigFromContract(activeContract);
