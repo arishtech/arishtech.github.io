@@ -26,6 +26,9 @@ debugEnabled = DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG;
 let activeCandidates = [];
 let activeCandidateIndex = 0;
 let lastLoadTemplate = null;
+let stallWatchdogTimer = null;
+let stallWatchdogSerial = 0;
+const STALL_WATCHDOG_MS = 12000;
 
 // Phase 2 / 2.1 hardening state derived from sender customData.
 // Backend proxy contract: see cast-receiver/BACKEND_PROXY_REFERENCE.md
@@ -65,6 +68,39 @@ function debugLog(event, payload) {
   }
   window.__preettvDebug = debugHistory;
   console.log("[PreetTV Receiver][DEBUG]", entry);
+}
+
+function clearStallWatchdog() {
+  if (stallWatchdogTimer) {
+    clearTimeout(stallWatchdogTimer);
+    stallWatchdogTimer = null;
+  }
+}
+
+function armStallWatchdog(source) {
+  clearStallWatchdog();
+  const serial = ++stallWatchdogSerial;
+  const currentUrl = activeCandidates[activeCandidateIndex] || "";
+  debugLog("candidate.watchdog.armed", {
+    source,
+    serial,
+    timeoutMs: STALL_WATCHDOG_MS,
+    currentIndex: activeCandidateIndex,
+    candidateCount: activeCandidates.length,
+    currentUrl,
+  });
+  stallWatchdogTimer = setTimeout(() => {
+    if (serial !== stallWatchdogSerial) return;
+    setStatus(`Loading timeout on ${activeCandidateIndex + 1}/${activeCandidates.length}, trying next candidate`);
+    debugLog("candidate.watchdog.timeout", {
+      source,
+      serial,
+      currentIndex: activeCandidateIndex,
+      candidateCount: activeCandidates.length,
+      currentUrl: activeCandidates[activeCandidateIndex] || "",
+    });
+    void tryLoadNextCandidateOnReceiverError();
+  }, STALL_WATCHDOG_MS);
 }
 
 function summarizeHeaders(headers) {
@@ -324,6 +360,7 @@ function prepareLoadForCandidate(loadRequestData, candidateUrl) {
 }
 
 async function tryLoadNextCandidateOnReceiverError() {
+  clearStallWatchdog();
   if (!lastLoadTemplate) return;
   if (activeCandidateIndex >= activeCandidates.length - 1) {
     setStatus("All receiver fallback candidates exhausted");
@@ -346,6 +383,7 @@ async function tryLoadNextCandidateOnReceiverError() {
   });
 
   try {
+    armStallWatchdog("candidate.retry");
     await playerManager.load(nextLoad);
   } catch (e) {
     setStatus(`Receiver retry failed: ${e && e.message ? e.message : "unknown"}`);
@@ -387,6 +425,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     });
 
     setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}`);
+    armStallWatchdog("load.interceptor");
     return selectedLoad;
   } catch (e) {
     setStatus(`LOAD interceptor error: ${e && e.message ? e.message : "unknown"}`);
@@ -398,6 +437,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
+  clearStallWatchdog();
   const errorDetail = {
     type: event && event.type ? event.type : "",
     detailedErrorCode: event && event.detailedErrorCode ? event.detailedErrorCode : "",
@@ -428,10 +468,13 @@ playerManager.addEventListener(cast.framework.events.EventType.REQUEST_LOAD, (ev
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
-  setStatus("Loading...");
+  setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
   debugLog("player.loading", {
     eventType: event && event.type ? event.type : "",
+    currentIndex: activeCandidateIndex,
+    candidateCount: activeCandidates.length,
   });
+  armStallWatchdog("player.loading");
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event) => {
@@ -441,6 +484,7 @@ playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (ev
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
+  clearStallWatchdog();
   setStatus("Playing");
   debugLog("player.play", {
     eventType: event && event.type ? event.type : "",
