@@ -87,6 +87,8 @@ let mpegtsInstance = null;
 let activeCustomPlayer = null; // null | "hlsjs" | "dashjs" | "mpegts"
 let activeCustomPlayerUrl = "";
 let hlsJsFallbackUsedForIndex = -1;
+let pendingCustomPlayerBoot = null;
+let candidateAdvanceInFlight = false;
 
 let activeContract = {
   schemaVersion: 1,
@@ -215,9 +217,32 @@ function getPlaybackStrategy(url, options) {
   if (isProgressiveCandidate(url)) return "native";
   if (isDashCandidate(url)) return "dashjs";
   if (isTsCandidate(url)) return "mpegts";
-  if (isHlsCandidate(url)) return forBrowser ? "hlsjs" : "caf-hls";
+  // IPTV m3u8 playlists usually carry MPEG-TS segments — Chromecast native HLS (905).
+  if (isHlsCandidate(url)) return (isLikelyLiveStream(url) || forBrowser) ? "hlsjs" : "caf-hls";
   if (shouldAttemptHlsJs(url)) return "hlsjs";
   return "native";
+}
+
+function inspectStreamUrl(url) {
+  try {
+    const u = new URL(String(url || ""));
+    const issues = [];
+    const raw = u.href;
+    if (raw.includes("mac-") && !raw.includes("mac=")) issues.push("mac_separator_corrupt");
+    if (raw.includes("extension-") && !raw.includes("extension=")) issues.push("extension_separator_corrupt");
+    if (u.pathname.toLowerCase().includes("live.php") && !u.searchParams.has("stream")) {
+      issues.push("missing_stream_param");
+    }
+    return {
+      ok: issues.length === 0,
+      issues,
+      host: u.host,
+      extension: u.searchParams.get("extension") || u.searchParams.get("ext") || "",
+      hasStream: u.searchParams.has("stream"),
+    };
+  } catch (e) {
+    return { ok: false, issues: ["invalid_url"], error: e && e.message ? e.message : "unknown" };
+  }
 }
 
 function hlsIsAvailable() {
@@ -441,6 +466,10 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     const m3u8Url = rewriteQueryParam(baseUrl, "extension", "m3u8")
       || rewriteQueryParam(baseUrl, "ext", "m3u8");
     if (m3u8Url) push(m3u8Url);
+    push(appendQueryParam(baseUrl, "extension", "m3u8"));
+    push(appendQueryParam(baseUrl, "type", "m3u8"));
+    push(appendQueryParam(baseUrl, "output", "m3u8"));
+    push(appendQueryParam(baseUrl, "format", "hls"));
     push(baseUrl);
   } else {
     push(baseUrl);
@@ -729,25 +758,48 @@ function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
   return selectedLoad;
 }
 
+async function advanceCandidateAfterCustomFailure(reason) {
+  if (candidateAdvanceInFlight) return false;
+  candidateAdvanceInFlight = true;
+  pendingCustomPlayerBoot = null;
+  try {
+    if (activeCandidateIndex >= activeCandidates.length - 1) {
+      setStatus("All receiver fallback candidates exhausted");
+      debugLog("candidate.exhausted", {
+        reason,
+        activeCandidateIndex,
+        candidateCount: activeCandidates.length,
+      });
+      return false;
+    }
+    await tryLoadNextCandidateOnReceiverError(reason);
+    return true;
+  } finally {
+    candidateAdvanceInFlight = false;
+  }
+}
+
 function onCustomPlayerFatalError(playerType, details) {
   debugLog("custom_player.fatal", { playerType, details, url: activeCustomPlayerUrl });
   clearCustomPlayer();
   destroyHls();
   destroyDash();
   destroyMpegts();
-  void tryLoadNextCandidateOnReceiverError(playerType + "_fatal");
+  void advanceCandidateAfterCustomFailure(playerType + "_fatal");
 }
 
 function startHlsJsPlayback(sourceUrl, selectedLoad) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     destroyHls();
     destroyDash();
     destroyMpegts();
     clearCustomPlayer();
+    pendingCustomPlayerBoot = "hlsjs";
 
     if (!hlsIsAvailable()) {
+      pendingCustomPlayerBoot = null;
       debugLog("hlsjs.unavailable", { url: sourceUrl });
-      resolve(selectedLoad);
+      reject(new Error("hlsjs unavailable"));
       return;
     }
 
@@ -758,8 +810,18 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     function settle(load) {
       if (settled) return;
       settled = true;
+      pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       resolve(load);
+    }
+
+    function failPreload(reason) {
+      if (settled) return;
+      settled = true;
+      pendingCustomPlayerBoot = null;
+      clearStallWatchdog();
+      debugLog("hlsjs.preload_failed", { url: sourceUrl, reason, index: activeCandidateIndex });
+      reject(new Error(reason || "hlsjs preload failed"));
     }
 
     function trySettleAfterReady() {
@@ -822,13 +884,18 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
         index: activeCandidateIndex,
       });
       if (!settled) {
-        settle(selectedLoad);
+        failPreload(data.details || "hlsjs fatal");
         return;
       }
       onCustomPlayerFatalError("hlsjs", data.details || "fatal");
     });
 
-    debugLog("hlsjs.start", { url: sourceUrl, index: activeCandidateIndex, headers: Object.keys(buildIptvRequestHeaders(sourceUrl)) });
+    debugLog("hlsjs.start", {
+      url: sourceUrl,
+      index: activeCandidateIndex,
+      headers: Object.keys(buildIptvRequestHeaders(sourceUrl)),
+      urlCheck: inspectStreamUrl(sourceUrl),
+    });
     armStallWatchdog("hlsjs.start");
     hlsInstance.attachMedia(castVideoEl);
     hlsInstance.loadSource(sourceUrl);
@@ -836,15 +903,17 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
 }
 
 function startMpegtsPlayback(sourceUrl, selectedLoad) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     destroyHls();
     destroyDash();
     destroyMpegts();
     clearCustomPlayer();
+    pendingCustomPlayerBoot = "mpegts";
 
     if (!mpegtsIsAvailable()) {
+      pendingCustomPlayerBoot = null;
       debugLog("mpegts.unavailable", { url: sourceUrl });
-      resolve(selectedLoad);
+      reject(new Error("mpegts unavailable"));
       return;
     }
 
@@ -853,8 +922,18 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
     function settle(load) {
       if (settled) return;
       settled = true;
+      pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       resolve(load);
+    }
+
+    function failPreload(reason) {
+      if (settled) return;
+      settled = true;
+      pendingCustomPlayerBoot = null;
+      clearStallWatchdog();
+      debugLog("mpegts.preload_failed", { url: sourceUrl, reason, index: activeCandidateIndex });
+      reject(new Error(reason || "mpegts preload failed"));
     }
 
     const headers = buildIptvRequestHeaders(sourceUrl);
@@ -878,7 +957,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
         index: activeCandidateIndex,
       });
       if (!settled) {
-        settle(selectedLoad);
+        failPreload(String(errorDetail || errorType || "mpegts fatal"));
         return;
       }
       onCustomPlayerFatalError("mpegts", String(errorDetail || errorType || "fatal"));
@@ -906,6 +985,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
         url: sourceUrl,
         index: activeCandidateIndex,
         headers: Object.keys(headers),
+        urlCheck: inspectStreamUrl(sourceUrl),
       });
       armStallWatchdog("mpegts.start");
       mpegtsInstance.attachMediaElement(castVideoEl);
@@ -916,7 +996,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
         message: e && e.message ? e.message : "unknown",
         url: sourceUrl,
       });
-      settle(selectedLoad);
+      failPreload(e && e.message ? e.message : "mpegts attach error");
     }
   });
 }
@@ -1247,6 +1327,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       customDataKeys: Object.keys(customData),
       schemaVersion: activeContract.schemaVersion,
       channelName: activeContract.channelName,
+      urlCheck: inspectStreamUrl(baseUrl),
     });
 
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
@@ -1285,11 +1366,27 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     });
 
     if (strategy === "mpegts") {
-      return startMpegtsPlayback(selectedUrl, selectedLoad);
+      return startMpegtsPlayback(selectedUrl, selectedLoad).catch(async (err) => {
+        debugLog("mpegts.interceptor_failed", {
+          message: err && err.message ? err.message : "unknown",
+          url: selectedUrl,
+          index: activeCandidateIndex,
+        });
+        await advanceCandidateAfterCustomFailure("mpegts_interceptor_failed");
+        throw err;
+      });
     }
 
     if (strategy === "hlsjs") {
-      return startHlsJsPlayback(selectedUrl, selectedLoad);
+      return startHlsJsPlayback(selectedUrl, selectedLoad).catch(async (err) => {
+        debugLog("hlsjs.interceptor_failed", {
+          message: err && err.message ? err.message : "unknown",
+          url: selectedUrl,
+          index: activeCandidateIndex,
+        });
+        await advanceCandidateAfterCustomFailure("hlsjs_interceptor_failed");
+        throw err;
+      });
     }
 
     if (strategy === "dashjs") {
@@ -1326,18 +1423,37 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 });
 
 safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
+  const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
+  const errorCode = Number(detailCode) || 0;
+
+  if (candidateAdvanceInFlight) {
+    debugLog("player.error.suppressed_advance", {
+      detailedErrorCode: detailCode,
+      reason: event && event.reason ? event.reason : "",
+    });
+    return;
+  }
+
+  if (pendingCustomPlayerBoot && (errorCode === 905 || errorCode === 104 || errorCode === 301)) {
+    debugLog("player.error.suppressed_boot", {
+      pendingCustomPlayerBoot,
+      detailedErrorCode: detailCode,
+      reason: event && event.reason ? event.reason : "",
+    });
+    return;
+  }
+
   if (activeCustomPlayer && isCustomPlayerHealthy()) {
     debugLog("player.error.suppressed_custom", {
       activeCustomPlayer,
       activeCustomPlayerUrl,
-      detailedErrorCode: event && event.detailedErrorCode ? event.detailedErrorCode : "",
+      detailedErrorCode: detailCode,
       reason: event && event.reason ? event.reason : "",
     });
     return;
   }
 
   clearStallWatchdog();
-  const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
   const reason = event && event.reason ? event.reason : "";
   const hint = getReceiverErrorHint(detailCode, reason);
 
