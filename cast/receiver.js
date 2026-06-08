@@ -550,19 +550,16 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       selectedUrl,
       candidates: activeCandidates,
       selectedContentType: selectedLoad && selectedLoad.media ? selectedLoad.media.contentType : "",
-        if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
-          debugLog("hlsjs.attach_pending", {
-            url: selectedUrl,
-            index: activeCandidateIndex,
-          });
-          armStallWatchdog("hlsjs.attach_pending");
-          return selectedLoad;
-        });
+      usingHlsJs: hlsIsAvailable() && isHlsCandidate(selectedUrl),
+    });
 
-        armStallWatchdog("hlsjs.load");
-        hlsInstance.loadSource(selectedUrl);
-        hlsInstance.attachMedia(castVideoEl);
+    if (hlsIsAvailable() && isHlsCandidate(selectedUrl)) {
+      debugLog("hlsjs.attach_pending", {
+        url: selectedUrl,
+        index: activeCandidateIndex,
       });
+      armStallWatchdog("hlsjs.attach_pending");
+      return selectedLoad;
     }
 
     // ── Native Cast player path (MP4, DASH, or non-HLS) ────────────────────
