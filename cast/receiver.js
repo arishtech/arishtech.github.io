@@ -52,6 +52,10 @@ if (castVideoEl && playerManager && useCastReceiver && typeof playerManager.setM
 
 const DEFAULT_IPTV_USER_AGENT =
   "Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+const VLC_IPTV_USER_AGENT = "VLC/3.0.20 LibVLC/3.0.20";
+const PREET_CAST_USER_AGENT = "PreetTV Cast/1.0";
+const IPTV_USER_AGENTS = [VLC_IPTV_USER_AGENT, DEFAULT_IPTV_USER_AGENT, PREET_CAST_USER_AGENT];
+let activeIptvUaIndex = 0;
 
 const DEBUG_QUERY_FLAG = (() => {
   try {
@@ -274,16 +278,110 @@ function mpegtsIsAvailable() {
   return castVideoEl && typeof mpegts !== "undefined" && mpegts.isSupported();
 }
 
-function buildIptvRequestHeaders(requestUrl) {
+function pickInitialUaIndex(url) {
+  try {
+    const host = new URL(String(url || "")).host.toLowerCase();
+    if (host.includes("vueott") || host.includes("line.") || host.includes("ott")) {
+      return 0;
+    }
+  } catch (_e) {}
+  return 1;
+}
+
+function rotateIptvUserAgent(reason) {
+  activeIptvUaIndex = (activeIptvUaIndex + 1) % IPTV_USER_AGENTS.length;
+  debugLog("network.ua.rotate", {
+    reason,
+    activeIptvUaIndex,
+    userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+  });
+}
+
+function buildIptvRequestHeaders(requestUrl, uaIndex) {
   const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
-  applyDefaultIptvHeaders(info);
+  const chosenUa = IPTV_USER_AGENTS[
+    Number.isInteger(uaIndex) ? uaIndex : activeIptvUaIndex
+  ] || DEFAULT_IPTV_USER_AGENT;
+  info.headers["User-Agent"] = chosenUa;
   mergeRequestHeaders(info);
-  applyDefaultIptvHeaders(info);
   try {
     const origin = new URL(info.url);
+    const referer = `${origin.protocol}//${origin.host}/`;
+    if (!Object.keys(info.headers).some((name) => name.toLowerCase() === "referer")) {
+      info.headers.Referer = referer;
+    }
     info.headers.Origin = `${origin.protocol}//${origin.host}`;
   } catch (_e) {}
   return info.headers;
+}
+
+function hasBinaryBody(data) {
+  return data && typeof data.byteLength === "number" && data.byteLength > 0;
+}
+
+function hasTextBody(data) {
+  return typeof data === "string" && data.length > 0;
+}
+
+function isPlaylistText(data) {
+  return typeof data === "string" && data.indexOf("#EXTM3U") >= 0;
+}
+
+function iptvHttpGet(url, options) {
+  const target = normalizeCandidateUrl(url);
+  const responseType = options && options.responseType === "arraybuffer" ? "arraybuffer" : "text";
+  const uaStart = options && Number.isInteger(options.uaStart) ? options.uaStart : activeIptvUaIndex;
+  const attempts = [];
+
+  function tryUa(uaIndex) {
+    const headers = buildIptvRequestHeaders(target, uaIndex);
+    if (typeof fetch !== "function") {
+      return Promise.resolve({ ok: false, attempts: [{ uaIndex, error: "fetch_unavailable" }] });
+    }
+    return fetch(target, { method: "GET", headers, cache: "no-store" })
+      .then((response) => {
+        const status = response.status;
+        const reader = responseType === "arraybuffer" ? response.arrayBuffer() : response.text();
+        return reader.then((data) => {
+          const hasBody = responseType === "arraybuffer" ? hasBinaryBody(data) : hasTextBody(data);
+          const playlist = isPlaylistText(data);
+          const attempt = {
+            uaIndex,
+            status,
+            hasBody,
+            playlist,
+            userAgent: headers["User-Agent"],
+          };
+          attempts.push(attempt);
+          if (hasBody || playlist || (status >= 200 && status < 300)) {
+            activeIptvUaIndex = uaIndex;
+            return { ok: true, status, data, uaIndex, attempts };
+          }
+          return null;
+        });
+      })
+      .catch((error) => {
+        attempts.push({
+          uaIndex,
+          error: error && error.message ? error.message : "fetch_error",
+          userAgent: headers["User-Agent"],
+        });
+        return null;
+      });
+  }
+
+  let chain = Promise.resolve(null);
+  for (let offset = 0; offset < IPTV_USER_AGENTS.length; offset += 1) {
+    const uaIndex = (uaStart + offset) % IPTV_USER_AGENTS.length;
+    chain = chain.then((result) => {
+      if (result && result.ok) return result;
+      return tryUa(uaIndex);
+    });
+  }
+  return chain.then((result) => {
+    if (result && result.ok) return result;
+    return { ok: false, attempts };
+  });
 }
 
 function summarizeHlsNetworkError(data) {
@@ -628,7 +726,7 @@ function applyDefaultIptvHeaders(networkRequestInfo) {
   const headers = asObject(networkRequestInfo.headers);
   const hasUserAgent = Object.keys(headers).some((name) => name.toLowerCase() === "user-agent");
   if (!hasUserAgent) {
-    headers["User-Agent"] = DEFAULT_IPTV_USER_AGENT;
+    headers["User-Agent"] = IPTV_USER_AGENTS[activeIptvUaIndex] || DEFAULT_IPTV_USER_AGENT;
   }
 
   try {
@@ -739,97 +837,71 @@ function createIptvHlsLoaderClass() {
 
   return class IptvHlsLoader extends DefaultLoader {
     load(context, config, callbacks) {
-      const xhr = new XMLHttpRequest();
       const url = context.url;
-      const responseType = context.responseType;
+      const responseType = context.responseType === "arraybuffer" ? "arraybuffer" : "text";
+      const timeoutMs = config.timeout || 12000;
+      let timedOut = false;
+      const timer = setTimeout(() => {
+        timedOut = true;
+        callbacks.onTimeout({ code: 0, text: "iptv fetch timeout" }, context, null);
+      }, timeoutMs);
 
-      xhr.open("GET", url, true);
-      xhr.timeout = config.timeout || 12000;
-      if (responseType) {
-        xhr.responseType = responseType;
-      }
-
-      const headers = buildIptvRequestHeaders(url);
-      Object.keys(headers).forEach((name) => {
-        try {
-          xhr.setRequestHeader(name, headers[name]);
-        } catch (_e) {}
-      });
-
-      xhr.onload = function () {
-        const status = xhr.status;
-        const data = responseType === "arraybuffer" ? xhr.response : xhr.responseText;
-        const hasBody = responseType === "arraybuffer"
-          ? data && data.byteLength > 0
-          : typeof data === "string" && data.length > 0;
-
-        if (hasBody || (status >= 200 && status < 300)) {
-          callbacks.onSuccess(
-            { url, data: data || "" },
-            { code: status || 200, text: xhr.statusText || "" },
+      iptvHttpGet(url, { responseType })
+        .then((result) => {
+          if (timedOut) return;
+          clearTimeout(timer);
+          if (result.ok) {
+            callbacks.onSuccess(
+              { url, data: result.data || "" },
+              { code: result.status || 200, text: "" },
+              context,
+              null
+            );
+            return;
+          }
+          callbacks.onError(
+            {
+              code: (result.attempts && result.attempts.length > 0 && result.attempts[result.attempts.length - 1].status) || 458,
+              text: "iptv fetch failed",
+            },
             context,
-            xhr
+            null,
+            null
           );
-          return;
-        }
-
-        callbacks.onError(
-          { code: status, text: xhr.statusText || "iptv http error" },
-          context,
-          xhr,
-          null
-        );
-      };
-
-      xhr.onerror = function () {
-        callbacks.onError(
-          { code: xhr.status || 0, text: "network error" },
-          context,
-          xhr,
-          null
-        );
-      };
-
-      xhr.ontimeout = function () {
-        callbacks.onTimeout(
-          { code: xhr.status || 0, text: "timeout" },
-          context,
-          xhr
-        );
-      };
-
-      xhr.send();
+        })
+        .catch((error) => {
+          if (timedOut) return;
+          clearTimeout(timer);
+          callbacks.onError(
+            { code: 0, text: error && error.message ? error.message : "iptv fetch error" },
+            context,
+            null,
+            null
+          );
+        });
     }
   };
 }
 
 function probeStreamUrl(url) {
-  return new Promise((resolve) => {
-    const xhr = new XMLHttpRequest();
-    const target = normalizeCandidateUrl(url);
-    xhr.open("GET", target, true);
-    xhr.timeout = 8000;
-    const headers = buildIptvRequestHeaders(target);
-    Object.keys(headers).forEach((name) => {
-      try {
-        xhr.setRequestHeader(name, headers[name]);
-      } catch (_e) {}
-    });
-    xhr.onload = function () {
-      const text = String(xhr.responseText || "");
-      resolve({
-        status: xhr.status,
-        isPlaylist: text.indexOf("#EXTM3U") >= 0,
-        head: text.slice(0, 160),
-      });
+  const target = normalizeCandidateUrl(url);
+  return iptvHttpGet(target, { responseType: "text" }).then((result) => {
+    if (!result.ok) {
+      return {
+        status: 0,
+        isPlaylist: false,
+        head: "",
+        attempts: result.attempts || [],
+      };
+    }
+    const text = String(result.data || "");
+    return {
+      status: result.status,
+      isPlaylist: isPlaylistText(text),
+      head: text.slice(0, 200),
+      uaIndex: result.uaIndex,
+      attempts: result.attempts || [],
     };
-    xhr.onerror = function () {
-      resolve({ status: xhr.status || 0, error: "network" });
-    };
-    xhr.ontimeout = function () {
-      resolve({ status: 0, error: "timeout" });
-    };
-    xhr.send();
   });
 }
 
@@ -838,15 +910,32 @@ function buildHlsConfig() {
   const config = {
     enableWorker: false,
     lowLatencyMode: false,
-    manifestLoadingTimeOut: 12000,
-    manifestLoadingMaxRetry: 2,
-    fragLoadingTimeOut: 12000,
-    fragLoadingMaxRetry: 2,
+    manifestLoadingTimeOut: 15000,
+    manifestLoadingMaxRetry: 3,
+    fragLoadingTimeOut: 15000,
+    fragLoadingMaxRetry: 4,
+    maxBufferLength: 30,
+    maxMaxBufferLength: 60,
+    liveSyncDurationCount: 3,
+    liveMaxLatencyDurationCount: 12,
+    maxLiveSyncPlaybackRate: 1.2,
   };
   if (LoaderClass) {
     config.loader = LoaderClass;
   }
   return config;
+}
+
+function buildMpegtsPlayerConfig() {
+  return {
+    enableWorker: false,
+    lazyLoad: false,
+    enableStashBuffer: true,
+    stashInitialSize: 768 * 1024,
+    liveBufferLatencyChasing: false,
+    liveSync: true,
+    autoCleanupSourceBuffer: true,
+  };
 }
 
 function markCandidatesExhausted(reason) {
@@ -984,6 +1073,8 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     let settled = false;
     let mediaAttached = false;
     let manifestParsed = false;
+    let hlsUaAttempts = 0;
+    const normalizedUrl = normalizeCandidateUrl(sourceUrl);
 
     function settle(load) {
       if (settled) return;
@@ -1056,10 +1147,26 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
       if (!data || !data.fatal) return;
       debugLog("hlsjs.fatal_error", Object.assign({
-        url: sourceUrl,
+        url: normalizedUrl,
         index: activeCandidateIndex,
-        urlCheck: inspectStreamUrl(sourceUrl),
+        urlCheck: inspectStreamUrl(normalizedUrl),
+        hlsUaAttempts,
       }, summarizeHlsNetworkError(data)));
+
+      const isManifestNetworkError = String(data.type || "").toLowerCase() === "networkerror" &&
+        String(data.details || "").toLowerCase().indexOf("manifest") >= 0;
+
+      if (!settled && isManifestNetworkError && hlsUaAttempts < IPTV_USER_AGENTS.length - 1) {
+        hlsUaAttempts += 1;
+        rotateIptvUserAgent("hlsjs_manifest_retry");
+        try {
+          hlsInstance.loadSource(normalizedUrl);
+        } catch (_e) {
+          failPreload(data.details || "hlsjs fatal");
+        }
+        return;
+      }
+
       if (!settled) {
         failPreload(data.details || "hlsjs fatal");
         return;
@@ -1067,20 +1174,33 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
       onCustomPlayerFatalError("hlsjs", data.details || "fatal");
     });
 
-    const normalizedUrl = normalizeCandidateUrl(sourceUrl);
-    void probeStreamUrl(normalizedUrl).then((probe) => {
-      debugLog("hlsjs.probe", { url: normalizedUrl, index: activeCandidateIndex, probe });
-    });
-
-    debugLog("hlsjs.start", {
-      url: normalizedUrl,
-      index: activeCandidateIndex,
-      headers: Object.keys(buildIptvRequestHeaders(normalizedUrl)),
-      urlCheck: inspectStreamUrl(normalizedUrl),
-    });
     armStallWatchdog("hlsjs.start");
     hlsInstance.attachMedia(castVideoEl);
-    hlsInstance.loadSource(normalizedUrl);
+
+    probeStreamUrl(normalizedUrl).then((probe) => {
+      debugLog("hlsjs.probe", { url: normalizedUrl, index: activeCandidateIndex, probe });
+      if (settled) return;
+      if (Number.isInteger(probe.uaIndex)) {
+        activeIptvUaIndex = probe.uaIndex;
+      }
+      debugLog("hlsjs.start", {
+        url: normalizedUrl,
+        index: activeCandidateIndex,
+        headers: Object.keys(buildIptvRequestHeaders(normalizedUrl)),
+        urlCheck: inspectStreamUrl(normalizedUrl),
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+        probePlaylist: !!probe.isPlaylist,
+      });
+      hlsInstance.loadSource(normalizedUrl);
+    }).catch((probeErr) => {
+      debugLog("hlsjs.probe.error", {
+        url: normalizedUrl,
+        message: probeErr && probeErr.message ? probeErr.message : "unknown",
+      });
+      if (!settled) {
+        hlsInstance.loadSource(normalizedUrl);
+      }
+    });
   });
 }
 
@@ -1100,6 +1220,7 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
     }
 
     let settled = false;
+    let mpegtsUaAttempts = 0;
 
     function settle(load) {
       if (settled) return;
@@ -1114,37 +1235,58 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       settled = true;
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
-      debugLog("mpegts.preload_failed", { url: sourceUrl, reason, index: activeCandidateIndex });
+      debugLog("mpegts.preload_failed", { url: sourceUrl, reason, index: activeCandidateIndex, mpegtsUaAttempts });
       reject(new Error(reason || "mpegts preload failed"));
     }
 
-    const playbackUrl = normalizeCandidateUrl(sourceUrl);
-    const headers = buildIptvRequestHeaders(playbackUrl);
+    function attachMpegtsPlayer(playbackUrl) {
+      const headers = buildIptvRequestHeaders(playbackUrl);
+      destroyMpegts();
+      mpegtsInstance = mpegts.createPlayer({
+        type: "mpegts",
+        isLive: true,
+        url: playbackUrl,
+        headers: headers,
+        hasAudio: true,
+        hasVideo: true,
+      }, buildMpegtsPlayerConfig());
 
-    mpegtsInstance = mpegts.createPlayer({
-      type: "mpegts",
-      isLive: true,
-      url: playbackUrl,
-      headers: headers,
-    }, {
-      enableWorker: false,
-      lazyLoad: false,
-      liveBufferLatencyChasing: true,
-    });
-
-    mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
-      debugLog("mpegts.error", {
-        errorType,
-        errorDetail,
-        url: sourceUrl,
-        index: activeCandidateIndex,
+      mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
+        debugLog("mpegts.error", {
+          errorType,
+          errorDetail,
+          url: playbackUrl,
+          index: activeCandidateIndex,
+          mpegtsUaAttempts,
+        });
+        const invalidStatus = String(errorDetail || "").indexOf("HttpStatusCodeInvalid") >= 0;
+        if (!settled && invalidStatus && mpegtsUaAttempts < IPTV_USER_AGENTS.length - 1) {
+          mpegtsUaAttempts += 1;
+          rotateIptvUserAgent("mpegts_status_retry");
+          try {
+            attachMpegtsPlayer(playbackUrl);
+            mpegtsInstance.attachMediaElement(castVideoEl);
+            mpegtsInstance.load();
+            const playResult = mpegtsInstance.play();
+            if (playResult && typeof playResult.catch === "function") {
+              playResult.catch((playErr) => {
+                failPreload(playErr && playErr.message ? playErr.message : "mpegts play failed");
+              });
+            }
+          } catch (retryErr) {
+            failPreload(retryErr && retryErr.message ? retryErr.message : "mpegts retry failed");
+          }
+          return;
+        }
+        if (!settled) {
+          failPreload(String(errorDetail || errorType || "mpegts fatal"));
+          return;
+        }
+        onCustomPlayerFatalError("mpegts", String(errorDetail || errorType || "fatal"));
       });
-      if (!settled) {
-        failPreload(String(errorDetail || errorType || "mpegts fatal"));
-        return;
-      }
-      onCustomPlayerFatalError("mpegts", String(errorDetail || errorType || "fatal"));
-    });
+    }
+
+    const playbackUrl = normalizeCandidateUrl(sourceUrl);
 
     const onPlaying = () => {
       if (settled) return;
@@ -1164,11 +1306,13 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
     }
 
     try {
+      attachMpegtsPlayer(playbackUrl);
       debugLog("mpegts.start", {
         url: playbackUrl,
         index: activeCandidateIndex,
-        headers: Object.keys(headers),
+        headers: Object.keys(buildIptvRequestHeaders(playbackUrl)),
         urlCheck: inspectStreamUrl(playbackUrl),
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
       });
       armStallWatchdog("mpegts.start");
       mpegtsInstance.attachMediaElement(castVideoEl);
@@ -1299,6 +1443,7 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
   }
 
   activeCandidateIndex += 1;
+  rotateIptvUserAgent("candidate_retry");
   const nextUrl = activeCandidates[activeCandidateIndex];
   const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl, activeCandidateIndex);
   setStatus(`Retrying candidate ${activeCandidateIndex + 1}/${activeCandidates.length}`);
@@ -1376,10 +1521,9 @@ function initBrowserPlayback() {
         isLive: true,
         url: candidateUrl,
         headers: headers,
-      }, {
-        enableWorker: false,
-        lazyLoad: false,
-      });
+        hasAudio: true,
+        hasVideo: true,
+      }, buildMpegtsPlayerConfig());
 
       mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
         debugLog("browser.mpegts.error", { errorType, errorDetail, url: candidateUrl });
@@ -1519,6 +1663,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     applyDebugConfigFromContract(activeContract);
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
+    activeIptvUaIndex = pickInitialUaIndex(baseUrl);
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
       isRetry: !!customData._retryBaseUrl,
@@ -1526,6 +1671,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       schemaVersion: activeContract.schemaVersion,
       channelName: activeContract.channelName,
       urlCheck: inspectStreamUrl(baseUrl),
+      activeIptvUaIndex,
+      userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
     });
 
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData);
