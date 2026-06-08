@@ -18,6 +18,10 @@ let debugEnabled = DEBUG_QUERY_FLAG;
 let debugSequence = 0;
 const debugHistory = [];
 const DEBUG_HISTORY_LIMIT = 200;
+const DEFAULT_DEBUG_ENABLED = true;
+
+// Keep debug on by default so receiver issues are visible without inspect tooling.
+debugEnabled = DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG;
 
 let activeCandidates = [];
 let activeCandidateIndex = 0;
@@ -97,9 +101,12 @@ function normalizeContract(customData) {
 
 function applyDebugConfigFromContract(contract) {
   const cfg = asObject(contract && contract.debug);
+  const explicitDisable = cfg.enabled === false || String(cfg.level || "").toLowerCase() === "off";
   const verbose = cfg.verbose === true || String(cfg.level || "").toLowerCase() === "verbose";
-  debugEnabled = DEBUG_QUERY_FLAG || verbose;
+  debugEnabled = explicitDisable ? false : (DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG || verbose);
   debugLog("debug.config", {
+    defaultEnabled: DEFAULT_DEBUG_ENABLED,
+    explicitDisable,
     fromQuery: DEBUG_QUERY_FLAG,
     fromContractVerbose: verbose,
     enabled: debugEnabled,

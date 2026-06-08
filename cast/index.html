@@ -118,9 +118,7 @@
     const debugLogsContainer = document.getElementById('debugLogs');
     const debugHeader = document.getElementById('debugHeader');
 
-    const query = new URLSearchParams(window.location.search || "");
-    const debugQuery = "1";//String(query.get("debug") || "").toLowerCase();
-    let debugPanelVisible = debugQuery === "1" || debugQuery === "true" || debugQuery === "yes" || debugQuery === "verbose";
+    let debugPanelVisible = true;
 
     function createEntryNode(entry) {
       const row = document.createElement("div");
