@@ -367,6 +367,29 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
   }
 }
 
+function getReceiverErrorHint(detailCode, reason) {
+  const code = Number(detailCode) || 0;
+  const normalizedReason = String(reason || "").toLowerCase();
+
+  if (code === 104) {
+    return "104: receiver could not load/open stream (check token, URL reachability, and server response)";
+  }
+
+  if (code === 905) {
+    return "905: media pipeline failed (often TS/codec/container not playable by Cast)";
+  }
+
+  if (normalizedReason.includes("demux") || normalizedReason.includes("parse")) {
+    return "Demux/parse failure: try m3u8 variant or different codec/container";
+  }
+
+  if (normalizedReason.includes("http") || normalizedReason.includes("network") || normalizedReason.includes("cannot") || normalizedReason.includes("open")) {
+    return "Network/open failure: check auth headers, token expiry, and proxy/CORS behavior";
+  }
+
+  return "Playback failure: try fallback candidate and verify stream format compatibility";
+}
+
 function prepareLoadForCandidate(loadRequestData, candidateUrl) {
   const cloned = Object.assign({}, loadRequestData);
   cloned.media = Object.assign({}, loadRequestData.media);
@@ -456,15 +479,19 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
 safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   clearStallWatchdog();
+  const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
+  const reason = event && event.reason ? event.reason : "";
+  const hint = getReceiverErrorHint(detailCode, reason);
   const errorDetail = {
     type: event && event.type ? event.type : "",
-    detailedErrorCode: event && event.detailedErrorCode ? event.detailedErrorCode : "",
-    reason: event && event.reason ? event.reason : "",
+    detailedErrorCode: detailCode,
+    reason,
+    hint,
     currentIndex: activeCandidateIndex,
     candidateCount: activeCandidates.length,
     currentUrl: activeCandidates[activeCandidateIndex] || "unknown",
   };
-  setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): ${errorDetail.reason || errorDetail.detailedErrorCode}`);
+  setStatus(`Error (${activeCandidateIndex + 1}/${activeCandidates.length}): ${errorDetail.reason || errorDetail.detailedErrorCode} | ${hint}`);
   debugLog("player.error", errorDetail);
   void tryLoadNextCandidateOnReceiverError();
 }, "ERROR");
