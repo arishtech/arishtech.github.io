@@ -89,6 +89,20 @@ let activeCustomPlayerUrl = "";
 let hlsJsFallbackUsedForIndex = -1;
 let pendingCustomPlayerBoot = null;
 let candidateAdvanceInFlight = false;
+let candidatesExhausted = false;
+
+window.addEventListener("unhandledrejection", (ev) => {
+  const reason = ev && ev.reason;
+  const message = reason && reason.message ? reason.message : String(reason || "unknown");
+  if (typeof debugLog === "function") {
+    debugLog("receiver.unhandledrejection", { reason: message });
+  }
+  if (message === "HttpStatusCodeInvalid" || message.includes("HttpStatusCodeInvalid")) {
+    if (ev && typeof ev.preventDefault === "function") {
+      ev.preventDefault();
+    }
+  }
+});
 
 let activeContract = {
   schemaVersion: 1,
@@ -717,24 +731,133 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
   }
 }
 
+function createIptvHlsLoaderClass() {
+  if (typeof Hls === "undefined" || !Hls.DefaultConfig || !Hls.DefaultConfig.loader) {
+    return null;
+  }
+  const DefaultLoader = Hls.DefaultConfig.loader;
+
+  return class IptvHlsLoader extends DefaultLoader {
+    load(context, config, callbacks) {
+      const xhr = new XMLHttpRequest();
+      const url = context.url;
+      const responseType = context.responseType;
+
+      xhr.open("GET", url, true);
+      xhr.timeout = config.timeout || 12000;
+      if (responseType) {
+        xhr.responseType = responseType;
+      }
+
+      const headers = buildIptvRequestHeaders(url);
+      Object.keys(headers).forEach((name) => {
+        try {
+          xhr.setRequestHeader(name, headers[name]);
+        } catch (_e) {}
+      });
+
+      xhr.onload = function () {
+        const status = xhr.status;
+        const data = responseType === "arraybuffer" ? xhr.response : xhr.responseText;
+        const hasBody = responseType === "arraybuffer"
+          ? data && data.byteLength > 0
+          : typeof data === "string" && data.length > 0;
+
+        if (hasBody || (status >= 200 && status < 300)) {
+          callbacks.onSuccess(
+            { url, data: data || "" },
+            { code: status || 200, text: xhr.statusText || "" },
+            context,
+            xhr
+          );
+          return;
+        }
+
+        callbacks.onError(
+          { code: status, text: xhr.statusText || "iptv http error" },
+          context,
+          xhr,
+          null
+        );
+      };
+
+      xhr.onerror = function () {
+        callbacks.onError(
+          { code: xhr.status || 0, text: "network error" },
+          context,
+          xhr,
+          null
+        );
+      };
+
+      xhr.ontimeout = function () {
+        callbacks.onTimeout(
+          { code: xhr.status || 0, text: "timeout" },
+          context,
+          xhr
+        );
+      };
+
+      xhr.send();
+    }
+  };
+}
+
+function probeStreamUrl(url) {
+  return new Promise((resolve) => {
+    const xhr = new XMLHttpRequest();
+    const target = normalizeCandidateUrl(url);
+    xhr.open("GET", target, true);
+    xhr.timeout = 8000;
+    const headers = buildIptvRequestHeaders(target);
+    Object.keys(headers).forEach((name) => {
+      try {
+        xhr.setRequestHeader(name, headers[name]);
+      } catch (_e) {}
+    });
+    xhr.onload = function () {
+      const text = String(xhr.responseText || "");
+      resolve({
+        status: xhr.status,
+        isPlaylist: text.indexOf("#EXTM3U") >= 0,
+        head: text.slice(0, 160),
+      });
+    };
+    xhr.onerror = function () {
+      resolve({ status: xhr.status || 0, error: "network" });
+    };
+    xhr.ontimeout = function () {
+      resolve({ status: 0, error: "timeout" });
+    };
+    xhr.send();
+  });
+}
+
 function buildHlsConfig() {
-  return {
+  const LoaderClass = createIptvHlsLoaderClass();
+  const config = {
     enableWorker: false,
     lowLatencyMode: false,
     manifestLoadingTimeOut: 12000,
     manifestLoadingMaxRetry: 2,
     fragLoadingTimeOut: 12000,
     fragLoadingMaxRetry: 2,
-    xhrSetup: (xhr, requestUrl) => {
-      const info = { url: requestUrl, headers: {} };
-      applyNetworkPolicy(info, classifyHlsRequestType(requestUrl));
-      Object.keys(info.headers || {}).forEach((name) => {
-        try {
-          xhr.setRequestHeader(name, info.headers[name]);
-        } catch (_e) {}
-      });
-    },
   };
+  if (LoaderClass) {
+    config.loader = LoaderClass;
+  }
+  return config;
+}
+
+function markCandidatesExhausted(reason) {
+  if (candidatesExhausted) return;
+  candidatesExhausted = true;
+  setStatus("All receiver fallback candidates exhausted");
+  debugLog("candidate.exhausted", {
+    reason,
+    activeCandidateIndex,
+    candidateCount: activeCandidates.length,
+  });
 }
 
 function getReceiverErrorHint(detailCode, reason) {
@@ -809,17 +932,12 @@ function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
 }
 
 async function advanceCandidateAfterCustomFailure(reason) {
-  if (candidateAdvanceInFlight) return false;
+  if (candidateAdvanceInFlight || candidatesExhausted) return false;
   candidateAdvanceInFlight = true;
   pendingCustomPlayerBoot = null;
   try {
     if (activeCandidateIndex >= activeCandidates.length - 1) {
-      setStatus("All receiver fallback candidates exhausted");
-      debugLog("candidate.exhausted", {
-        reason,
-        activeCandidateIndex,
-        candidateCount: activeCandidates.length,
-      });
+      markCandidatesExhausted(reason);
       return false;
     }
     await tryLoadNextCandidateOnReceiverError(reason);
@@ -827,6 +945,16 @@ async function advanceCandidateAfterCustomFailure(reason) {
   } finally {
     candidateAdvanceInFlight = false;
   }
+}
+
+async function handleCustomInterceptorFailure(strategy, err, selectedLoad, selectedUrl) {
+  debugLog(strategy + ".interceptor_failed", {
+    message: err && err.message ? err.message : "unknown",
+    url: selectedUrl,
+    index: activeCandidateIndex,
+  });
+  await advanceCandidateAfterCustomFailure(strategy + "_interceptor_failed");
+  return selectedLoad;
 }
 
 function onCustomPlayerFatalError(playerType, details) {
@@ -939,15 +1067,20 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
       onCustomPlayerFatalError("hlsjs", data.details || "fatal");
     });
 
+    const normalizedUrl = normalizeCandidateUrl(sourceUrl);
+    void probeStreamUrl(normalizedUrl).then((probe) => {
+      debugLog("hlsjs.probe", { url: normalizedUrl, index: activeCandidateIndex, probe });
+    });
+
     debugLog("hlsjs.start", {
-      url: sourceUrl,
+      url: normalizedUrl,
       index: activeCandidateIndex,
-      headers: Object.keys(buildIptvRequestHeaders(sourceUrl)),
-      urlCheck: inspectStreamUrl(sourceUrl),
+      headers: Object.keys(buildIptvRequestHeaders(normalizedUrl)),
+      urlCheck: inspectStreamUrl(normalizedUrl),
     });
     armStallWatchdog("hlsjs.start");
     hlsInstance.attachMedia(castVideoEl);
-    hlsInstance.loadSource(normalizeCandidateUrl(sourceUrl));
+    hlsInstance.loadSource(normalizedUrl);
   });
 }
 
@@ -1040,7 +1173,12 @@ function startMpegtsPlayback(sourceUrl, selectedLoad) {
       armStallWatchdog("mpegts.start");
       mpegtsInstance.attachMediaElement(castVideoEl);
       mpegtsInstance.load();
-      mpegtsInstance.play();
+      const playResult = mpegtsInstance.play();
+      if (playResult && typeof playResult.catch === "function") {
+        playResult.catch((playErr) => {
+          failPreload(playErr && playErr.message ? playErr.message : "mpegts play failed");
+        });
+      }
     } catch (e) {
       debugLog("mpegts.attach_error", {
         message: e && e.message ? e.message : "unknown",
@@ -1154,14 +1292,9 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
   destroyMpegts();
   clearCustomPlayer();
 
-  if (!lastLoadTemplate) return;
+  if (!lastLoadTemplate || candidatesExhausted) return;
   if (activeCandidateIndex >= activeCandidates.length - 1) {
-    setStatus("All receiver fallback candidates exhausted");
-    debugLog("candidate.exhausted", {
-      reason,
-      activeCandidateIndex,
-      candidateCount: activeCandidates.length,
-    });
+    markCandidatesExhausted(reason);
     return;
   }
 
@@ -1182,10 +1315,16 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
     armStallWatchdog("candidate.retry");
     await playerManager.load(nextLoad);
   } catch (e) {
-    setStatus(`Receiver retry failed: ${e && e.message ? e.message : "unknown"}`);
+    const message = e && e.message ? e.message : String(e || "unknown");
+    setStatus(`Receiver retry failed: ${message}`);
     debugLog("candidate.retry.error", {
-      message: e && e.message ? e.message : "unknown",
+      message,
+      nextIndex: activeCandidateIndex,
+      nextUrl: activeCandidates[activeCandidateIndex] || "",
     });
+    if (activeCandidateIndex >= activeCandidates.length - 1) {
+      markCandidatesExhausted("candidate_retry_failed");
+    }
   }
 }
 
@@ -1379,6 +1518,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     activeContract = normalizeContract(customData);
     applyDebugConfigFromContract(activeContract);
     hlsJsFallbackUsedForIndex = -1;
+    candidatesExhausted = false;
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
       isRetry: !!customData._retryBaseUrl,
@@ -1424,27 +1564,15 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     });
 
     if (strategy === "mpegts") {
-      return startMpegtsPlayback(selectedUrl, selectedLoad).catch(async (err) => {
-        debugLog("mpegts.interceptor_failed", {
-          message: err && err.message ? err.message : "unknown",
-          url: selectedUrl,
-          index: activeCandidateIndex,
-        });
-        await advanceCandidateAfterCustomFailure("mpegts_interceptor_failed");
-        throw err;
-      });
+      return startMpegtsPlayback(selectedUrl, selectedLoad).catch((err) => (
+        handleCustomInterceptorFailure("mpegts", err, selectedLoad, selectedUrl)
+      ));
     }
 
     if (strategy === "hlsjs") {
-      return startHlsJsPlayback(selectedUrl, selectedLoad).catch(async (err) => {
-        debugLog("hlsjs.interceptor_failed", {
-          message: err && err.message ? err.message : "unknown",
-          url: selectedUrl,
-          index: activeCandidateIndex,
-        });
-        await advanceCandidateAfterCustomFailure("hlsjs_interceptor_failed");
-        throw err;
-      });
+      return startHlsJsPlayback(selectedUrl, selectedLoad).catch((err) => (
+        handleCustomInterceptorFailure("hlsjs", err, selectedLoad, selectedUrl)
+      ));
     }
 
     if (strategy === "dashjs") {
@@ -1484,6 +1612,14 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
   const errorCode = Number(detailCode) || 0;
 
+  if (candidatesExhausted) {
+    debugLog("player.error.suppressed_exhausted", {
+      detailedErrorCode: detailCode,
+      reason: event && event.reason ? event.reason : "",
+    });
+    return;
+  }
+
   if (candidateAdvanceInFlight) {
     debugLog("player.error.suppressed_advance", {
       detailedErrorCode: detailCode,
@@ -1492,7 +1628,8 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     return;
   }
 
-  if (pendingCustomPlayerBoot && (errorCode === 905 || errorCode === 104 || errorCode === 301)) {
+  if ((pendingCustomPlayerBoot || getPlaybackStrategy(activeCandidates[activeCandidateIndex] || "") === "mpegts") &&
+      (errorCode === 905 || errorCode === 104 || errorCode === 301)) {
     debugLog("player.error.suppressed_boot", {
       pendingCustomPlayerBoot,
       detailedErrorCode: detailCode,

@@ -53,6 +53,25 @@
       color: #4CAF50;
       cursor: pointer;
       user-select: none;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+    #debugAutoScrollBtn {
+      background: #333;
+      color: #4CAF50;
+      border: 1px solid #4CAF50;
+      padding: 4px 8px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 10px;
+      font-weight: bold;
+      flex-shrink: 0;
+    }
+    #debugAutoScrollBtn.active {
+      background: #4CAF50;
+      color: #000;
     }
     #debugLogs {
       flex: 1;
@@ -141,7 +160,10 @@
   <!-- Debug Panel -->
   <button id="debugToggle">DEBUG: OFF</button>
   <div id="debugPanel" class="hidden">
-    <div id="debugHeader">PreetTV Debug Logs (Click to collapse)</div>
+    <div id="debugHeader">
+      <span id="debugHeaderTitle">PreetTV Debug Logs (Click to collapse)</span>
+      <button id="debugAutoScrollBtn" type="button" class="active" title="Toggle auto-scroll">Auto-scroll: ON</button>
+    </div>
     <div id="debugLogs"></div>
   </div>
 
@@ -177,8 +199,12 @@
     const debugToggle = document.getElementById('debugToggle');
     const debugLogsContainer = document.getElementById('debugLogs');
     const debugHeader = document.getElementById('debugHeader');
+    const debugHeaderTitle = document.getElementById('debugHeaderTitle');
+    const debugAutoScrollBtn = document.getElementById('debugAutoScrollBtn');
 
     let debugPanelVisible = true;
+    let debugAutoScroll = true;
+    let lastRenderedSeq = 0;
 
     function createEntryNode(entry) {
       const row = document.createElement("div");
@@ -210,20 +236,45 @@
       return row;
     }
 
+    function trimDebugDom() {
+      const maxNodes = 200;
+      while (debugLogsContainer.children.length > maxNodes) {
+        debugLogsContainer.removeChild(debugLogsContainer.firstChild);
+      }
+    }
+
     function updateDebugDisplay() {
       const history = window.__preettvDebug || [];
-      const lastEntries = history.slice(-20); // Show last 20 entries
+      const newEntries = history.filter((entry) => Number(entry.seq || 0) > lastRenderedSeq);
+
+      if (newEntries.length === 0) {
+        debugHeaderTitle.textContent = `PreetTV Debug Logs (${history.length})`;
+        return;
+      }
 
       const frag = document.createDocumentFragment();
-      for (const entry of lastEntries) {
+      for (const entry of newEntries) {
         frag.appendChild(createEntryNode(entry));
       }
-      debugLogsContainer.innerHTML = "";
       debugLogsContainer.appendChild(frag);
+      trimDebugDom();
+      lastRenderedSeq = Number(history[history.length - 1].seq || lastRenderedSeq);
 
-      // Auto-scroll to bottom
-      debugLogsContainer.scrollTop = debugLogsContainer.scrollHeight;
-      debugHeader.textContent = `PreetTV Debug Logs (${history.length})`;
+      if (debugAutoScroll) {
+        debugLogsContainer.scrollTop = debugLogsContainer.scrollHeight;
+      }
+      debugHeaderTitle.textContent = `PreetTV Debug Logs (${history.length})`;
+    }
+
+    function setDebugAutoScroll(enabled) {
+      debugAutoScroll = !!enabled;
+      if (debugAutoScrollBtn) {
+        debugAutoScrollBtn.textContent = debugAutoScroll ? 'Auto-scroll: ON' : 'Auto-scroll: OFF';
+        debugAutoScrollBtn.classList.toggle('active', debugAutoScroll);
+      }
+      if (debugAutoScroll) {
+        debugLogsContainer.scrollTop = debugLogsContainer.scrollHeight;
+      }
     }
 
     function toggleDebugPanel() {
@@ -241,7 +292,22 @@
     }
 
     debugToggle.addEventListener('click', toggleDebugPanel);
-    debugHeader.addEventListener('click', toggleDebugPanel);
+    debugHeader.addEventListener('click', (ev) => {
+      if (ev.target === debugAutoScrollBtn) return;
+      toggleDebugPanel();
+    });
+    if (debugAutoScrollBtn) {
+      debugAutoScrollBtn.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        setDebugAutoScroll(!debugAutoScroll);
+      });
+    }
+    debugLogsContainer.addEventListener('scroll', () => {
+      const nearBottom = debugLogsContainer.scrollHeight - debugLogsContainer.scrollTop - debugLogsContainer.clientHeight < 48;
+      if (!nearBottom && debugAutoScroll) {
+        setDebugAutoScroll(false);
+      }
+    });
 
     function pushUiErrorLog(event, payload) {
       const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
@@ -279,12 +345,12 @@
       updateDebugDisplay();
     }
 
-    // Update debug display every 500ms when visible
+    // Append new log lines without resetting scroll position.
     setInterval(() => {
       if (debugPanelVisible) {
         updateDebugDisplay();
       }
-    }, 500);
+    }, 700);
 
     // Browser-mode controls — always define in global scope so onclick works.
     function bcLoad() {
