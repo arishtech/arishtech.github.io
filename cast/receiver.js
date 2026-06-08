@@ -147,7 +147,8 @@ function streamHostsMatch(requestUrl, candidateUrl) {
 function installIptvNetworkShim(requestUrl) {
   removeIptvNetworkShim();
   const target = normalizeCandidateUrl(requestUrl);
-  const headers = buildIptvRequestHeaders(target);
+  const headerPack = buildFetchRequestHeaders(target);
+  const headers = headerPack.headers;
   const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
   const OriginalXHR = window.XMLHttpRequest;
 
@@ -159,7 +160,10 @@ function installIptvNetworkShim(requestUrl) {
     window.fetch = function patchedFetch(input, init) {
       const url = typeof input === "string" ? input : (input && input.url ? input.url : "");
       if (shouldShim(url)) {
-        const mergedInit = Object.assign({}, init || {});
+        const mergedInit = Object.assign({}, init || {}, {
+          mode: "cors",
+          credentials: "omit",
+        });
         mergedInit.headers = Object.assign({}, headers, asObject(mergedInit.headers));
         return originalFetch(input, mergedInit);
       }
@@ -459,22 +463,135 @@ function probeIndicates458Block(attempts) {
   return list.every((item) => Number(item.status) === 458 && !item.hasBody && !item.playlist);
 }
 
-function buildIptvRequestHeaders(requestUrl, uaIndex) {
+const BROWSER_FORBIDDEN_REQUEST_HEADERS = new Set([
+  "accept-charset",
+  "accept-encoding",
+  "access-control-request-headers",
+  "access-control-request-method",
+  "connection",
+  "content-length",
+  "cookie",
+  "cookie2",
+  "date",
+  "dnt",
+  "expect",
+  "host",
+  "keep-alive",
+  "origin",
+  "referer",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "user-agent",
+  "via",
+]);
+
+function isForbiddenBrowserRequestHeader(name) {
+  return BROWSER_FORBIDDEN_REQUEST_HEADERS.has(String(name || "").toLowerCase());
+}
+
+function partitionIptvHeaders(headers) {
+  const all = asObject(headers);
+  const fetchSafe = {};
+  const fetchBlocked = {};
+  Object.keys(all).forEach((name) => {
+    if (isForbiddenBrowserRequestHeader(name)) {
+      fetchBlocked[name] = all[name];
+    } else {
+      fetchSafe[name] = all[name];
+    }
+  });
+  return { caf: Object.assign({}, all), fetchSafe, fetchBlocked };
+}
+
+function classifyFetchError(error) {
+  const message = String((error && error.message) || error || "");
+  const lower = message.toLowerCase();
+  if (
+    lower.indexOf("failed to fetch") >= 0 ||
+    lower.indexOf("networkerror") >= 0 ||
+    lower.indexOf("network error") >= 0 ||
+    lower.indexOf("load failed") >= 0 ||
+    lower.indexOf("cors") >= 0
+  ) {
+    return { kind: "cors_or_network", message };
+  }
+  return { kind: "unknown", message };
+}
+
+function readCorsResponseHeaders(response) {
+  if (!response || typeof response.headers !== "object" || !response.headers.get) {
+    return {};
+  }
+  return {
+    allowOrigin: response.headers.get("access-control-allow-origin") || "",
+    allowHeaders: response.headers.get("access-control-allow-headers") || "",
+    allowMethods: response.headers.get("access-control-allow-methods") || "",
+    exposeHeaders: response.headers.get("access-control-expose-headers") || "",
+  };
+}
+
+function auditNetworkEnvironment(requestUrl) {
+  const target = normalizeCandidateUrl(requestUrl);
+  let streamOrigin = "";
+  try {
+    streamOrigin = new URL(target).origin;
+  } catch (_e) {}
+  const receiverOrigin = (() => {
+    try {
+      return window.location.origin;
+    } catch (_e) {
+      return "";
+    }
+  })();
+  const fullHeaders = buildCafRequestHeaders(target);
+  const parts = partitionIptvHeaders(fullHeaders);
+  return {
+    receiverOrigin,
+    streamOrigin,
+    crossOrigin: !!(streamOrigin && receiverOrigin && streamOrigin !== receiverOrigin),
+    fetchMode: "cors",
+    credentials: "omit",
+    cafCanSetUserAgent: true,
+    fetchBlockedHeaders: parts.fetchBlocked,
+    fetchAllowedHeaders: parts.fetchSafe,
+    note: "User-Agent/Referer/Origin apply on CAF native requests only; browser fetch/XHR cannot set them.",
+  };
+}
+
+function buildCafRequestHeaders(requestUrl, uaIndex) {
   const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
   const chosenUa = IPTV_USER_AGENTS[
     Number.isInteger(uaIndex) ? uaIndex : activeIptvUaIndex
   ] || DEFAULT_IPTV_USER_AGENT;
   info.headers["User-Agent"] = chosenUa;
+  info.headers.Accept = "*/*";
   mergeRequestHeaders(info);
   try {
-    const origin = new URL(info.url);
-    const referer = `${origin.protocol}//${origin.host}/`;
+    const streamOrigin = new URL(info.url);
+    const referer = `${streamOrigin.protocol}//${streamOrigin.host}/`;
     if (!Object.keys(info.headers).some((name) => name.toLowerCase() === "referer")) {
       info.headers.Referer = referer;
     }
-    info.headers.Origin = `${origin.protocol}//${origin.host}`;
   } catch (_e) {}
   return info.headers;
+}
+
+function buildFetchRequestHeaders(requestUrl, uaIndex) {
+  const cafHeaders = buildCafRequestHeaders(requestUrl, uaIndex);
+  const parts = partitionIptvHeaders(cafHeaders);
+  if (!parts.fetchSafe.Accept) {
+    parts.fetchSafe.Accept = "*/*";
+  }
+  return {
+    headers: parts.fetchSafe,
+    blocked: parts.fetchBlocked,
+  };
+}
+
+function buildIptvRequestHeaders(requestUrl, uaIndex) {
+  return buildCafRequestHeaders(requestUrl, uaIndex);
 }
 
 function hasBinaryBody(data) {
@@ -506,21 +623,32 @@ function iptvHttpGet(url, options) {
   }
 
   function tryUa(uaIndex) {
-    const headers = buildIptvRequestHeaders(target, uaIndex);
+    const headerPack = buildFetchRequestHeaders(target, uaIndex);
+    const headers = headerPack.headers;
     const fetchUrl = resolveFetchUrl(target, options && options.requestType ? options.requestType : "manifest");
     if (typeof fetch !== "function") {
       return Promise.resolve({ ok: false, attempts: [{ uaIndex, error: "fetch_unavailable" }] });
     }
-    return fetch(fetchUrl, { method: "GET", headers, cache: "no-store" })
+    return fetch(fetchUrl, {
+      method: "GET",
+      mode: "cors",
+      credentials: "omit",
+      headers,
+      cache: "no-store",
+    })
       .then((response) => {
         const status = response.status;
+        const cors = readCorsResponseHeaders(response);
         if (probeOnly) {
           const attempt = {
             uaIndex,
             status,
             hasBody: false,
             playlist: false,
-            userAgent: headers["User-Agent"],
+            intendedUserAgent: IPTV_USER_AGENTS[uaIndex] || DEFAULT_IPTV_USER_AGENT,
+            fetchHeadersSent: Object.keys(headers),
+            fetchHeadersBlocked: Object.keys(headerPack.blocked),
+            cors,
             proxied: fetchUrl !== target,
             fetchUrl,
           };
@@ -558,7 +686,10 @@ function iptvHttpGet(url, options) {
             status,
             hasBody,
             playlist,
-            userAgent: headers["User-Agent"],
+            intendedUserAgent: IPTV_USER_AGENTS[uaIndex] || DEFAULT_IPTV_USER_AGENT,
+            fetchHeadersSent: Object.keys(headers),
+            fetchHeadersBlocked: Object.keys(headerPack.blocked),
+            cors,
             proxied: fetchUrl !== target,
             fetchUrl,
           };
@@ -571,10 +702,14 @@ function iptvHttpGet(url, options) {
         });
       })
       .catch((error) => {
+        const classified = classifyFetchError(error);
         attempts.push({
           uaIndex,
-          error: error && error.message ? error.message : "fetch_error",
-          userAgent: headers["User-Agent"],
+          error: classified.message,
+          errorKind: classified.kind,
+          intendedUserAgent: IPTV_USER_AGENTS[uaIndex] || DEFAULT_IPTV_USER_AGENT,
+          fetchHeadersSent: Object.keys(headers),
+          fetchHeadersBlocked: Object.keys(headerPack.blocked),
         });
         return null;
       });
@@ -1146,19 +1281,29 @@ function createIptvHlsLoaderClass() {
 
 function probeBinaryStreamUrl(url) {
   const target = normalizeCandidateUrl(url);
+  const networkAudit = auditNetworkEnvironment(target);
   return iptvHttpGet(target, {
     responseType: "arraybuffer",
     requestType: "segment",
     probeOnly: true,
-  }).then((result) => ({
-    ok: !!result.ok,
-    status: result.ok ? result.status : 0,
-    hasBinary: !!(result.ok && result.hasBody),
-    uaIndex: result.uaIndex,
-    attempts: result.attempts || [],
-    urlCheck: inspectStreamUrl(target),
-    proxied: isProxyEnabled(),
-  }));
+  }).then((result) => {
+    const attempts = result.attempts || [];
+    const corsFailures = attempts.filter((item) => item.errorKind === "cors_or_network").length;
+    const out = {
+      ok: !!result.ok,
+      status: result.ok ? result.status : 0,
+      hasBinary: !!(result.ok && result.hasBody),
+      uaIndex: result.uaIndex,
+      attempts,
+      urlCheck: inspectStreamUrl(target),
+      proxied: isProxyEnabled(),
+      networkAudit,
+      corsFailures,
+      likelyCorsBlocked: !result.ok && corsFailures > 0 && corsFailures === attempts.length,
+    };
+    debugLog("network.cors_audit", out);
+    return out;
+  });
 }
 
 function probeStreamUrl(url) {
@@ -1266,7 +1411,7 @@ function getReceiverErrorHint(detailCode, reason) {
     return "Demux/parse failure: try m3u8 variant or different codec/container";
   }
   if (normalizedReason.includes("http") || normalizedReason.includes("network") || normalizedReason.includes("cannot") || normalizedReason.includes("open")) {
-    return "Network/open failure: check auth headers, token expiry, and proxy/CORS behavior";
+    return "Network/open failure: check token expiry, CORS (Access-Control-Allow-Origin), or CAF headers vs fetch limits";
   }
   return "Playback failure: try fallback candidate and verify stream format compatibility";
 }
@@ -2054,7 +2199,12 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       urlCheck: inspectStreamUrl(baseUrl),
       activeIptvUaIndex,
       userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+      networkAudit: auditNetworkEnvironment(baseUrl),
     });
+    if (playerManager && typeof playerManager.setPlaybackConfig === "function") {
+      playerManager.setPlaybackConfig(createPlaybackConfig());
+    }
+    ensureShakaRequestFilters();
 
     activeCandidates = buildCompatibilityCandidates(baseUrl, customData).map((candidate) => (
       normalizeCandidateUrl(candidate)
@@ -2236,6 +2386,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event)
 }, "REQUEST_LOAD");
 
 safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
+  ensureShakaRequestFilters();
   setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
   debugLog("player.loading", {
     eventType: event && event.type ? event.type : "",
@@ -2281,19 +2432,67 @@ safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_FINISHED, () =>
   clearCustomPlayer();
 }, "MEDIA_FINISHED");
 
-const playbackConfig = new cast.framework.PlaybackConfig();
-playbackConfig.manifestRequestHandler = (networkRequestInfo) => {
-  applyNetworkPolicy(networkRequestInfo, "manifest");
-};
-playbackConfig.segmentRequestHandler = (networkRequestInfo) => {
-  applyNetworkPolicy(networkRequestInfo, "segment");
-};
-playbackConfig.licenseRequestHandler = (networkRequestInfo) => {
-  applyNetworkPolicy(networkRequestInfo, "license");
-};
+let shakaFilterRegistered = false;
+
+function classifyCafShakaRequestType(type) {
+  if (type === 0) return "manifest";
+  if (type === 1) return "segment";
+  if (type === 2) return "license";
+  return "segment";
+}
+
+function ensureShakaRequestFilters() {
+  if (shakaFilterRegistered || !playerManager) return;
+  try {
+    const player = typeof playerManager.getPlayer === "function" ? playerManager.getPlayer() : null;
+    const engine = player && typeof player.getNetworkingEngine === "function"
+      ? player.getNetworkingEngine()
+      : null;
+    if (!engine || typeof engine.registerRequestFilter !== "function") return;
+    engine.registerRequestFilter((type, request) => {
+      if (!request) return;
+      const url = request.uris && request.uris[0] ? String(request.uris[0]) : "";
+      const info = {
+        url,
+        headers: Object.assign({}, asObject(request.headers)),
+      };
+      applyNetworkPolicy(info, classifyCafShakaRequestType(type));
+      request.headers = info.headers;
+      request.allowCrossSiteCredentials = false;
+    });
+    shakaFilterRegistered = true;
+    debugLog("network.shaka_filter.registered", {});
+  } catch (e) {
+    debugLog("network.shaka_filter.error", {
+      message: e && e.message ? e.message : "unknown",
+    });
+  }
+}
+
+function createPlaybackConfig() {
+  const playbackConfig = new cast.framework.PlaybackConfig();
+  playbackConfig.manifestRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "manifest");
+    debugLog("network.caf.manifest", {
+      url: String(networkRequestInfo.url || ""),
+      headers: summarizeHeaders(networkRequestInfo.headers),
+    });
+  };
+  playbackConfig.segmentRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "segment");
+    debugLog("network.caf.segment", {
+      url: String(networkRequestInfo.url || "").slice(0, 240),
+      headers: summarizeHeaders(networkRequestInfo.headers),
+    });
+  };
+  playbackConfig.licenseRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "license");
+  };
+  return playbackConfig;
+}
 
 context.start({
-  playbackConfig,
+  playbackConfig: createPlaybackConfig(),
 });
 
 setStatus("PreetTV Receiver started");
