@@ -89,6 +89,20 @@ const PLAYBACK_STALL_MS = 45000;
 let playbackKeepaliveTimer = null;
 let lastPlaybackProgressAt = 0;
 let hlsDriftTimer = null;
+let avSyncTimer = null;
+let avSyncLastVideoTime = -1;
+let avSyncLastWallMs = 0;
+let avSyncLastNudgeMs = 0;
+let avSyncNudgeCount = 0;
+let avSyncNudgeWindowStart = 0;
+let avSyncMpegtsSlowStreak = 0;
+const AV_SYNC_INTERVAL_MS = 3500;
+const AV_SYNC_WALL_STALL_MS = 6500;
+const AV_SYNC_TIME_TOLERANCE_S = 0.12;
+const AV_SYNC_HLS_LATENCY_MAX_S = 10;
+const AV_SYNC_NUDGE_COOLDOWN_MS = 5500;
+const AV_SYNC_MAX_NUDGES_PER_MIN = 5;
+const AV_SYNC_MPEGTS_MIN_SPEED = 0.72;
 let volumeBridgeInstalled = false;
 
 let hlsInstance = null;
@@ -860,6 +874,122 @@ function stopPlaybackKeepalive() {
     clearInterval(hlsDriftTimer);
     hlsDriftTimer = null;
   }
+  stopAvSyncWatchdog();
+}
+
+function stopAvSyncWatchdog() {
+  if (avSyncTimer) {
+    clearInterval(avSyncTimer);
+    avSyncTimer = null;
+  }
+  avSyncLastVideoTime = -1;
+  avSyncLastWallMs = 0;
+  avSyncMpegtsSlowStreak = 0;
+}
+
+function startAvSyncWatchdog() {
+  stopAvSyncWatchdog();
+  avSyncLastVideoTime = castVideoEl ? Number(castVideoEl.currentTime) || 0 : 0;
+  avSyncLastWallMs = Date.now();
+  avSyncTimer = setInterval(avSyncWatchdogTick, AV_SYNC_INTERVAL_MS);
+  debugLog("avsync.watchdog.started", {
+    activeCustomPlayer,
+    url: activeCustomPlayerUrl || activeCandidates[activeCandidateIndex] || "",
+  });
+}
+
+function attemptAvSyncResync(reason, detail) {
+  const now = Date.now();
+  if (now - avSyncLastNudgeMs < AV_SYNC_NUDGE_COOLDOWN_MS) return false;
+  if (!avSyncNudgeWindowStart || now - avSyncNudgeWindowStart > 60000) {
+    avSyncNudgeWindowStart = now;
+    avSyncNudgeCount = 0;
+  }
+  if (avSyncNudgeCount >= AV_SYNC_MAX_NUDGES_PER_MIN) {
+    debugLog("avsync.exhausted", { reason, detail, nudges: avSyncNudgeCount });
+    return false;
+  }
+  avSyncNudgeCount += 1;
+  avSyncLastNudgeMs = now;
+  debugLog("avsync.resync", Object.assign({ reason, nudge: avSyncNudgeCount }, detail || {}));
+
+  if (activeCustomPlayer === "hlsjs" && hlsInstance) {
+    try {
+      const liveEdge = hlsInstance.liveSyncPosition;
+      if (Number.isFinite(liveEdge) && liveEdge > 1 && castVideoEl) {
+        castVideoEl.currentTime = Math.max(0, liveEdge - 2.5);
+      } else {
+        hlsInstance.startLoad(-1);
+      }
+    } catch (_e) {}
+    return true;
+  }
+
+  if (castVideoEl) {
+    const t = Number(castVideoEl.currentTime) || 0;
+    try {
+      castVideoEl.pause();
+      setTimeout(() => {
+        try {
+          if (!castVideoEl) return;
+          if (Number.isFinite(t)) castVideoEl.currentTime = t + 0.08;
+          castVideoEl.play().catch(() => {});
+        } catch (_e) {}
+      }, 70);
+    } catch (_e) {}
+    return true;
+  }
+  return false;
+}
+
+function avSyncWatchdogTick() {
+  if (!castVideoEl) return;
+  const now = Date.now();
+  const paused = castVideoEl.paused;
+  const currentTime = Number(castVideoEl.currentTime) || 0;
+  const ready = castVideoEl.readyState >= 2;
+
+  if (paused || !ready) {
+    avSyncLastVideoTime = currentTime;
+    avSyncLastWallMs = now;
+    avSyncMpegtsSlowStreak = 0;
+    return;
+  }
+
+  if (activeCustomPlayer === "hlsjs" && hlsInstance) {
+    try {
+      const latency = Number(hlsInstance.latency);
+      if (Number.isFinite(latency) && latency > AV_SYNC_HLS_LATENCY_MAX_S) {
+        const liveEdge = Number(hlsInstance.liveSyncPosition);
+        if (Number.isFinite(liveEdge) && liveEdge > 1) {
+          attemptAvSyncResync("hls_latency_drift", { latency, liveEdge, currentTime });
+          avSyncLastVideoTime = Number(castVideoEl.currentTime) || currentTime;
+          avSyncLastWallMs = now;
+          return;
+        }
+      }
+    } catch (_e) {}
+  }
+
+  if (activeCustomPlayer === "mpegts" && avSyncMpegtsSlowStreak >= 2) {
+    if (attemptAvSyncResync("mpegts_speed_low", { slowStreak: avSyncMpegtsSlowStreak })) {
+      avSyncMpegtsSlowStreak = 0;
+    }
+  }
+
+  const wallDelta = now - avSyncLastWallMs;
+  const timeDelta = avSyncLastVideoTime >= 0 ? currentTime - avSyncLastVideoTime : 0;
+
+  if (avSyncLastVideoTime >= 0 && wallDelta >= AV_SYNC_WALL_STALL_MS) {
+    if (timeDelta < AV_SYNC_TIME_TOLERANCE_S) {
+      attemptAvSyncResync("video_time_stall", { timeDelta, wallDelta, currentTime });
+    } else if (timeDelta > 0 && timeDelta < wallDelta / 2500) {
+      attemptAvSyncResync("playback_too_slow", { timeDelta, wallDelta, currentTime });
+    }
+  }
+
+  avSyncLastVideoTime = currentTime;
+  avSyncLastWallMs = now;
 }
 
 function applyReceiverVolume(level, muted) {
@@ -933,6 +1063,7 @@ function startPlaybackKeepalive() {
 function onCustomPlaybackStarted(playerType) {
   installVolumeBridge();
   startPlaybackKeepalive();
+  startAvSyncWatchdog();
   onPlaybackStartedUi();
   debugLog("playback.custom_started", { playerType });
 }
@@ -1119,6 +1250,19 @@ function repairStreamUrl(url) {
   out = out.replace(/play token/gi, "play_token");
   out = out.replace(/(play_token=[^&\s]+)\s*source_group/gi, "$1&source_group");
   out = out.replace(/(play_token=[^&\s]+)source_group/gi, "$1&source_group=");
+
+  out = out.replace(/\/play\/Live\.php/gi, "/play/live.php");
+  out = out.replace(/([?&])nac-/gi, "$1mac=");
+  out = out.replace(/([?&])stream(\d{3,})(?=[&]|$)/gi, "$1stream=$2");
+  out = out.replace(/([?&])extensions=/gi, "$1extension=");
+  out = out.replace(/([?&])extensions([^=&/])/gi, "$1extension=$2");
+  out = out.replace(/play the /gi, "play_token=");
+  out = out.replace(/play to /gi, "play_token=");
+  out = out.replace(/Sksource_group/gi, "source_group");
+  out = out.replace(/&source group/gi, "&source_group");
+  out = out.replace(/line\.vwe+ott\.com/gi, "line.vueott.com");
+  out = out.replace(/line\.wue+ott\.com/gi, "line.vueott.com");
+  out = out.replace(/line\.vue+stt\.com/gi, "line.vueott.com");
 
   return out;
 }
@@ -2058,6 +2202,18 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
         hasVideo: true,
       }, buildMpegtsPlayerConfig());
 
+      if (mpegts.Events && mpegts.Events.STATISTICS_INFO) {
+        mpegtsInstance.on(mpegts.Events.STATISTICS_INFO, (stats) => {
+          const speed = stats && stats.speed != null ? Number(stats.speed) : NaN;
+          if (!Number.isFinite(speed)) return;
+          if (speed < AV_SYNC_MPEGTS_MIN_SPEED) {
+            avSyncMpegtsSlowStreak += 1;
+          } else if (speed >= 0.9) {
+            avSyncMpegtsSlowStreak = 0;
+          }
+        });
+      }
+
       mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
         debugLog("mpegts.error", {
           errorType,
@@ -2800,6 +2956,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event)
 
 safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
   ensureShakaRequestFilters();
+  stopAvSyncWatchdog();
   const loadLabel = `Loading ${activeCandidateIndex + 1}/${Math.max(activeCandidates.length, 1)}…`;
   showLoader(loadLabel);
   setStatus(loadLabel);
@@ -2828,6 +2985,8 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) 
   if (activeCustomPlayer) {
     startPlaybackKeepalive();
     installVolumeBridge();
+  } else {
+    startAvSyncWatchdog();
   }
   debugLog("player.play", {
     eventType: event && event.type ? event.type : "",
