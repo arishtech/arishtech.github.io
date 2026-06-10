@@ -26,6 +26,7 @@
       bottom: 12px;
       opacity: 0.7;
       font-size: 12px;
+      display: none;
     }
     #debugPanel {
       position: absolute;
@@ -118,9 +119,18 @@
       font-weight: bold;
       font-size: 12px;
       z-index: 10001;
+      display: none;
     }
     #debugToggle:hover {
       background: #45a049;
+    }
+    /* Debug UI is opt-in only: add ?debug=1 to the receiver URL */
+    body.receiver-debug #debugToggle,
+    body.receiver-debug #status {
+      display: block;
+    }
+    body.receiver-debug #debugPanel:not(.hidden) {
+      display: flex;
     }
   </style>
 </head>
@@ -132,7 +142,7 @@
          crossorigin="anonymous"
          style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;">
   </video>
-  <div id="status">PreetTV Receiver Ready</div>
+  <div id="status" aria-hidden="true"></div>
 
   <!-- Browser-mode stream tester (hidden when Cast is active) -->
   <div id="browserControls" style="
@@ -171,8 +181,23 @@
 
   <script>
     (function () {
+      function isReceiverDebugUiEnabled() {
+        try {
+          const value = String(new URLSearchParams(window.location.search || "").get("debug") || "")
+            .trim()
+            .toLowerCase();
+          return value === "1" || value === "true" || value === "yes" || value === "verbose";
+        } catch (_e) {
+          return false;
+        }
+      }
+      window.__preettvReceiverDebugUi = isReceiverDebugUiEnabled;
+      if (isReceiverDebugUiEnabled()) {
+        document.body.classList.add("receiver-debug");
+      }
       const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
       window.__preettvDebug = history;
+      if (!isReceiverDebugUiEnabled()) return;
       function push(event, payload) {
         const seq = history.length > 0 ? Number(history[history.length - 1].seq || history.length) + 1 : 1;
         history.push({ seq, ts: new Date().toISOString(), event, payload: payload || {} });
@@ -204,9 +229,17 @@
     const debugHeaderTitle = document.getElementById('debugHeaderTitle');
     const debugAutoScrollBtn = document.getElementById('debugAutoScrollBtn');
 
-    let debugPanelVisible = true;
+    const receiverDebugUi = typeof window.__preettvReceiverDebugUi === "function"
+      ? window.__preettvReceiverDebugUi()
+      : false;
+    let debugPanelVisible = false;
     let debugAutoScroll = true;
     let lastRenderedSeq = 0;
+
+    if (!receiverDebugUi) {
+      if (debugToggle) debugToggle.style.display = "none";
+      if (debugPanel) debugPanel.classList.add("hidden");
+    }
 
     function createEntryNode(entry) {
       const row = document.createElement("div");
@@ -293,25 +326,28 @@
       }
     }
 
-    debugToggle.addEventListener('click', toggleDebugPanel);
-    debugHeader.addEventListener('click', (ev) => {
-      if (ev.target === debugAutoScrollBtn) return;
-      toggleDebugPanel();
-    });
-    if (debugAutoScrollBtn) {
-      debugAutoScrollBtn.addEventListener('click', (ev) => {
-        ev.stopPropagation();
-        setDebugAutoScroll(!debugAutoScroll);
+    if (receiverDebugUi) {
+      debugToggle.addEventListener('click', toggleDebugPanel);
+      debugHeader.addEventListener('click', (ev) => {
+        if (ev.target === debugAutoScrollBtn) return;
+        toggleDebugPanel();
+      });
+      if (debugAutoScrollBtn) {
+        debugAutoScrollBtn.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          setDebugAutoScroll(!debugAutoScroll);
+        });
+      }
+      debugLogsContainer.addEventListener('scroll', () => {
+        const nearBottom = debugLogsContainer.scrollHeight - debugLogsContainer.scrollTop - debugLogsContainer.clientHeight < 48;
+        if (!nearBottom && debugAutoScroll) {
+          setDebugAutoScroll(false);
+        }
       });
     }
-    debugLogsContainer.addEventListener('scroll', () => {
-      const nearBottom = debugLogsContainer.scrollHeight - debugLogsContainer.scrollTop - debugLogsContainer.clientHeight < 48;
-      if (!nearBottom && debugAutoScroll) {
-        setDebugAutoScroll(false);
-      }
-    });
 
     function pushUiErrorLog(event, payload) {
+      if (!receiverDebugUi) return;
       const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
       const seq = history.length > 0 ? Number(history[history.length - 1].seq || history.length) + 1 : 1;
       history.push({
@@ -324,35 +360,30 @@
       if (debugPanelVisible) updateDebugDisplay();
     }
 
-    window.addEventListener('error', (ev) => {
-      pushUiErrorLog('ui.error', {
-        message: ev && ev.message ? ev.message : 'unknown',
-        filename: ev && ev.filename ? ev.filename : '',
-        lineno: ev && ev.lineno ? ev.lineno : 0,
-        colno: ev && ev.colno ? ev.colno : 0,
+    if (receiverDebugUi) {
+      window.addEventListener('error', (ev) => {
+        pushUiErrorLog('ui.error', {
+          message: ev && ev.message ? ev.message : 'unknown',
+          filename: ev && ev.filename ? ev.filename : '',
+          lineno: ev && ev.lineno ? ev.lineno : 0,
+          colno: ev && ev.colno ? ev.colno : 0,
+        });
       });
-    });
 
-    window.addEventListener('unhandledrejection', (ev) => {
-      const reason = ev && ev.reason;
-      pushUiErrorLog('ui.unhandledrejection', {
-        reason: reason && reason.message ? reason.message : String(reason || 'unknown'),
+      window.addEventListener('unhandledrejection', (ev) => {
+        const reason = ev && ev.reason;
+        pushUiErrorLog('ui.unhandledrejection', {
+          reason: reason && reason.message ? reason.message : String(reason || 'unknown'),
+        });
       });
-    });
 
-    if (debugPanelVisible) {
-      debugPanel.classList.remove('hidden');
-      debugToggle.textContent = 'DEBUG: ON';
-      debugToggle.style.background = '#45a049';
-      updateDebugDisplay();
+      // Append new log lines without resetting scroll position.
+      setInterval(() => {
+        if (debugPanelVisible) {
+          updateDebugDisplay();
+        }
+      }, 700);
     }
-
-    // Append new log lines without resetting scroll position.
-    setInterval(() => {
-      if (debugPanelVisible) {
-        updateDebugDisplay();
-      }
-    }, 700);
 
     // Browser-mode controls — always define in global scope so onclick works.
     function bcLoad() {

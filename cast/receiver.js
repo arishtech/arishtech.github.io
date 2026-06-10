@@ -330,6 +330,8 @@ function isXtreamStyleUrl(url) {
   const lower = String(url || "").toLowerCase();
   if (
     lower.includes("vueott") ||
+    lower.includes("weaseltv") ||
+    lower.includes("klaratv") ||
     lower.includes("/live.php") ||
     lower.includes("/play/live") ||
     lower.includes("/get.php") ||
@@ -341,12 +343,12 @@ function isXtreamStyleUrl(url) {
   try {
     const host = new URL(String(url || "")).host.toLowerCase();
     if (
+      host.includes("weaseltv") ||
+      host.includes("klaratv") ||
+      host.includes("vueott") ||
       host.startsWith("line.") ||
       host.includes(".line.") ||
-      host.includes("vueott") ||
-      host.includes("xui.") ||
-      host.endsWith(".ott") ||
-      host.includes(".ott.")
+      host.includes("xui.")
     ) {
       return true;
     }
@@ -770,8 +772,8 @@ function summarizeHlsNetworkError(data) {
 }
 
 function setStatus(text) {
+  if (!debugEnabled) return;
   if (statusEl) statusEl.textContent = text;
-  console.log("[PreetTV Receiver]", text);
 }
 
 function serializeForDebug(value) {
@@ -795,7 +797,9 @@ function debugLog(event, payload) {
     debugHistory.splice(0, debugHistory.length - DEBUG_HISTORY_LIMIT);
   }
   window.__preettvDebug = debugHistory;
-  console.log("[PreetTV Receiver][DEBUG]", entry);
+  if (DEBUG_QUERY_FLAG) {
+    console.log("[PreetTV Receiver][DEBUG]", entry);
+  }
 }
 
 function safeAddPlayerEventListener(eventType, handler, label) {
@@ -867,22 +871,6 @@ function installVolumeBridge() {
   }
 }
 
-function startHlsLiveDriftCorrection() {
-  if (hlsDriftTimer) clearInterval(hlsDriftTimer);
-  hlsDriftTimer = setInterval(() => {
-    if (!hlsInstance || !castVideoEl || activeCustomPlayer !== "hlsjs") return;
-    try {
-      const liveEdge = hlsInstance.liveSyncPosition;
-      if (!Number.isFinite(liveEdge) || liveEdge <= 0) return;
-      const drift = liveEdge - castVideoEl.currentTime;
-      if (drift > 6) {
-        castVideoEl.currentTime = Math.max(0, liveEdge - 2.5);
-        debugLog("hlsjs.live_resync", { drift, liveEdge });
-      }
-    } catch (_e) {}
-  }, 12000);
-}
-
 function keepCafPlayerAlive() {
   if (!playerManager || !activeCustomPlayer) return;
   try {
@@ -903,7 +891,6 @@ function startPlaybackKeepalive() {
     const hasBuffer = castVideoEl.buffered && castVideoEl.buffered.length > 0;
     if (playing || hasBuffer) {
       lastPlaybackProgressAt = now;
-      keepCafPlayerAlive();
       return;
     }
     if (now - lastPlaybackProgressAt > PLAYBACK_STALL_MS) {
@@ -913,14 +900,13 @@ function startPlaybackKeepalive() {
       });
       onCustomPlayerFatalError(activeCustomPlayer, "keepalive_stall");
     }
-  }, 5000);
+  }, 8000);
 }
 
 function onCustomPlaybackStarted(playerType) {
   installVolumeBridge();
   startPlaybackKeepalive();
-  if (playerType === "hlsjs") startHlsLiveDriftCorrection();
-  keepCafPlayerAlive();
+  debugLog("playback.custom_started", { playerType });
 }
 
 function armStallWatchdog(source) {
@@ -997,7 +983,7 @@ function applyDebugConfigFromContract(contract) {
   const cfg = asObject(contract && contract.debug);
   const explicitDisable = cfg.enabled === false || String(cfg.level || "").toLowerCase() === "off";
   const verbose = cfg.verbose === true || String(cfg.level || "").toLowerCase() === "verbose";
-  debugEnabled = explicitDisable ? false : (DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG || verbose);
+  debugEnabled = explicitDisable ? false : (DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG);
   debugLog("debug.config", {
     defaultEnabled: DEFAULT_DEBUG_ENABLED,
     explicitDisable,
@@ -1502,17 +1488,16 @@ function buildHlsConfig() {
   const LoaderClass = createIptvHlsLoaderClass();
   const config = {
     enableWorker: false,
-    lowLatencyMode: true,
+    lowLatencyMode: false,
     manifestLoadingTimeOut: 15000,
     manifestLoadingMaxRetry: 3,
     fragLoadingTimeOut: 15000,
     fragLoadingMaxRetry: 4,
-    maxBufferLength: 20,
-    maxMaxBufferLength: 40,
+    maxBufferLength: 30,
+    maxMaxBufferLength: 60,
     liveSyncDurationCount: 3,
-    liveMaxLatencyDurationCount: 8,
-    maxLiveSyncPlaybackRate: 1.05,
-    liveDurationInfinity: true,
+    liveMaxLatencyDurationCount: 12,
+    maxLiveSyncPlaybackRate: 1.0,
   };
   if (LoaderClass) {
     config.loader = LoaderClass;
@@ -1525,16 +1510,12 @@ function buildMpegtsPlayerConfig() {
     enableWorker: false,
     lazyLoad: false,
     enableStashBuffer: true,
-    stashInitialSize: 2560 * 1024,
-    liveBufferLatencyChasing: true,
-    liveBufferLatencyChasingOnPaused: false,
-    liveBufferLatencyMaxLatency: 5,
-    liveBufferLatencyMinRemain: 1,
+    stashInitialSize: 2048 * 1024,
+    liveBufferLatencyChasing: false,
     liveSync: true,
-    liveSyncMaxLatency: 5,
-    liveSyncTargetLatency: 2,
+    liveSyncMaxLatency: 8,
+    liveSyncTargetLatency: 4,
     autoCleanupSourceBuffer: true,
-    autoCleanupMaxBackwardDuration: 12,
     fixAudioTimestampGap: true,
   };
 }
