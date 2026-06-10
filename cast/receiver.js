@@ -71,7 +71,7 @@ let debugEnabled = DEBUG_QUERY_FLAG;
 let debugSequence = 0;
 const debugHistory = [];
 const DEBUG_HISTORY_LIMIT = 200;
-const DEFAULT_DEBUG_ENABLED = true;
+const DEFAULT_DEBUG_ENABLED = false;
 
 window.__preettvDebug = debugHistory;
 debugEnabled = DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG;
@@ -82,6 +82,11 @@ let lastLoadTemplate = null;
 let stallWatchdogTimer = null;
 let stallWatchdogSerial = 0;
 const STALL_WATCHDOG_MS = 12000;
+const PLAYBACK_STALL_MS = 45000;
+let playbackKeepaliveTimer = null;
+let lastPlaybackProgressAt = 0;
+let hlsDriftTimer = null;
+let volumeBridgeInstalled = false;
 
 let hlsInstance = null;
 let dashInstance = null;
@@ -235,6 +240,7 @@ function destroyMpegts() {
 function clearCustomPlayer() {
   activeCustomPlayer = null;
   activeCustomPlayerUrl = "";
+  stopPlaybackKeepalive();
 }
 
 function isHlsCandidate(url) {
@@ -812,6 +818,109 @@ function clearStallWatchdog() {
     clearTimeout(stallWatchdogTimer);
     stallWatchdogTimer = null;
   }
+}
+
+function stopPlaybackKeepalive() {
+  if (playbackKeepaliveTimer) {
+    clearInterval(playbackKeepaliveTimer);
+    playbackKeepaliveTimer = null;
+  }
+  if (hlsDriftTimer) {
+    clearInterval(hlsDriftTimer);
+    hlsDriftTimer = null;
+  }
+}
+
+function applyReceiverVolume(level, muted) {
+  if (!castVideoEl) return;
+  const vol = Math.max(0, Math.min(1, Number(level) || 0));
+  castVideoEl.volume = muted ? 0 : vol;
+  castVideoEl.muted = !!muted;
+}
+
+function installVolumeBridge() {
+  if (volumeBridgeInstalled || !playerManager || !castVideoEl) return;
+  volumeBridgeInstalled = true;
+  try {
+    applyReceiverVolume(playerManager.getVolumeLevel(), playerManager.isMute());
+  } catch (_e) {}
+
+  safeAddPlayerEventListener(cast.framework.events.EventType.STREAM_VOLUME_CHANGED, (event) => {
+    const level = event && typeof event.volume === "number" ? event.volume : playerManager.getVolumeLevel();
+    const muted = event && typeof event.isMute === "boolean" ? event.isMute : playerManager.isMute();
+    applyReceiverVolume(level, muted);
+    debugLog("player.volume_changed", { level, muted });
+  }, "STREAM_VOLUME_CHANGED");
+
+  try {
+    playerManager.setMessageInterceptor(cast.framework.messages.MessageType.SET_VOLUME, (data) => {
+      if (data) {
+        applyReceiverVolume(data.volume, data.isMute);
+        debugLog("player.set_volume", { level: data.volume, muted: data.isMute });
+      }
+      return data;
+    });
+  } catch (e) {
+    debugLog("player.set_volume.interceptor_error", {
+      message: e && e.message ? e.message : "unknown",
+    });
+  }
+}
+
+function startHlsLiveDriftCorrection() {
+  if (hlsDriftTimer) clearInterval(hlsDriftTimer);
+  hlsDriftTimer = setInterval(() => {
+    if (!hlsInstance || !castVideoEl || activeCustomPlayer !== "hlsjs") return;
+    try {
+      const liveEdge = hlsInstance.liveSyncPosition;
+      if (!Number.isFinite(liveEdge) || liveEdge <= 0) return;
+      const drift = liveEdge - castVideoEl.currentTime;
+      if (drift > 6) {
+        castVideoEl.currentTime = Math.max(0, liveEdge - 2.5);
+        debugLog("hlsjs.live_resync", { drift, liveEdge });
+      }
+    } catch (_e) {}
+  }, 12000);
+}
+
+function keepCafPlayerAlive() {
+  if (!playerManager || !activeCustomPlayer) return;
+  try {
+    const state = playerManager.getPlayerState();
+    if (state !== cast.framework.messages.PlayerState.PLAYING) {
+      playerManager.play();
+    }
+  } catch (_e) {}
+}
+
+function startPlaybackKeepalive() {
+  stopPlaybackKeepalive();
+  lastPlaybackProgressAt = Date.now();
+  playbackKeepaliveTimer = setInterval(() => {
+    if (!activeCustomPlayer || !castVideoEl) return;
+    const now = Date.now();
+    const playing = !castVideoEl.paused && castVideoEl.readyState >= 2;
+    const hasBuffer = castVideoEl.buffered && castVideoEl.buffered.length > 0;
+    if (playing || hasBuffer) {
+      lastPlaybackProgressAt = now;
+      keepCafPlayerAlive();
+      return;
+    }
+    if (now - lastPlaybackProgressAt > PLAYBACK_STALL_MS) {
+      debugLog("playback.keepalive.stall", {
+        activeCustomPlayer,
+        url: activeCustomPlayerUrl,
+      });
+      onCustomPlayerFatalError(activeCustomPlayer, "keepalive_stall");
+    }
+  }, 5000);
+}
+
+function onCustomPlaybackStarted(playerType) {
+  installVolumeBridge();
+  startPlaybackKeepalive();
+  if (playerType === "hlsjs") startHlsLiveDriftCorrection();
+  keepCafPlayerAlive();
 }
 
 function armStallWatchdog(source) {
@@ -1393,16 +1502,17 @@ function buildHlsConfig() {
   const LoaderClass = createIptvHlsLoaderClass();
   const config = {
     enableWorker: false,
-    lowLatencyMode: false,
+    lowLatencyMode: true,
     manifestLoadingTimeOut: 15000,
     manifestLoadingMaxRetry: 3,
     fragLoadingTimeOut: 15000,
     fragLoadingMaxRetry: 4,
-    maxBufferLength: 30,
-    maxMaxBufferLength: 60,
+    maxBufferLength: 20,
+    maxMaxBufferLength: 40,
     liveSyncDurationCount: 3,
-    liveMaxLatencyDurationCount: 12,
-    maxLiveSyncPlaybackRate: 1.2,
+    liveMaxLatencyDurationCount: 8,
+    maxLiveSyncPlaybackRate: 1.05,
+    liveDurationInfinity: true,
   };
   if (LoaderClass) {
     config.loader = LoaderClass;
@@ -1415,12 +1525,16 @@ function buildMpegtsPlayerConfig() {
     enableWorker: false,
     lazyLoad: false,
     enableStashBuffer: true,
-    stashInitialSize: 1920 * 1024,
-    liveBufferLatencyChasing: false,
+    stashInitialSize: 2560 * 1024,
+    liveBufferLatencyChasing: true,
+    liveBufferLatencyChasingOnPaused: false,
+    liveBufferLatencyMaxLatency: 5,
+    liveBufferLatencyMinRemain: 1,
     liveSync: true,
-    liveSyncMaxLatency: 8,
-    liveSyncTargetLatency: 3,
+    liveSyncMaxLatency: 5,
+    liveSyncTargetLatency: 2,
     autoCleanupSourceBuffer: true,
+    autoCleanupMaxBackwardDuration: 12,
     fixAudioTimestampGap: true,
   };
 }
@@ -1547,6 +1661,7 @@ function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
     _customPlayerActive: true,
   });
 
+  onCustomPlaybackStarted(playerType);
   return selectedLoad;
 }
 
@@ -2599,7 +2714,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOADING, (even
     candidateCount: activeCandidates.length,
     activeCustomPlayer,
   });
-  if (!activeCustomPlayer) {
+  if (!activeCustomPlayer || !isCustomPlayerHealthy()) {
     armStallWatchdog("player.loading");
   }
 }, "PLAYER_LOADING");
@@ -2614,6 +2729,10 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event)
 safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
   clearStallWatchdog();
   setStatus("Playing");
+  if (activeCustomPlayer) {
+    startPlaybackKeepalive();
+    installVolumeBridge();
+  }
   debugLog("player.play", {
     eventType: event && event.type ? event.type : "",
     activeCustomPlayer,
@@ -2631,6 +2750,11 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOAD_COMPLETE,
 }, "PLAYER_LOAD_COMPLETE");
 
 safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_FINISHED, () => {
+  if (activeCustomPlayer) {
+    debugLog("player.media_finished.suppressed", { activeCustomPlayer });
+    keepCafPlayerAlive();
+    return;
+  }
   destroyHls();
   destroyDash();
   destroyMpegts();
@@ -2699,6 +2823,8 @@ function createPlaybackConfig() {
 context.start({
   playbackConfig: createPlaybackConfig(),
 });
+
+installVolumeBridge();
 
 setStatus("PreetTV Receiver started");
 debugLog("receiver.started", {
