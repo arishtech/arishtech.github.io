@@ -90,18 +90,21 @@ let playbackKeepaliveTimer = null;
 let lastPlaybackProgressAt = 0;
 let hlsDriftTimer = null;
 let avSyncTimer = null;
-let avSyncLastVideoTime = -1;
-let avSyncLastWallMs = 0;
+let avSyncProgressVideoTime = -1;
+let avSyncProgressWallMs = 0;
 let avSyncLastNudgeMs = 0;
 let avSyncNudgeCount = 0;
 let avSyncNudgeWindowStart = 0;
 let avSyncMpegtsSlowStreak = 0;
-const AV_SYNC_INTERVAL_MS = 3500;
-const AV_SYNC_WALL_STALL_MS = 6500;
-const AV_SYNC_TIME_TOLERANCE_S = 0.12;
-const AV_SYNC_HLS_LATENCY_MAX_S = 10;
-const AV_SYNC_NUDGE_COOLDOWN_MS = 5500;
-const AV_SYNC_MAX_NUDGES_PER_MIN = 5;
+let avSyncPlaybackRateTimer = null;
+const AV_SYNC_INTERVAL_MS = 3000;
+const AV_SYNC_WALL_STALL_MS = 5000;
+const AV_SYNC_TIME_TOLERANCE_S = 0.15;
+const AV_SYNC_BUFFER_LAG_SOFT_S = 3.5;
+const AV_SYNC_BUFFER_LAG_HARD_S = 7;
+const AV_SYNC_HLS_LATENCY_MAX_S = 9;
+const AV_SYNC_NUDGE_COOLDOWN_MS = 4500;
+const AV_SYNC_MAX_NUDGES_PER_MIN = 6;
 const AV_SYNC_MPEGTS_MIN_SPEED = 0.72;
 let volumeBridgeInstalled = false;
 
@@ -882,15 +885,43 @@ function stopAvSyncWatchdog() {
     clearInterval(avSyncTimer);
     avSyncTimer = null;
   }
-  avSyncLastVideoTime = -1;
-  avSyncLastWallMs = 0;
+  if (avSyncPlaybackRateTimer) {
+    clearTimeout(avSyncPlaybackRateTimer);
+    avSyncPlaybackRateTimer = null;
+  }
+  avSyncProgressVideoTime = -1;
+  avSyncProgressWallMs = 0;
   avSyncMpegtsSlowStreak = 0;
+  if (castVideoEl) {
+    try { castVideoEl.playbackRate = 1.0; } catch (_e) {}
+  }
+}
+
+function measureVideoBufferLagSec() {
+  if (!castVideoEl || !castVideoEl.buffered || castVideoEl.buffered.length === 0) return 0;
+  try {
+    const end = castVideoEl.buffered.end(castVideoEl.buffered.length - 1);
+    return Math.max(0, end - (Number(castVideoEl.currentTime) || 0));
+  } catch (_e) {
+    return 0;
+  }
+}
+
+function resetAvSyncPlaybackRateSoon() {
+  if (avSyncPlaybackRateTimer) clearTimeout(avSyncPlaybackRateTimer);
+  avSyncPlaybackRateTimer = setTimeout(() => {
+    avSyncPlaybackRateTimer = null;
+    if (castVideoEl) {
+      try { castVideoEl.playbackRate = 1.0; } catch (_e) {}
+    }
+  }, 2800);
 }
 
 function startAvSyncWatchdog() {
   stopAvSyncWatchdog();
-  avSyncLastVideoTime = castVideoEl ? Number(castVideoEl.currentTime) || 0 : 0;
-  avSyncLastWallMs = Date.now();
+  const now = Date.now();
+  avSyncProgressVideoTime = castVideoEl ? Number(castVideoEl.currentTime) || 0 : 0;
+  avSyncProgressWallMs = now;
   avSyncTimer = setInterval(avSyncWatchdogTick, AV_SYNC_INTERVAL_MS);
   debugLog("avsync.watchdog.started", {
     activeCustomPlayer,
@@ -912,6 +943,20 @@ function attemptAvSyncResync(reason, detail) {
   avSyncNudgeCount += 1;
   avSyncLastNudgeMs = now;
   debugLog("avsync.resync", Object.assign({ reason, nudge: avSyncNudgeCount }, detail || {}));
+
+  if (
+    castVideoEl &&
+    castVideoEl.buffered &&
+    castVideoEl.buffered.length > 0 &&
+    String(reason || "").indexOf("buffer_lag") >= 0
+  ) {
+    try {
+      const end = castVideoEl.buffered.end(castVideoEl.buffered.length - 1);
+      castVideoEl.currentTime = Math.max(0, end - 2);
+      castVideoEl.play().catch(() => {});
+      return true;
+    } catch (_e) {}
+  }
 
   if (activeCustomPlayer === "hlsjs" && hlsInstance) {
     try {
@@ -948,10 +993,11 @@ function avSyncWatchdogTick() {
   const paused = castVideoEl.paused;
   const currentTime = Number(castVideoEl.currentTime) || 0;
   const ready = castVideoEl.readyState >= 2;
+  const bufferLag = measureVideoBufferLagSec();
 
   if (paused || !ready) {
-    avSyncLastVideoTime = currentTime;
-    avSyncLastWallMs = now;
+    avSyncProgressVideoTime = currentTime;
+    avSyncProgressWallMs = now;
     avSyncMpegtsSlowStreak = 0;
     return;
   }
@@ -962,9 +1008,9 @@ function avSyncWatchdogTick() {
       if (Number.isFinite(latency) && latency > AV_SYNC_HLS_LATENCY_MAX_S) {
         const liveEdge = Number(hlsInstance.liveSyncPosition);
         if (Number.isFinite(liveEdge) && liveEdge > 1) {
-          attemptAvSyncResync("hls_latency_drift", { latency, liveEdge, currentTime });
-          avSyncLastVideoTime = Number(castVideoEl.currentTime) || currentTime;
-          avSyncLastWallMs = now;
+          attemptAvSyncResync("hls_latency_drift", { latency, liveEdge, currentTime, bufferLag });
+          avSyncProgressVideoTime = Number(castVideoEl.currentTime) || currentTime;
+          avSyncProgressWallMs = now;
           return;
         }
       }
@@ -972,24 +1018,44 @@ function avSyncWatchdogTick() {
   }
 
   if (activeCustomPlayer === "mpegts" && avSyncMpegtsSlowStreak >= 2) {
-    if (attemptAvSyncResync("mpegts_speed_low", { slowStreak: avSyncMpegtsSlowStreak })) {
+    if (attemptAvSyncResync("mpegts_speed_low", { slowStreak: avSyncMpegtsSlowStreak, bufferLag })) {
       avSyncMpegtsSlowStreak = 0;
     }
   }
 
-  const wallDelta = now - avSyncLastWallMs;
-  const timeDelta = avSyncLastVideoTime >= 0 ? currentTime - avSyncLastVideoTime : 0;
-
-  if (avSyncLastVideoTime >= 0 && wallDelta >= AV_SYNC_WALL_STALL_MS) {
-    if (timeDelta < AV_SYNC_TIME_TOLERANCE_S) {
-      attemptAvSyncResync("video_time_stall", { timeDelta, wallDelta, currentTime });
-    } else if (timeDelta > 0 && timeDelta < wallDelta / 2500) {
-      attemptAvSyncResync("playback_too_slow", { timeDelta, wallDelta, currentTime });
-    }
+  if (bufferLag >= AV_SYNC_BUFFER_LAG_HARD_S) {
+    attemptAvSyncResync("buffer_lag_hard", { bufferLag, currentTime });
+    avSyncProgressVideoTime = Number(castVideoEl.currentTime) || currentTime;
+    avSyncProgressWallMs = now;
+    return;
   }
 
-  avSyncLastVideoTime = currentTime;
-  avSyncLastWallMs = now;
+  if (bufferLag >= AV_SYNC_BUFFER_LAG_SOFT_S && castVideoEl.playbackRate === 1) {
+    try {
+      castVideoEl.playbackRate = 1.05;
+      resetAvSyncPlaybackRateSoon();
+      debugLog("avsync.playback_rate", { bufferLag, rate: 1.05 });
+    } catch (_e) {}
+  }
+
+  const wallDelta = avSyncProgressWallMs > 0 ? now - avSyncProgressWallMs : 0;
+  const timeDelta = avSyncProgressVideoTime >= 0 ? currentTime - avSyncProgressVideoTime : 0;
+
+  if (timeDelta >= AV_SYNC_TIME_TOLERANCE_S) {
+    avSyncProgressVideoTime = currentTime;
+    avSyncProgressWallMs = now;
+    return;
+  }
+
+  if (wallDelta >= AV_SYNC_WALL_STALL_MS) {
+    if (timeDelta < AV_SYNC_TIME_TOLERANCE_S) {
+      attemptAvSyncResync("video_time_stall", { timeDelta, wallDelta, currentTime, bufferLag });
+    } else if (timeDelta > 0 && timeDelta < wallDelta / 2000) {
+      attemptAvSyncResync("playback_too_slow", { timeDelta, wallDelta, currentTime, bufferLag });
+    }
+    avSyncProgressVideoTime = Number(castVideoEl.currentTime) || currentTime;
+    avSyncProgressWallMs = now;
+  }
 }
 
 function applyReceiverVolume(level, muted) {
@@ -1717,7 +1783,7 @@ function buildHlsConfig() {
     maxMaxBufferLength: 60,
     liveSyncDurationCount: 3,
     liveMaxLatencyDurationCount: 12,
-    maxLiveSyncPlaybackRate: 1.0,
+    maxLiveSyncPlaybackRate: 1.05,
   };
   if (LoaderClass) {
     config.loader = LoaderClass;
@@ -1731,10 +1797,12 @@ function buildMpegtsPlayerConfig() {
     lazyLoad: false,
     enableStashBuffer: true,
     stashInitialSize: 2048 * 1024,
-    liveBufferLatencyChasing: false,
+    liveBufferLatencyChasing: true,
+    liveBufferLatencyMaxLatency: 5,
+    liveBufferLatencyMinRemain: 0.8,
     liveSync: true,
-    liveSyncMaxLatency: 8,
-    liveSyncTargetLatency: 4,
+    liveSyncMaxLatency: 5,
+    liveSyncTargetLatency: 2.5,
     autoCleanupSourceBuffer: true,
     fixAudioTimestampGap: true,
   };
