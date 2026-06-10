@@ -25,22 +25,86 @@
       left: 12px;
       bottom: 12px;
       opacity: 0.7;
-      font-size: 12px;
+      font-size: 10px;
       display: none;
+      z-index: 10002;
+    }
+    #preetBrand {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 28px 24px 16px;
+      text-align: center;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.72) 0%, rgba(0, 0, 0, 0) 100%);
+      z-index: 10003;
+      pointer-events: none;
+      transition: opacity 0.35s ease;
+    }
+    #preetBrand.hidden {
+      opacity: 0;
+    }
+    #preetBrand .preet-brand-title {
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      color: #fff;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+    #preetBrand .preet-brand-sub {
+      margin-top: 6px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.72);
+    }
+    #preetLoader {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0, 0, 0, 0.55);
+      z-index: 10004;
+      pointer-events: none;
+    }
+    #preetLoader.hidden {
+      display: none;
+    }
+    .preet-loader-spinner {
+      width: 52px;
+      height: 52px;
+      border: 4px solid rgba(76, 175, 80, 0.25);
+      border-top-color: #4CAF50;
+      border-radius: 50%;
+      animation: preet-spin 0.9s linear infinite;
+    }
+    .preet-loader-text {
+      margin-top: 14px;
+      font-size: 15px;
+      color: #fff;
+      opacity: 0.9;
+      text-align: center;
+      max-width: 80%;
+    }
+    @keyframes preet-spin {
+      to { transform: rotate(360deg); }
     }
     #debugPanel {
       position: absolute;
+      left: 0;
       right: 0;
-      top: 0;
-      width: 400px;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.85);
-      border-left: 2px solid #4CAF50;
+      bottom: 0;
+      width: 100%;
+      height: 34vh;
+      min-height: 140px;
+      max-height: 280px;
+      background: rgba(0, 0, 0, 0.9);
+      border-top: 2px solid #4CAF50;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       font-family: monospace;
-      z-index: 10000;
+      z-index: 10005;
     }
     #debugPanel.hidden {
       display: none;
@@ -48,8 +112,8 @@
     #debugHeader {
       background: #1a1a1a;
       border-bottom: 1px solid #4CAF50;
-      padding: 8px 12px;
-      font-size: 12px;
+      padding: 4px 8px;
+      font-size: 9px;
       font-weight: bold;
       color: #4CAF50;
       cursor: pointer;
@@ -63,10 +127,10 @@
       background: #333;
       color: #4CAF50;
       border: 1px solid #4CAF50;
-      padding: 4px 8px;
+      padding: 2px 6px;
       border-radius: 3px;
       cursor: pointer;
-      font-size: 10px;
+      font-size: 8px;
       font-weight: bold;
       flex-shrink: 0;
     }
@@ -77,48 +141,57 @@
     #debugLogs {
       flex: 1;
       overflow-y: auto;
-      padding: 8px;
-      font-size: 11px;
-      line-height: 1.4;
+      padding: 4px 6px;
+      font-size: 8px;
+      line-height: 1.15;
     }
     .debugEntry {
-      margin-bottom: 6px;
-      padding: 4px;
-      border-left: 2px solid #4CAF50;
-      padding-left: 8px;
-      color: #00ff00;
+      margin-bottom: 2px;
+      padding: 1px 0 1px 4px;
+      border-left: 1px solid #4CAF50;
+      color: #9dff9d;
+    }
+    .debugEntry .line {
+      display: flex;
+      gap: 4px;
+      align-items: baseline;
+      flex-wrap: wrap;
     }
     .debugEntry .timestamp {
-      color: #888;
-      font-size: 9px;
+      color: #666;
+      font-size: 7px;
+      flex-shrink: 0;
     }
     .debugEntry .seq {
       color: #4CAF50;
       font-weight: bold;
+      font-size: 7px;
+      flex-shrink: 0;
     }
     .debugEntry .event {
-      color: #4CAF50;
+      color: #7dffb0;
       font-weight: bold;
+      font-size: 8px;
     }
     .debugEntry .payload {
-      color: #00dd00;
-      font-size: 10px;
-      margin-top: 2px;
+      color: #6fdc6f;
+      font-size: 7px;
       word-break: break-all;
+      opacity: 0.95;
     }
     #debugToggle {
       position: fixed;
-      top: 10px;
-      right: 10px;
+      top: 8px;
+      right: 8px;
       background: #4CAF50;
       color: #000;
       border: none;
-      padding: 8px 12px;
-      border-radius: 4px;
+      padding: 4px 8px;
+      border-radius: 3px;
       cursor: pointer;
       font-weight: bold;
-      font-size: 12px;
-      z-index: 10001;
+      font-size: 9px;
+      z-index: 10006;
       display: none;
     }
     #debugToggle:hover {
@@ -142,6 +215,17 @@
          crossorigin="anonymous"
          style="position:absolute;top:0;left:0;width:100%;height:100%;background:#000;">
   </video>
+
+  <div id="preetBrand">
+    <div class="preet-brand-title">Preet Live Streaming Player</div>
+    <div class="preet-brand-sub">Cast Receiver</div>
+  </div>
+
+  <div id="preetLoader" class="hidden">
+    <div class="preet-loader-spinner" aria-hidden="true"></div>
+    <div class="preet-loader-text" id="preetLoaderText">Loading stream…</div>
+  </div>
+
   <div id="status" aria-hidden="true"></div>
 
   <!-- Browser-mode stream tester (hidden when Cast is active) -->
@@ -229,44 +313,62 @@
     const debugHeaderTitle = document.getElementById('debugHeaderTitle');
     const debugAutoScrollBtn = document.getElementById('debugAutoScrollBtn');
 
-    const receiverDebugUi = typeof window.__preettvReceiverDebugUi === "function"
+    let receiverDebugUiActive = typeof window.__preettvReceiverDebugUi === "function"
       ? window.__preettvReceiverDebugUi()
       : false;
     let debugPanelVisible = false;
     let debugAutoScroll = true;
     let lastRenderedSeq = 0;
+    let debugUiBootstrapped = false;
+    let debugPollTimer = null;
 
-    if (!receiverDebugUi) {
-      if (debugToggle) debugToggle.style.display = "none";
+    function hideReceiverDebugUi() {
+      if (debugToggle) debugToggle.style.setProperty("display", "none", "important");
       if (debugPanel) debugPanel.classList.add("hidden");
+    }
+
+    if (!receiverDebugUiActive) {
+      hideReceiverDebugUi();
+    }
+
+    function formatDebugTimestamp(value) {
+      const raw = String(value || "");
+      if (!raw) return "";
+      return raw.length >= 19 ? raw.substring(11, 19) : raw;
     }
 
     function createEntryNode(entry) {
       const row = document.createElement("div");
       row.className = "debugEntry";
 
-      const ts = document.createElement("div");
-      ts.className = "timestamp";
-      ts.textContent = String(entry.ts || "");
+      const line = document.createElement("div");
+      line.className = "line";
 
-      const title = document.createElement("div");
+      const ts = document.createElement("span");
+      ts.className = "timestamp";
+      ts.textContent = formatDebugTimestamp(entry.ts);
+
       const seq = document.createElement("span");
       seq.className = "seq";
       seq.textContent = `#${String(entry.seq || "")}`;
-      const spacer = document.createTextNode(" ");
+
       const event = document.createElement("span");
       event.className = "event";
       event.textContent = String(entry.event || "");
-      title.appendChild(seq);
-      title.appendChild(spacer);
-      title.appendChild(event);
+
+      line.appendChild(ts);
+      line.appendChild(seq);
+      line.appendChild(event);
 
       const payload = document.createElement("div");
       payload.className = "payload";
-      payload.textContent = JSON.stringify(entry.payload || {}, null, 1);
+      try {
+        payload.textContent = JSON.stringify(entry.payload || {});
+      } catch (_e) {
+        payload.textContent = String(entry.payload || "");
+      }
 
-      row.appendChild(ts);
-      row.appendChild(title);
+      row.appendChild(line);
       row.appendChild(payload);
       return row;
     }
@@ -278,12 +380,18 @@
       }
     }
 
-    function updateDebugDisplay() {
-      const history = window.__preettvDebug || [];
-      const newEntries = history.filter((entry) => Number(entry.seq || 0) > lastRenderedSeq);
+    function updateDebugDisplay(forceFullRender) {
+      if (!receiverDebugUiActive || !debugLogsContainer) return;
+      const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
 
+      if (forceFullRender) {
+        debugLogsContainer.innerHTML = "";
+        lastRenderedSeq = 0;
+      }
+
+      const newEntries = history.filter((entry) => Number(entry.seq || 0) > lastRenderedSeq);
       if (newEntries.length === 0) {
-        debugHeaderTitle.textContent = `PreetTV Debug Logs (${history.length})`;
+        if (debugHeaderTitle) debugHeaderTitle.textContent = `Debug (${history.length})`;
         return;
       }
 
@@ -298,7 +406,7 @@
       if (debugAutoScroll) {
         debugLogsContainer.scrollTop = debugLogsContainer.scrollHeight;
       }
-      debugHeaderTitle.textContent = `PreetTV Debug Logs (${history.length})`;
+      if (debugHeaderTitle) debugHeaderTitle.textContent = `Debug (${history.length})`;
     }
 
     function setDebugAutoScroll(enabled) {
@@ -326,7 +434,14 @@
       }
     }
 
-    if (receiverDebugUi) {
+    function bootstrapReceiverDebugUi() {
+      if (debugUiBootstrapped) return;
+      debugUiBootstrapped = true;
+      receiverDebugUiActive = true;
+      document.body.classList.add("receiver-debug");
+      if (debugToggle) debugToggle.style.removeProperty("display");
+      const statusNode = document.getElementById("status");
+      if (statusNode) statusNode.style.removeProperty("display");
       debugToggle.addEventListener('click', toggleDebugPanel);
       debugHeader.addEventListener('click', (ev) => {
         if (ev.target === debugAutoScrollBtn) return;
@@ -344,10 +459,61 @@
           setDebugAutoScroll(false);
         }
       });
+      window.addEventListener('error', (ev) => {
+        pushUiErrorLog('ui.error', {
+          message: ev && ev.message ? ev.message : 'unknown',
+          filename: ev && ev.filename ? ev.filename : '',
+          lineno: ev && ev.lineno ? ev.lineno : 0,
+          colno: ev && ev.colno ? ev.colno : 0,
+        });
+      });
+      window.addEventListener('unhandledrejection', (ev) => {
+        const reason = ev && ev.reason;
+        pushUiErrorLog('ui.unhandledrejection', {
+          reason: reason && reason.message ? reason.message : String(reason || 'unknown'),
+        });
+      });
+      if (!debugPollTimer) {
+        debugPollTimer = setInterval(() => {
+          if (receiverDebugUiActive) {
+            updateDebugDisplay(false);
+          }
+        }, 350);
+      }
+      debugPanelVisible = true;
+      if (debugPanel) debugPanel.classList.remove('hidden');
+      if (debugToggle) {
+        debugToggle.textContent = 'DEBUG: ON';
+        debugToggle.style.background = '#45a049';
+      }
+      updateDebugDisplay(true);
+    }
+
+    window.__preettvActivateDebugUi = bootstrapReceiverDebugUi;
+    window.__preettvNotifyDebugLog = function () {
+      if (!receiverDebugUiActive) {
+        if (window.__preettvReceiverDebugUiEnabled) {
+          bootstrapReceiverDebugUi();
+        }
+        return;
+      }
+      updateDebugDisplay(false);
+    };
+
+    if (receiverDebugUiActive || window.__preettvPendingDebugUi) {
+      bootstrapReceiverDebugUi();
+      window.__preettvPendingDebugUi = false;
+    } else {
+      setInterval(() => {
+        if (!receiverDebugUiActive && (window.__preettvReceiverDebugUiEnabled || window.__preettvPendingDebugUi)) {
+          bootstrapReceiverDebugUi();
+          window.__preettvPendingDebugUi = false;
+        }
+      }, 250);
     }
 
     function pushUiErrorLog(event, payload) {
-      if (!receiverDebugUi) return;
+      if (!receiverDebugUiActive) return;
       const history = Array.isArray(window.__preettvDebug) ? window.__preettvDebug : [];
       const seq = history.length > 0 ? Number(history[history.length - 1].seq || history.length) + 1 : 1;
       history.push({
@@ -358,31 +524,6 @@
       });
       window.__preettvDebug = history;
       if (debugPanelVisible) updateDebugDisplay();
-    }
-
-    if (receiverDebugUi) {
-      window.addEventListener('error', (ev) => {
-        pushUiErrorLog('ui.error', {
-          message: ev && ev.message ? ev.message : 'unknown',
-          filename: ev && ev.filename ? ev.filename : '',
-          lineno: ev && ev.lineno ? ev.lineno : 0,
-          colno: ev && ev.colno ? ev.colno : 0,
-        });
-      });
-
-      window.addEventListener('unhandledrejection', (ev) => {
-        const reason = ev && ev.reason;
-        pushUiErrorLog('ui.unhandledrejection', {
-          reason: reason && reason.message ? reason.message : String(reason || 'unknown'),
-        });
-      });
-
-      // Append new log lines without resetting scroll position.
-      setInterval(() => {
-        if (debugPanelVisible) {
-          updateDebugDisplay();
-        }
-      }, 700);
     }
 
     // Browser-mode controls — always define in global scope so onclick works.

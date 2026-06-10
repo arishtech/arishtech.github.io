@@ -12,6 +12,9 @@ const context = hasCastFramework
   : null;
 const playerManager = context ? context.getPlayerManager() : null;
 const statusEl = document.getElementById("status");
+const brandEl = document.getElementById("preetBrand");
+const loaderEl = document.getElementById("preetLoader");
+const loaderTextEl = document.getElementById("preetLoaderText");
 
 // Extract stream URL from ?url=... even when the target URL has its own query string.
 // URLSearchParams.get("url") truncates at the first "&" — e.g. drops &stream= &extension=.
@@ -440,7 +443,9 @@ function isStaticHosting() {
       host === "github.io" ||
       host.endsWith(".gitlab.io") ||
       host.endsWith(".pages.dev") ||
-      host.endsWith(".netlify.app")
+      host.endsWith(".netlify.app") ||
+      host === "www.arishtech.com" ||
+      host === "arishtech.com"
     );
   } catch (_e) {}
   return false;
@@ -771,9 +776,28 @@ function summarizeHlsNetworkError(data) {
   };
 }
 
+function setBrandingVisible(visible) {
+  if (!brandEl) return;
+  brandEl.classList.toggle("hidden", !visible);
+}
+
+function showLoader(message) {
+  if (loaderTextEl && message) loaderTextEl.textContent = String(message);
+  if (loaderEl) loaderEl.classList.remove("hidden");
+  setBrandingVisible(true);
+}
+
+function hideLoader() {
+  if (loaderEl) loaderEl.classList.add("hidden");
+}
+
+function onPlaybackStartedUi() {
+  hideLoader();
+  setBrandingVisible(false);
+}
+
 function setStatus(text) {
-  if (!debugEnabled) return;
-  if (statusEl) statusEl.textContent = text;
+  if (statusEl && debugEnabled) statusEl.textContent = text;
 }
 
 function serializeForDebug(value) {
@@ -797,7 +821,10 @@ function debugLog(event, payload) {
     debugHistory.splice(0, debugHistory.length - DEBUG_HISTORY_LIMIT);
   }
   window.__preettvDebug = debugHistory;
-  if (DEBUG_QUERY_FLAG) {
+  if (typeof window.__preettvNotifyDebugLog === "function") {
+    window.__preettvNotifyDebugLog();
+  }
+  if (DEBUG_QUERY_FLAG || debugEnabled) {
     console.log("[PreetTV Receiver][DEBUG]", entry);
   }
 }
@@ -906,6 +933,7 @@ function startPlaybackKeepalive() {
 function onCustomPlaybackStarted(playerType) {
   installVolumeBridge();
   startPlaybackKeepalive();
+  onPlaybackStartedUi();
   debugLog("playback.custom_started", { playerType });
 }
 
@@ -955,7 +983,22 @@ function summarizeHeaders(headers) {
 }
 
 function asObject(value) {
-  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+  if (value && typeof value === "object" && !Array.isArray(value)) return value;
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return {};
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
+    } catch (_e) {}
+  }
+  return {};
+}
+
+function isTruthyFlag(value) {
+  if (value === true || value === 1) return true;
+  const normalized = String(value == null ? "" : value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
 }
 
 function asStringArray(value) {
@@ -979,18 +1022,51 @@ function normalizeContract(customData) {
   };
 }
 
-function applyDebugConfigFromContract(contract) {
-  const cfg = asObject(contract && contract.debug);
-  const explicitDisable = cfg.enabled === false || String(cfg.level || "").toLowerCase() === "off";
-  const verbose = cfg.verbose === true || String(cfg.level || "").toLowerCase() === "verbose";
-  debugEnabled = explicitDisable ? false : (DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG);
-  debugLog("debug.config", {
-    defaultEnabled: DEFAULT_DEBUG_ENABLED,
-    explicitDisable,
-    fromQuery: DEBUG_QUERY_FLAG,
-    fromContractVerbose: verbose,
-    enabled: debugEnabled,
-  });
+function enableReceiverDebugUi() {
+  try {
+    if (typeof document !== "undefined" && document.body) {
+      document.body.classList.add("receiver-debug");
+    }
+    window.__preettvReceiverDebugUiEnabled = true;
+    if (statusEl) statusEl.style.removeProperty("display");
+    if (typeof window.__preettvActivateDebugUi === "function") {
+      window.__preettvActivateDebugUi();
+    } else {
+      window.__preettvPendingDebugUi = true;
+    }
+  } catch (_e) {}
+}
+
+function applyDebugConfigFromContract(contract, rawCustomData) {
+  const root = asObject(rawCustomData || contract);
+  const cfg = asObject((contract && contract.debug) || root.debug);
+  const level = String(cfg.level || root.debugLevel || "").toLowerCase();
+  const explicitDisable = cfg.enabled === false || level === "off";
+  const explicitEnable =
+    isTruthyFlag(cfg.enabled) ||
+    isTruthyFlag(cfg.verbose) ||
+    isTruthyFlag(cfg.showUi) ||
+    isTruthyFlag(root.castDebugEnabled) ||
+    level === "verbose" ||
+    level === "on";
+  const wasEnabled = debugEnabled;
+  debugEnabled = explicitDisable
+    ? false
+    : (explicitEnable || DEFAULT_DEBUG_ENABLED || DEBUG_QUERY_FLAG);
+  if (debugEnabled && explicitEnable) {
+    enableReceiverDebugUi();
+  }
+  if (debugEnabled || wasEnabled) {
+    debugLog("debug.config", {
+      defaultEnabled: DEFAULT_DEBUG_ENABLED,
+      explicitDisable,
+      explicitEnable,
+      fromQuery: DEBUG_QUERY_FLAG,
+      showUi: isTruthyFlag(cfg.showUi) || isTruthyFlag(cfg.enabled),
+      enabled: debugEnabled,
+      rawDebug: cfg,
+    });
+  }
 }
 
 function rewriteQueryParam(url, key, value) {
@@ -1570,6 +1646,8 @@ function prepareCustomPlayerStubLoad(selectedLoad, sourceUrl, playerType) {
 function markCandidatesExhausted(reason) {
   if (candidatesExhausted) return;
   candidatesExhausted = true;
+  hideLoader();
+  setBrandingVisible(true);
   setStatus("All receiver fallback candidates exhausted");
   debugLog("candidate.exhausted", {
     reason,
@@ -2208,7 +2286,9 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
   rotateIptvUserAgent("candidate_retry");
   const nextUrl = activeCandidates[activeCandidateIndex];
   const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl, activeCandidateIndex);
-  setStatus(`Retrying candidate ${activeCandidateIndex + 1}/${activeCandidates.length}`);
+  const retryLabel = `Retrying ${activeCandidateIndex + 1}/${activeCandidates.length}…`;
+  showLoader(retryLabel);
+  setStatus(retryLabel);
   debugLog("candidate.retry", {
     reason,
     nextIndex: activeCandidateIndex,
@@ -2424,7 +2504,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     }
 
     activeContract = normalizeContract(customData);
-    applyDebugConfigFromContract(activeContract);
+    applyDebugConfigFromContract(activeContract, customData);
+    showLoader("Loading stream…");
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
     iptvDirectBlocked458 = false;
@@ -2597,6 +2678,32 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     vueottCafNativeAttempted &&
     (errorCode === 104 || errorCode === 905 || errorCode === 301)
   ) {
+    if (activeIptvUaIndex < IPTV_USER_AGENTS.length - 1) {
+      rotateIptvUserAgent("caf_ts_error_" + errorCode);
+      if (playerManager && typeof playerManager.setPlaybackConfig === "function") {
+        playerManager.setPlaybackConfig(createPlaybackConfig());
+      }
+      const retryLoad = buildCafNativeTsLoad(
+        prepareLoadForCandidate(lastLoadTemplate || {}, currentUrlForError, activeCandidateIndex),
+        currentUrlForError
+      );
+      vueottCafNativeAttempted = true;
+      void playerManager.load(retryLoad).catch(() => {
+        vueottMpegtsAfterCafAttempted = true;
+        void startMpegtsFromCafFailure(currentUrlForError).then((started) => {
+          if (!started) {
+            void advanceCandidateAfterCustomFailure("caf_ts_mpegts_failed");
+          }
+        });
+      });
+      debugLog("player.error.caf_ts_ua_retry", {
+        detailedErrorCode: detailCode,
+        url: currentUrlForError,
+        activeIptvUaIndex,
+        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+      });
+      return;
+    }
     vueottMpegtsAfterCafAttempted = true;
     void startMpegtsFromCafFailure(currentUrlForError).then((started) => {
       if (!started) {
@@ -2680,6 +2787,11 @@ safeAddPlayerEventListener(cast.framework.events.EventType.MEDIA_STATUS, (event)
 }, "MEDIA_STATUS");
 
 safeAddPlayerEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event) => {
+  try {
+    const customData = asObject(event && event.requestData && event.requestData.customData);
+    applyDebugConfigFromContract(normalizeContract(customData), customData);
+  } catch (_e) {}
+  showLoader("Connecting…");
   debugLog("player.request_load", {
     eventType: event && event.type ? event.type : "",
     hasRequestData: !!(event && event.requestData),
@@ -2688,7 +2800,9 @@ safeAddPlayerEventListener(cast.framework.events.EventType.REQUEST_LOAD, (event)
 
 safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_LOADING, (event) => {
   ensureShakaRequestFilters();
-  setStatus(`Loading ${activeCandidateIndex + 1}/${activeCandidates.length}...`);
+  const loadLabel = `Loading ${activeCandidateIndex + 1}/${Math.max(activeCandidates.length, 1)}…`;
+  showLoader(loadLabel);
+  setStatus(loadLabel);
   debugLog("player.loading", {
     eventType: event && event.type ? event.type : "",
     currentIndex: activeCandidateIndex,
@@ -2709,6 +2823,7 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PAUSE, (event)
 
 safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) => {
   clearStallWatchdog();
+  onPlaybackStartedUi();
   setStatus("Playing");
   if (activeCustomPlayer) {
     startPlaybackKeepalive();
@@ -2806,6 +2921,7 @@ context.start({
 });
 
 installVolumeBridge();
+setBrandingVisible(true);
 
 setStatus("PreetTV Receiver started");
 debugLog("receiver.started", {
