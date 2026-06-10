@@ -320,17 +320,48 @@ function isDashCandidate(url) {
   );
 }
 
+function isXtreamStyleUrl(url) {
+  const lower = String(url || "").toLowerCase();
+  if (
+    lower.includes("vueott") ||
+    lower.includes("/live.php") ||
+    lower.includes("/play/live") ||
+    lower.includes("/get.php") ||
+    lower.includes("/streaming/") ||
+    lower.includes("/iptv/")
+  ) {
+    return true;
+  }
+  try {
+    const host = new URL(String(url || "")).host.toLowerCase();
+    if (
+      host.startsWith("line.") ||
+      host.includes(".line.") ||
+      host.includes("vueott") ||
+      host.includes("xui.") ||
+      host.endsWith(".ott") ||
+      host.includes(".ott.")
+    ) {
+      return true;
+    }
+  } catch (_e) {}
+  return false;
+}
+
 function getPlaybackStrategy(url, options) {
   const forBrowser = !!(options && options.forBrowser);
   if (isProgressiveCandidate(url)) return "native";
   if (isDashCandidate(url)) return "dashjs";
   if (isTsCandidate(url)) {
-    // CAF segment handlers can set User-Agent; browser fetch/mpegts cannot.
-    if (isVueottStyleUrl(url) && useCastReceiver) return "caf-ts";
+    // CAF segment handlers can set User-Agent; browser fetch/mpegts cannot reliably.
+    if (useCastReceiver) return "caf-ts";
     return "mpegts";
   }
-  // IPTV m3u8 playlists usually carry MPEG-TS segments — Chromecast native HLS (905).
-  if (isHlsCandidate(url)) return (isLikelyLiveStream(url) || forBrowser) ? "hlsjs" : "caf-hls";
+  // IPTV/Xtream m3u8 playlists usually carry MPEG-TS segments — avoid CAF native HLS (905).
+  if (isHlsCandidate(url)) {
+    if (isXtreamStyleUrl(url) || isLikelyLiveStream(url) || forBrowser) return "hlsjs";
+    return "caf-hls";
+  }
   if (shouldAttemptHlsJs(url)) return "hlsjs";
   return "native";
 }
@@ -373,12 +404,7 @@ function mpegtsIsAvailable() {
 }
 
 function pickInitialUaIndex(url) {
-  try {
-    const host = new URL(String(url || "")).host.toLowerCase();
-    if (host.includes("vueott") || host.includes("line.") || host.includes("ott")) {
-      return 0;
-    }
-  } catch (_e) {}
+  if (isXtreamStyleUrl(url)) return 0;
   return 1;
 }
 
@@ -413,8 +439,13 @@ function isStaticHosting() {
 }
 
 function isVueottStyleUrl(url) {
-  const lower = String(url || "").toLowerCase();
-  return lower.includes("vueott") || lower.includes("/play/live.php");
+  return isXtreamStyleUrl(url);
+}
+
+function xtreamNeedsDirectTsOnly() {
+  const playback = asObject(activeContract.playback);
+  if (playback.xtreamPreferTs === true || playback.vueottPreferTs === true) return true;
+  return isStaticHosting() || !isProxyEnabled();
 }
 
 function toTsVariant(url) {
@@ -426,9 +457,7 @@ function toTsVariant(url) {
 }
 
 function vueottNeedsDirectTsOnly() {
-  const playback = asObject(activeContract.playback);
-  if (playback.vueottPreferTs === true) return true;
-  return isStaticHosting() || !isProxyEnabled();
+  return xtreamNeedsDirectTsOnly();
 }
 
 function tryEnableExplicitProxy(reason) {
@@ -799,6 +828,19 @@ function armStallWatchdog(source) {
   });
   stallWatchdogTimer = setTimeout(() => {
     if (serial !== stallWatchdogSerial) return;
+    if (pendingCustomPlayerBoot && String(source || "").indexOf(".boot") < 0) {
+      debugLog("candidate.watchdog.deferred", {
+        source,
+        serial,
+        pendingCustomPlayerBoot,
+      });
+      armStallWatchdog(source + ".boot");
+      return;
+    }
+    if (activeCustomPlayer && isCustomPlayerHealthy()) {
+      clearStallWatchdog();
+      return;
+    }
     setStatus(`Loading timeout on ${activeCandidateIndex + 1}/${activeCandidates.length}, trying next candidate`);
     debugLog("candidate.watchdog.timeout", {
       source,
@@ -983,16 +1025,16 @@ function buildCompatibilityCandidates(baseUrl, customData) {
 
   const looksTs = extensionHint === "ts" || lower.endsWith(".ts");
   const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
-  const isVueottStyle = isVueottStyleUrl(baseUrl);
-  const vueottTsOnly = isVueottStyle && vueottNeedsDirectTsOnly();
+  const isXtreamStyle = isXtreamStyleUrl(baseUrl);
+  const xtreamTsOnly = isXtreamStyle && xtreamNeedsDirectTsOnly();
 
-  if (vueottTsOnly) {
-    // Static Cast receivers (github.io) cannot proxy; vueott m3u8 returns HTTP 458 on Cast.
+  if (xtreamTsOnly) {
+    // Static Cast receivers cannot proxy; many Xtream m3u8 endpoints return HTTP 458 on Cast.
     push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
     if (looksTs) {
       push(normalizeCandidateUrl(baseUrl));
     }
-  } else if (isVueottStyle) {
+  } else if (isXtreamStyle) {
     push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
     push(normalizeCandidateUrl(baseUrl));
     const m3u8Base = looksHls ? normalizeCandidateUrl(baseUrl) : toM3u8Variant(baseUrl);
@@ -1011,7 +1053,7 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     push(normalizeCandidateUrl(baseUrl));
   }
 
-  if (looksLikeLivePhp && !extensionHint && !vueottTsOnly) {
+  if (looksLikeLivePhp && !extensionHint && !xtreamTsOnly) {
     push(appendQueryParam(baseUrl, "extension", "m3u8"));
     push(appendQueryParam(baseUrl, "extension", "ts"));
     push(appendQueryParam(baseUrl, "type", "m3u8"));
@@ -1031,14 +1073,14 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     } catch (_e) {}
   }
 
-  if (looksHls && !vueottTsOnly) {
+  if (looksHls && !xtreamTsOnly) {
     push(rewriteQueryParam(baseUrl, "extension", "ts"));
     push(rewriteQueryParam(baseUrl, "ext", "ts"));
   }
 
   if (customData && Array.isArray(customData.candidateUrls)) {
     customData.candidateUrls.forEach((candidateUrl) => {
-      if (!vueottTsOnly) {
+      if (!xtreamTsOnly) {
         push(candidateUrl);
         return;
       }
@@ -1049,6 +1091,10 @@ function buildCompatibilityCandidates(baseUrl, customData) {
       const tsOnly = toTsVariant(candidateUrl);
       if (tsOnly) push(tsOnly);
     });
+  }
+
+  if (isXtreamStyle && xtreamTsOnly && looksLikeLivePhp && !looksTs && !looksHls) {
+    push(appendQueryParam(baseUrl, "extension", "ts"));
   }
 
   return candidates;
@@ -1329,7 +1375,7 @@ function probeStreamUrl(url) {
       debugLog("iptv.direct_blocked_458", {
         url: target,
         staticHosting: isStaticHosting(),
-        vueottTsOnly: vueottNeedsDirectTsOnly(),
+        xtreamTsOnly: xtreamNeedsDirectTsOnly(),
       });
       if (tryEnableExplicitProxy("probe_458_empty")) {
         return iptvHttpGet(target, { responseType: "text", requestType: "manifest" }).then((proxied) => {
@@ -1801,7 +1847,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     function scheduleMpegtsUaRetry(reason) {
       if (settled || mpegtsRetryInFlight) return;
       if (mpegtsUaAttempts >= IPTV_USER_AGENTS.length - 1) {
-        if (useCastReceiver && isVueottStyleUrl(sourceUrl)) {
+        if (useCastReceiver && isTsCandidate(sourceUrl)) {
           attemptCafNativeTsFromMpegts(reason || "mpegts status invalid");
         } else {
           failPreload(reason || "mpegts status invalid");
@@ -1922,14 +1968,18 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
           // Fetch probes cannot set User-Agent on Chromecast; vueott often returns
           // HTTP 458 to fetch while mpegts fetch-stream-loader still works.
           if (probe.likelyCorsBlocked) {
-            failPreload("mpegts probe cors blocked");
-            return;
-          }
+            debugLog("mpegts.probe_bypass", {
+              url: sourceUrl,
+              reason: "cors_advisory",
+              attempts: probe.attempts,
+            });
+          } else {
           debugLog("mpegts.probe_bypass", {
             url: sourceUrl,
             reason: "probe_advisory_failed",
             attempts: probe.attempts,
           });
+          }
         }
         beginMpegtsSession(probe.ok ? "probe_ok" : "probe_bypass");
       }).catch((probeErr) => {
@@ -2131,6 +2181,7 @@ function initBrowserPlayback() {
 
     if (strategy === "mpegts" && mpegtsIsAvailable()) {
       destroyMpegts();
+      installIptvNetworkShim(candidateUrl);
       const headers = buildIptvRequestHeaders(candidateUrl);
       mpegtsInstance = mpegts.createPlayer({
         type: "mpegts",
@@ -2161,6 +2212,7 @@ function initBrowserPlayback() {
 
     if (strategy === "hlsjs" && hlsIsAvailable()) {
       destroyHls();
+      installIptvNetworkShim(candidateUrl);
       hlsInstance = new Hls(buildHlsConfig());
 
       hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -2446,7 +2498,6 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     !pendingCustomPlayerBoot &&
     !vueottMpegtsAfterCafAttempted &&
     isTsCandidate(currentUrlForError) &&
-    isVueottStyleUrl(currentUrlForError) &&
     vueottCafNativeAttempted &&
     (errorCode === 104 || errorCode === 905 || errorCode === 301)
   ) {
