@@ -1198,6 +1198,19 @@ function isTruthyFlag(value) {
   return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
 }
 
+/** Cast load() often rejects with a plain object, not Error — avoid "[object Object]" in logs. */
+function serializeReceiverError(err) {
+  if (err == null) return "unknown";
+  if (typeof err.message === "string" && err.message.trim()) return err.message.trim();
+  if (typeof err.reason === "string" && err.reason.trim()) return err.reason.trim();
+  if (typeof err.description === "string" && err.description.trim()) return err.description.trim();
+  try {
+    return JSON.stringify(err);
+  } catch (_e) {
+    return String(err);
+  }
+}
+
 function asStringArray(value) {
   return Array.isArray(value)
     ? value.map((v) => String(v || "").trim()).filter((v) => v.length > 0)
@@ -1826,10 +1839,10 @@ async function startMpegtsFromCafFailure(sourceUrl) {
   if (!lastLoadTemplate || !useCastReceiver) return false;
   const normalized = normalizeCandidateUrl(sourceUrl);
   const selectedLoad = prepareLoadForCandidate(lastLoadTemplate, normalized, activeCandidateIndex);
-  prepareCustomPlayerStubLoad(selectedLoad, normalized, "mpegts");
+  const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, normalized, "mpegts");
   debugLog("caf-ts.mpegts_fallback", { url: normalized, index: activeCandidateIndex });
   try {
-    await startMpegtsPlayback(normalized, selectedLoad);
+    await startMpegtsPlayback(normalized, stubLoad);
     return true;
   } catch (e) {
     debugLog("caf-ts.mpegts_fallback.failed", {
@@ -1954,7 +1967,7 @@ async function advanceCandidateAfterCustomFailure(reason) {
 
 async function handleCustomInterceptorFailure(strategy, err, selectedLoad, selectedUrl) {
   debugLog(strategy + ".interceptor_failed", {
-    message: err && err.message ? err.message : "unknown",
+    message: serializeReceiverError(err),
     url: selectedUrl,
     index: activeCandidateIndex,
   });
@@ -2484,7 +2497,7 @@ async function tryHlsJsFallbackOnCurrentCandidate() {
     return true;
   } catch (e) {
     debugLog("candidate.hlsjs_fallback.error", {
-      message: e && e.message ? e.message : "unknown",
+      message: serializeReceiverError(e),
       url: currentUrl,
       urlCheck: inspectStreamUrl(currentUrl),
     });
@@ -2526,7 +2539,7 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
     armStallWatchdog("candidate.retry");
     await playerManager.load(nextLoad);
   } catch (e) {
-    const message = e && e.message ? e.message : String(e || "unknown");
+    const message = serializeReceiverError(e);
     setStatus(`Receiver retry failed: ${message}`);
     debugLog("candidate.retry.error", {
       message,
@@ -2813,7 +2826,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     if (strategy === "mpegts") {
       const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "mpegts");
-      void startMpegtsPlayback(selectedUrl, selectedLoad).catch((err) => (
+      void startMpegtsPlayback(selectedUrl, stubLoad).catch((err) => (
         handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl)
       ));
       return stubLoad;
@@ -2821,7 +2834,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     if (strategy === "hlsjs") {
       const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "hlsjs");
-      void startHlsJsPlayback(selectedUrl, selectedLoad).catch((err) => (
+      void startHlsJsPlayback(selectedUrl, stubLoad).catch((err) => (
         handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl)
       ));
       return stubLoad;
@@ -2941,10 +2954,17 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     return;
   }
 
-  if ((pendingCustomPlayerBoot || currentStrategy === "mpegts" || currentStrategy === "caf-ts") &&
-      (errorCode === 905 || errorCode === 104 || errorCode === 301)) {
+  if (
+    (pendingCustomPlayerBoot ||
+      currentStrategy === "mpegts" ||
+      currentStrategy === "caf-ts" ||
+      currentStrategy === "hlsjs" ||
+      currentStrategy === "dashjs") &&
+    (errorCode === 905 || errorCode === 104 || errorCode === 301)
+  ) {
     debugLog("player.error.suppressed_boot", {
       pendingCustomPlayerBoot,
+      currentStrategy,
       detailedErrorCode: detailCode,
       reason: event && event.reason ? event.reason : "",
     });
