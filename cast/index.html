@@ -56,6 +56,28 @@
       font-size: 13px;
       color: rgba(255, 255, 255, 0.72);
     }
+    .preet-now-playing {
+      position: absolute;
+      top: 96px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 92%;
+      padding: 6px 18px;
+      font-size: clamp(15px, 2.4vw, 22px);
+      font-weight: 600;
+      color: #fff;
+      text-align: center;
+      text-shadow: 0 1px 6px rgba(0, 0, 0, 0.95);
+      z-index: 10003;
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      box-sizing: border-box;
+    }
+    .preet-now-playing.hidden {
+      display: none;
+    }
     #preetLoader {
       position: absolute;
       inset: 0;
@@ -220,6 +242,8 @@
     <div class="preet-brand-title">Preet Live Streaming Player</div>
     <div class="preet-brand-sub">Cast Receiver</div>
   </div>
+
+  <div id="preetNowPlaying" class="preet-now-playing hidden" aria-live="polite" role="status"></div>
 
   <div id="preetLoader" class="hidden">
     <div class="preet-loader-spinner" aria-hidden="true"></div>

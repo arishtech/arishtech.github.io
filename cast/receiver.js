@@ -13,6 +13,7 @@ const context = hasCastFramework
 const playerManager = context ? context.getPlayerManager() : null;
 const statusEl = document.getElementById("status");
 const brandEl = document.getElementById("preetBrand");
+const nowPlayingEl = document.getElementById("preetNowPlaying");
 const loaderEl = document.getElementById("preetLoader");
 const loaderTextEl = document.getElementById("preetLoaderText");
 
@@ -799,6 +800,19 @@ function summarizeHlsNetworkError(data) {
 function setBrandingVisible(visible) {
   if (!brandEl) return;
   brandEl.classList.toggle("hidden", !visible);
+}
+
+/** Channel title from sender customData (e.g. Android buildCastCustomData); stays visible during playback. */
+function updateCastChannelNameUi(name) {
+  if (!nowPlayingEl) return;
+  const n = String(name || "").trim();
+  if (!n) {
+    nowPlayingEl.textContent = "";
+    nowPlayingEl.classList.add("hidden");
+    return;
+  }
+  nowPlayingEl.textContent = n;
+  nowPlayingEl.classList.remove("hidden");
 }
 
 function showLoader(message) {
@@ -1883,6 +1897,7 @@ function markCandidatesExhausted(reason) {
   candidatesExhausted = true;
   hideLoader();
   setBrandingVisible(true);
+  updateCastChannelNameUi("");
   setStatus("All receiver fallback candidates exhausted");
   debugLog("candidate.exhausted", {
     reason,
@@ -1927,6 +1942,8 @@ function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
     cloned.customData = Object.assign({}, originalCustomData, {
       _retryBaseUrl: originalBaseUrl,
       _retryCandidateIndex: retryIndex,
+      // Keep sender-facing index aligned so CAF stacks that drop unknown keys still pick the right URL.
+      candidateIndex: retryIndex,
     });
   }
   return cloned;
@@ -2788,6 +2805,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     activeContract = normalizeContract(customData);
     applyDebugConfigFromContract(activeContract, customData);
+    updateCastChannelNameUi(activeContract.channelName);
     showLoader("Loading stream…");
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
@@ -3088,6 +3106,18 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     if (!activeCustomPlayer) {
       const usedFallback = await tryHlsJsFallbackOnCurrentCandidate();
       if (usedFallback) return;
+    }
+    const deferUrl = activeCandidates[activeCandidateIndex] || "";
+    const deferStrategy = getPlaybackStrategy(deferUrl);
+    if (
+      !activeCustomPlayer &&
+      (deferStrategy === "hlsjs" || deferStrategy === "dashjs")
+    ) {
+      debugLog("player.error.async_skip_candidate_until_custom", {
+        strategy: deferStrategy,
+        currentIndex: activeCandidateIndex,
+      });
+      return;
     }
     await tryLoadNextCandidateOnReceiverError("caf_error");
   })();
