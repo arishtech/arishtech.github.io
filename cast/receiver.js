@@ -1182,6 +1182,13 @@ function summarizeHeaders(headers) {
   return { count: keys.length, keys };
 }
 
+function readSenderCandidateIndex(value) {
+  if (value == null) return null;
+  if (Number.isInteger(value)) return value;
+  const parsed = parseInt(String(value).trim(), 10);
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function asObject(value) {
   if (value && typeof value === "object" && !Array.isArray(value)) return value;
   if (typeof value === "string") {
@@ -2484,6 +2491,9 @@ async function tryHlsJsFallbackOnCurrentCandidate() {
   if (isTsCandidate(currentUrl)) return false;
   if (!isHlsCandidate(currentUrl)) return false;
   if (getPlaybackStrategy(currentUrl) === "mpegts") return false;
+  // LOAD interceptor already runs HLS.js for this strategy; a second startHlsJsPlayback +
+  // playerManager.load() races CAF and yields LOAD_FAILED while the first boot is pending.
+  if (getPlaybackStrategy(currentUrl) === "hlsjs") return false;
   if (!hlsIsAvailable() || !lastLoadTemplate || !playerManager) return false;
 
   hlsJsFallbackUsedForIndex = activeCandidateIndex;
@@ -2811,11 +2821,13 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     }
 
     if (customData._retryCandidateIndex != null) {
-      activeCandidateIndex = Math.max(0, Math.min(Number(customData._retryCandidateIndex), activeCandidates.length - 1));
-    } else if (Number.isInteger(customData.candidateIndex)) {
-      activeCandidateIndex = Math.max(0, Math.min(customData.candidateIndex, activeCandidates.length - 1));
+      const ri = readSenderCandidateIndex(customData._retryCandidateIndex);
+      activeCandidateIndex =
+        ri != null ? Math.max(0, Math.min(ri, activeCandidates.length - 1)) : 0;
     } else {
-      activeCandidateIndex = 0;
+      const ci = readSenderCandidateIndex(customData.candidateIndex);
+      activeCandidateIndex =
+        ci != null ? Math.max(0, Math.min(ci, activeCandidates.length - 1)) : 0;
     }
 
     loadSessionPreferredStartIndex = activeCandidateIndex;
@@ -3067,6 +3079,12 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   debugLog("player.error", errorDetail);
 
   void (async () => {
+    if (pendingCustomPlayerBoot) {
+      debugLog("player.error.async_suppressed_pending", {
+        pendingCustomPlayerBoot,
+      });
+      return;
+    }
     if (!activeCustomPlayer) {
       const usedFallback = await tryHlsJsFallbackOnCurrentCandidate();
       if (usedFallback) return;
