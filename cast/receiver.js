@@ -119,6 +119,9 @@ let hlsJsFallbackUsedForIndex = -1;
 let pendingCustomPlayerBoot = null;
 let candidateAdvanceInFlight = false;
 let candidatesExhausted = false;
+/** Index the sender asked to start from (used to rewind to earlier URLs if that fails first). */
+let loadSessionPreferredStartIndex = 0;
+let receiverBackwardFallbackUsed = false;
 let iptvDirectBlocked458 = false;
 let vueottCafNativeAttempted = false;
 let vueottMpegtsAfterCafAttempted = false;
@@ -2514,7 +2517,53 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
   clearCustomPlayer();
 
   if (!lastLoadTemplate || candidatesExhausted) return;
+
+  async function attemptReceiverCandidateLoad(url, index, sourceTag) {
+    const load = prepareLoadForCandidate(lastLoadTemplate, url, index);
+    const isRewind = sourceTag === "rewind";
+    const label = isRewind
+      ? `Trying earlier format (${index + 1}/${activeCandidates.length})…`
+      : `Retrying ${index + 1}/${activeCandidates.length}…`;
+    showLoader(label);
+    setStatus(label);
+    debugLog(isRewind ? "candidate.rewind" : "candidate.retry", {
+      reason,
+      nextIndex: index,
+      nextUrl: url,
+      candidateCount: activeCandidates.length,
+      contentType: load && load.media ? load.media.contentType : "",
+      strategy: getPlaybackStrategy(url),
+      sourceTag,
+    });
+    armStallWatchdog(isRewind ? "candidate.rewind" : "candidate.retry");
+    await playerManager.load(load);
+  }
+
+  // Sender may start at the last URL (e.g. .ts failed on phone); try index 0 on receiver before giving up.
   if (activeCandidateIndex >= activeCandidates.length - 1) {
+    if (
+      !receiverBackwardFallbackUsed &&
+      loadSessionPreferredStartIndex > 0 &&
+      activeCandidates.length > 1
+    ) {
+      receiverBackwardFallbackUsed = true;
+      activeCandidateIndex = 0;
+      rotateIptvUserAgent("candidate_rewind");
+      const rewindUrl = activeCandidates[0];
+      try {
+        await attemptReceiverCandidateLoad(rewindUrl, 0, "rewind");
+      } catch (e) {
+        const message = serializeReceiverError(e);
+        setStatus(`Receiver retry failed: ${message}`);
+        debugLog("candidate.rewind.error", {
+          message,
+          nextIndex: 0,
+          nextUrl: rewindUrl || "",
+        });
+        markCandidatesExhausted("candidate_rewind_failed");
+      }
+      return;
+    }
     markCandidatesExhausted(reason);
     return;
   }
@@ -2522,22 +2571,9 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
   activeCandidateIndex += 1;
   rotateIptvUserAgent("candidate_retry");
   const nextUrl = activeCandidates[activeCandidateIndex];
-  const nextLoad = prepareLoadForCandidate(lastLoadTemplate, nextUrl, activeCandidateIndex);
-  const retryLabel = `Retrying ${activeCandidateIndex + 1}/${activeCandidates.length}…`;
-  showLoader(retryLabel);
-  setStatus(retryLabel);
-  debugLog("candidate.retry", {
-    reason,
-    nextIndex: activeCandidateIndex,
-    nextUrl,
-    candidateCount: activeCandidates.length,
-    contentType: nextLoad && nextLoad.media ? nextLoad.media.contentType : "",
-    strategy: getPlaybackStrategy(nextUrl),
-  });
 
   try {
-    armStallWatchdog("candidate.retry");
-    await playerManager.load(nextLoad);
+    await attemptReceiverCandidateLoad(nextUrl, activeCandidateIndex, "forward");
   } catch (e) {
     const message = serializeReceiverError(e);
     setStatus(`Receiver retry failed: ${message}`);
@@ -2745,6 +2781,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     showLoader("Loading stream…");
     hlsJsFallbackUsedForIndex = -1;
     candidatesExhausted = false;
+    receiverBackwardFallbackUsed = false;
     iptvDirectBlocked458 = false;
     vueottCafNativeAttempted = false;
     vueottMpegtsAfterCafAttempted = false;
@@ -2780,6 +2817,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     } else {
       activeCandidateIndex = 0;
     }
+
+    loadSessionPreferredStartIndex = activeCandidateIndex;
 
     const selectedUrl = normalizeCandidateUrl(activeCandidates[activeCandidateIndex] || baseUrl);
     activeCandidates[activeCandidateIndex] = selectedUrl;
@@ -2893,6 +2932,15 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     return;
   }
 
+  if (pendingCustomPlayerBoot) {
+    debugLog("player.error.suppressed_boot_pending", {
+      pendingCustomPlayerBoot,
+      detailedErrorCode: detailCode,
+      reason: event && event.reason ? event.reason : "",
+    });
+    return;
+  }
+
   if (
     activeCustomPlayer &&
     (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)
@@ -2907,6 +2955,12 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
 
   const currentUrlForError = activeCandidates[activeCandidateIndex] || "";
   const currentStrategy = getPlaybackStrategy(currentUrlForError);
+  const stubLikeStrategy =
+    currentStrategy === "mpegts" ||
+    currentStrategy === "caf-ts" ||
+    currentStrategy === "hlsjs" ||
+    currentStrategy === "dashjs";
+
   if (
     !activeCustomPlayer &&
     !pendingCustomPlayerBoot &&
@@ -2955,12 +3009,13 @@ safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
   }
 
   if (
-    (pendingCustomPlayerBoot ||
-      currentStrategy === "mpegts" ||
-      currentStrategy === "caf-ts" ||
-      currentStrategy === "hlsjs" ||
-      currentStrategy === "dashjs") &&
-    (errorCode === 905 || errorCode === 104 || errorCode === 301)
+    stubLikeStrategy &&
+    !activeCustomPlayer &&
+    (errorCode === 905 ||
+      errorCode === 104 ||
+      errorCode === 301 ||
+      errorCode === 101 ||
+      errorCode === 0)
   ) {
     debugLog("player.error.suppressed_boot", {
       pendingCustomPlayerBoot,
