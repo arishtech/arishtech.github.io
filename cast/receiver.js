@@ -127,6 +127,19 @@ let iptvDirectBlocked458 = false;
 let vueottCafNativeAttempted = false;
 let vueottMpegtsAfterCafAttempted = false;
 
+/** Same-index recovery: HLS.js → CAF native HLS; mpegts.js → CAF native TS (Chromecast-only). */
+let receiverRecoveryState = {
+  hlsNativeTried: Object.create(null),
+  cafTsAfterMpegts: Object.create(null),
+};
+
+function resetReceiverRecoveryState() {
+  receiverRecoveryState = {
+    hlsNativeTried: Object.create(null),
+    cafTsAfterMpegts: Object.create(null),
+  };
+}
+
 window.addEventListener("unhandledrejection", (ev) => {
   const reason = ev && ev.reason;
   const message = reason && reason.message ? reason.message : String(reason || "unknown");
@@ -382,6 +395,27 @@ function isXtreamStyleUrl(url) {
 
 function getPlaybackStrategy(url, options) {
   const forBrowser = !!(options && options.forBrowser);
+  const pb = asObject(activeContract.playback);
+  const chStream = String(pb.channelStreamType || "").toLowerCase();
+  // Sender-reported playback shape (what worked on the phone) — bias before channel metadata.
+  if (!forBrowser && useCastReceiver) {
+    if (isTruthyFlag(pb.phonePlayingAsDash) && isDashCandidate(url)) {
+      return "dashjs";
+    }
+    if (isTruthyFlag(pb.phonePlayingAsHls) && isHlsCandidate(url)) {
+      return "hlsjs";
+    }
+    if (isTruthyFlag(pb.phonePlayingAsTs) && isTsCandidate(url)) {
+      return "caf-ts";
+    }
+  }
+  if (!forBrowser && useCastReceiver && chStream.includes("hls")) {
+    if (isHlsCandidate(url)) return "hlsjs";
+    if (shouldAttemptHlsJs(url)) return "hlsjs";
+  }
+  if (!forBrowser && (chStream.includes("dash") || chStream.includes("mpd")) && isDashCandidate(url)) {
+    return "dashjs";
+  }
   if (isProgressiveCandidate(url)) return "native";
   if (isDashCandidate(url)) return "dashjs";
   if (isTsCandidate(url)) {
@@ -1434,6 +1468,11 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     candidates.push(normalized);
   };
 
+  const phoneResolved = String((customData && customData.phoneResolvedUrl) || "").trim();
+  if (phoneResolved) {
+    push(phoneResolved);
+  }
+
   baseUrl = normalizeCandidateUrl(baseUrl);
   const lower = (baseUrl || "").toLowerCase();
   const looksLikeLivePhp = lower.includes("/live.php");
@@ -2013,12 +2052,108 @@ async function advanceCandidateAfterCustomFailure(reason) {
   }
 }
 
+async function tryNativeCafHlsReload(sourceUrl) {
+  if (!lastLoadTemplate || !playerManager) {
+    throw new Error("missing_template");
+  }
+  destroyHls();
+  destroyDash();
+  destroyMpegts();
+  clearCustomPlayer();
+  pendingCustomPlayerBoot = null;
+  const normalized = normalizeCandidateUrl(sourceUrl);
+  const sel = prepareLoadForCandidate(lastLoadTemplate, normalized, activeCandidateIndex);
+  sel.media = Object.assign({}, sel.media, {
+    contentId: normalized,
+    contentUrl: normalized,
+    contentType: "application/x-mpegURL",
+    streamType: cast.framework.messages.StreamType.LIVE,
+  });
+  debugLog("recovery.caf_native_hls.load", { url: normalized, index: activeCandidateIndex });
+  await new Promise((resolve, reject) => {
+    try {
+      const req = playerManager.load(sel);
+      if (req && typeof req.then === "function") {
+        req.then(() => resolve()).catch((e) => reject(e));
+      } else {
+        resolve();
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
+async function tryNativeCafTsReload(sourceUrl) {
+  if (!lastLoadTemplate || !playerManager) {
+    throw new Error("missing_template");
+  }
+  destroyHls();
+  destroyDash();
+  destroyMpegts();
+  clearCustomPlayer();
+  pendingCustomPlayerBoot = null;
+  const normalized = normalizeCandidateUrl(sourceUrl);
+  const sel = prepareLoadForCandidate(lastLoadTemplate, normalized, activeCandidateIndex);
+  sel.media = Object.assign({}, sel.media, {
+    contentId: normalized,
+    contentUrl: normalized,
+    contentType: "video/mp2t",
+    streamType: cast.framework.messages.StreamType.LIVE,
+  });
+  debugLog("recovery.caf_native_ts.load", { url: normalized, index: activeCandidateIndex });
+  await new Promise((resolve, reject) => {
+    try {
+      const req = playerManager.load(sel);
+      if (req && typeof req.then === "function") {
+        req.then(() => resolve()).catch((e) => reject(e));
+      } else {
+        resolve();
+      }
+    } catch (e) {
+      reject(e);
+    }
+  });
+}
+
 async function handleCustomInterceptorFailure(strategy, err, selectedLoad, selectedUrl) {
   debugLog(strategy + ".interceptor_failed", {
     message: serializeReceiverError(err),
     url: selectedUrl,
     index: activeCandidateIndex,
   });
+
+  const idx = activeCandidateIndex;
+  const rKey = String(idx);
+
+  if (strategy === "hlsjs" && useCastReceiver && isHlsCandidate(selectedUrl) && !receiverRecoveryState.hlsNativeTried[rKey]) {
+    receiverRecoveryState.hlsNativeTried[rKey] = true;
+    try {
+      await tryNativeCafHlsReload(selectedUrl);
+      debugLog("recovery.caf_native_hls.accepted", { index: idx, url: selectedUrl });
+      return selectedLoad;
+    } catch (e) {
+      debugLog("recovery.caf_native_hls.failed", {
+        message: serializeReceiverError(e),
+        index: idx,
+      });
+    }
+  }
+
+  if (strategy === "mpegts" && useCastReceiver && isTsCandidate(selectedUrl) && !receiverRecoveryState.cafTsAfterMpegts[rKey]) {
+    receiverRecoveryState.cafTsAfterMpegts[rKey] = true;
+    try {
+      await tryNativeCafTsReload(selectedUrl);
+      debugLog("recovery.caf_native_ts.accepted", { index: idx, url: selectedUrl });
+      return selectedLoad;
+    } catch (e) {
+      debugLog("recovery.caf_native_ts.failed", {
+        message: serializeReceiverError(e),
+        index: idx,
+      });
+    }
+  }
+
   await advanceCandidateAfterCustomFailure(strategy + "_interceptor_failed");
   return selectedLoad;
 }
@@ -2029,7 +2164,9 @@ function onCustomPlayerFatalError(playerType, details) {
   destroyHls();
   destroyDash();
   destroyMpegts();
-  void advanceCandidateAfterCustomFailure(playerType + "_fatal");
+  void advanceCandidateAfterCustomFailure(playerType + "_fatal").catch((e) => {
+    debugLog("custom_player.fatal.advance_failed", { message: serializeReceiverError(e) });
+  });
 }
 
 function startHlsJsPlayback(sourceUrl, selectedLoad) {
@@ -2834,6 +2971,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
     iptvDirectBlocked458 = false;
     vueottCafNativeAttempted = false;
     vueottMpegtsAfterCafAttempted = false;
+    resetReceiverRecoveryState();
     activeIptvUaIndex = pickInitialUaIndex(baseUrl);
     debugLog("load.received", {
       mediaContentUrl: baseUrl,
@@ -2916,17 +3054,21 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
 
     if (strategy === "mpegts") {
       const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "mpegts");
-      void startMpegtsPlayback(selectedUrl, stubLoad).catch((err) => (
-        handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl)
-      ));
+      void startMpegtsPlayback(selectedUrl, stubLoad).catch((err) => {
+        void handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl).catch((e) => {
+          debugLog("mpegts.failure_handler_error", { message: serializeReceiverError(e) });
+        });
+      });
       return stubLoad;
     }
 
     if (strategy === "hlsjs") {
       const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "hlsjs");
-      void startHlsJsPlayback(selectedUrl, stubLoad).catch((err) => (
-        handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl)
-      ));
+      void startHlsJsPlayback(selectedUrl, stubLoad).catch((err) => {
+        void handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl).catch((e) => {
+          debugLog("hlsjs.failure_handler_error", { message: serializeReceiverError(e) });
+        });
+      });
       return stubLoad;
     }
 
