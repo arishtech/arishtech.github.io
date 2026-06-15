@@ -85,7 +85,7 @@ let activeCandidateIndex = 0;
 let lastLoadTemplate = null;
 let stallWatchdogTimer = null;
 let stallWatchdogSerial = 0;
-const STALL_WATCHDOG_MS = 12000;
+const STALL_WATCHDOG_MS = 18000;
 const PLAYBACK_STALL_MS = 45000;
 let playbackKeepaliveTimer = null;
 let lastPlaybackProgressAt = 0;
@@ -385,13 +385,15 @@ function getPlaybackStrategy(url, options) {
   if (isProgressiveCandidate(url)) return "native";
   if (isDashCandidate(url)) return "dashjs";
   if (isTsCandidate(url)) {
-    // CAF segment handlers can set User-Agent; browser fetch/mpegts cannot reliably.
+    // CAF can set User-Agent on native TS; phone often uses VLC — we still UA-rotate on errors.
     if (useCastReceiver) return "caf-ts";
     return "mpegts";
   }
-  // IPTV/Xtream m3u8 playlists usually carry MPEG-TS segments — avoid CAF native HLS (905).
+  // IPTV HLS: CAF native Shaka often fails (905) on MPEG-TS-in-HLS; HLS.js matches phone playback.
   if (isHlsCandidate(url)) {
-    if (isXtreamStyleUrl(url) || isLikelyLiveStream(url) || forBrowser) return "hlsjs";
+    if (forBrowser) return "hlsjs";
+    if (useCastReceiver) return "hlsjs";
+    if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return "hlsjs";
     return "caf-hls";
   }
   if (shouldAttemptHlsJs(url)) return "hlsjs";
@@ -436,7 +438,8 @@ function mpegtsIsAvailable() {
 }
 
 function pickInitialUaIndex(url) {
-  if (isXtreamStyleUrl(url)) return 0;
+  // VLC UA first for Xtream / live IPTV — closer to phone (LibVLC) and often required by CDNs.
+  if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return 0;
   return 1;
 }
 
@@ -1488,6 +1491,11 @@ function buildCompatibilityCandidates(baseUrl, customData) {
         withM3u8Path.pathname = `${pathname}.m3u8`;
         push(withM3u8Path.toString());
       }
+      // Query-style HLS hints (some CDNs match phone clients that send extension/type only).
+      push(appendQueryParam(baseUrl, "extension", "m3u8"));
+      push(appendQueryParam(baseUrl, "type", "m3u8"));
+      push(appendQueryParam(baseUrl, "output", "hls"));
+      push(appendQueryParam(baseUrl, "format", "hls"));
     } catch (_e) {}
   }
 
@@ -1688,7 +1696,14 @@ function createIptvHlsLoaderClass() {
     load(context, config, callbacks) {
       const url = context.url;
       const responseType = context.responseType === "arraybuffer" ? "arraybuffer" : "text";
-      const timeoutMs = config.timeout || 12000;
+      const isManifest =
+        context &&
+        typeof Hls !== "undefined" &&
+        Hls.UrlTypes &&
+        context.type === Hls.UrlTypes.MANIFEST;
+      const baseT = Number(config.manifestLoadingTimeOut) || 28000;
+      const fragT = Number(config.fragLoadingTimeOut) || 28000;
+      const timeoutMs = Math.min(120000, Math.max(20000, isManifest ? baseT : fragT));
       let timedOut = false;
       const timer = setTimeout(() => {
         timedOut = true;
@@ -1812,15 +1827,21 @@ function buildHlsConfig() {
   const config = {
     enableWorker: false,
     lowLatencyMode: false,
-    manifestLoadingTimeOut: 15000,
-    manifestLoadingMaxRetry: 3,
-    fragLoadingTimeOut: 15000,
-    fragLoadingMaxRetry: 4,
-    maxBufferLength: 30,
-    maxMaxBufferLength: 60,
+    startLevel: -1,
+    capLevelToPlayerSize: false,
+    manifestLoadingTimeOut: 28000,
+    manifestLoadingMaxRetry: 6,
+    manifestLoadingRetryDelay: 800,
+    levelLoadingTimeOut: 22000,
+    levelLoadingMaxRetry: 5,
+    fragLoadingTimeOut: 28000,
+    fragLoadingMaxRetry: 10,
+    fragLoadingRetryDelay: 600,
+    maxBufferLength: 45,
+    maxMaxBufferLength: 120,
     liveSyncDurationCount: 3,
-    liveMaxLatencyDurationCount: 12,
-    maxLiveSyncPlaybackRate: 1.05,
+    liveMaxLatencyDurationCount: 14,
+    maxLiveSyncPlaybackRate: 1.08,
   };
   if (LoaderClass) {
     config.loader = LoaderClass;
