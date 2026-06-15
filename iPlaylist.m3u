@@ -20473,3 +20473,5 @@ https://owrcovcrpy.gpcdn.net/bpk-tv/1705/output/index.m3u8?video_type=applicatio
 https://owrcovcrpy.gpcdn.net/bpk-tv/1703/output/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Ungrouped
 #EXTINF:-1 tvg-logo=" " group-title="Bangladeshi Ungrouped",Somoy TV  🇧🇩
 https://owrcovcrpy.gpcdn.net/bpk-tv/1702/output/index.m3u8?video_type=application%2Fvnd.apple.mpegurl&source_group=Ungrouped
+#EXTINF:-1 tvg-logo="https://commons.wikimedia.org/wiki/File:CNBC_logo.svg" group-title="News",CNBC US
+https://amg01079-nbcuuk-amg01079c2-samsung-gb-1258.playouts.now.amagi.tv/playlist.m3u8
