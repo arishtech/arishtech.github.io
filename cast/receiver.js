@@ -1453,20 +1453,43 @@ function inferContentType(url) {
     const u = new URL(url);
     const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
     const type = (u.searchParams.get("type") || u.searchParams.get("output") || u.searchParams.get("format") || "").toLowerCase();
+    // Explicit extension=ts must win over format=hls / type=m3u8 on the same query (bad combos
+    // from stacked fallbacks confuse CAF/Shaka and MEDIA_STATUS flips mpegURL vs mp2t).
+    if (ext === "ts" || lower.endsWith(".ts")) return "video/mp2t";
     if (lower.endsWith(".m3u8") || ext === "m3u8" || type === "m3u8" || type === "hls") return "application/x-mpegURL";
     if (lower.endsWith(".mpd") || ext === "mpd" || type === "mpd" || type === "dash") return "application/dash+xml";
-    if (lower.endsWith(".ts") || ext === "ts" || type === "ts") return "video/mp2t";
+    if (type === "ts") return "video/mp2t";
     if (lower.endsWith(".mp4") || ext === "mp4" || type === "mp4") return "video/mp4";
     if (lower.endsWith(".webm") || ext === "webm" || type === "webm") return "video/webm";
   } catch (_e) {}
   return "video/*";
 }
 
+/** Drop format=/type=/output= HLS hints when extension is TS (avoids hybrid URLs that confuse CAF). */
+function stripConflictingHlsHintsOnTsUrl(url) {
+  try {
+    const u = new URL(repairStreamUrl(String(url || "").trim()));
+    const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
+    if (ext !== "ts") return String(url);
+    let changed = false;
+    ["format", "type", "output"].forEach((key) => {
+      const v = (u.searchParams.get(key) || "").toLowerCase();
+      if (v === "hls" || v === "m3u8") {
+        u.searchParams.delete(key);
+        changed = true;
+      }
+    });
+    return changed ? u.toString() : String(url);
+  } catch (_e) {
+    return String(url || "");
+  }
+}
+
 function buildCompatibilityCandidates(baseUrl, customData) {
   const candidates = [];
   const seen = new Set();
   const push = (value) => {
-    const normalized = normalizeCandidateUrl(value);
+    const normalized = normalizeCandidateUrl(stripConflictingHlsHintsOnTsUrl(value));
     if (!normalized || seen.has(normalized)) return;
     seen.add(normalized);
     candidates.push(normalized);
@@ -1477,7 +1500,7 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     push(phoneResolved);
   }
 
-  baseUrl = normalizeCandidateUrl(baseUrl);
+  baseUrl = normalizeCandidateUrl(stripConflictingHlsHintsOnTsUrl(baseUrl));
   const lower = (baseUrl || "").toLowerCase();
   const looksLikeLivePhp = lower.includes("/live.php");
   const looksLikeLivePlayPath = /\/live\/play\//.test(lower);
@@ -1572,13 +1595,12 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   // TS-only mode prefers direct TS first (458 on m3u8 fetch is common), but if TS never plays
   // we still need HLS variants as later candidates — otherwise candidateCount stays 1 and we exhaust.
   if (xtreamTsOnly && isXtreamStyle) {
-    const m3u8Fallback = toM3u8Variant(baseUrl);
-    if (m3u8Fallback) push(m3u8Fallback);
-    if (!looksHls) {
-      push(appendQueryParam(baseUrl, "extension", "m3u8"));
-      push(appendQueryParam(baseUrl, "type", "m3u8"));
-      push(appendQueryParam(baseUrl, "output", "m3u8"));
-      push(appendQueryParam(baseUrl, "format", "hls"));
+    const m3u8Base = toM3u8Variant(baseUrl);
+    if (m3u8Base) {
+      push(m3u8Base);
+      push(appendQueryParam(m3u8Base, "type", "m3u8"));
+      push(appendQueryParam(m3u8Base, "output", "m3u8"));
+      push(appendQueryParam(m3u8Base, "format", "hls"));
     }
   }
 
