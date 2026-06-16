@@ -110,6 +110,8 @@ const AV_SYNC_MPEGTS_MIN_SPEED = 0.72;
 let volumeBridgeInstalled = false;
 
 let hlsInstance = null;
+/** Incremented on each Cast [startHlsJsPlayback] so async probe/error paths ignore stale instances. */
+let hlsJsInvocationCounter = 0;
 let dashInstance = null;
 let mpegtsInstance = null;
 
@@ -2213,6 +2215,26 @@ function onCustomPlayerFatalError(playerType, details) {
 
 function startHlsJsPlayback(sourceUrl, selectedLoad) {
   return new Promise((resolve, reject) => {
+    const invocationId = ++hlsJsInvocationCounter;
+    const hlsLive = () => !settled && hlsInstance && invocationId === hlsJsInvocationCounter;
+
+    function safeHlsLoadSource(url, why) {
+      if (!hlsLive()) {
+        debugLog("hlsjs.loadSource_skipped", { why, invocationId, counter: hlsJsInvocationCounter });
+        return false;
+      }
+      try {
+        hlsInstance.loadSource(url);
+        return true;
+      } catch (e) {
+        debugLog("hlsjs.loadSource_throw", {
+          why,
+          message: e && e.message ? e.message : "unknown",
+        });
+        return false;
+      }
+    }
+
     destroyHls();
     destroyDash();
     destroyMpegts();
@@ -2250,6 +2272,7 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     }
 
     function trySettleAfterReady() {
+      if (!hlsLive()) return;
       if (!mediaAttached || !manifestParsed) return;
 
       function completeSettle() {
@@ -2276,6 +2299,7 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
       let attempts = 0;
       const waitForBlob = () => {
         if (settled) return;
+        if (!hlsLive()) return;
         if (readVideoBlobUrl() || attempts >= 20) {
           completeSettle();
           return;
@@ -2302,6 +2326,7 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
 
     hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
       if (!data || !data.fatal) return;
+      if (!hlsLive()) return;
       debugLog("hlsjs.fatal_error", Object.assign({
         url: normalizedUrl,
         index: activeCandidateIndex,
@@ -2316,21 +2341,19 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
       if (!settled && isManifestNetworkError && Number(netErr.httpStatus) === 458) {
         iptvDirectBlocked458 = true;
         if (tryEnableExplicitProxy("hlsjs_fatal_458")) {
-          try {
-            hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
+          if (safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_fatal_458")) {
             return;
-          } catch (_e) {}
+          }
         }
       }
 
       if (!settled && isManifestNetworkError && hlsUaAttempts < IPTV_USER_AGENTS.length - 1) {
         hlsUaAttempts += 1;
         rotateIptvUserAgent("hlsjs_manifest_retry");
-        try {
-          hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
-        } catch (_e) {
-          failPreload(data.details || "hlsjs fatal");
+        if (safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_manifest_retry")) {
+          return;
         }
+        failPreload(data.details || "hlsjs fatal");
         return;
       }
 
@@ -2347,6 +2370,7 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
     probeStreamUrl(normalizedUrl).then((probe) => {
       debugLog("hlsjs.probe", { url: normalizedUrl, index: activeCandidateIndex, probe });
       if (settled) return;
+      if (!hlsLive()) return;
       if (Number.isInteger(probe.uaIndex)) {
         activeIptvUaIndex = probe.uaIndex;
       }
@@ -2358,14 +2382,16 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
         userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
         probePlaylist: !!probe.isPlaylist,
       });
-      hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
+      if (!safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_probe_ok")) {
+        failPreload("hlsjs loadSource unavailable after probe");
+      }
     }).catch((probeErr) => {
       debugLog("hlsjs.probe.error", {
         url: normalizedUrl,
         message: probeErr && probeErr.message ? probeErr.message : "unknown",
       });
-      if (!settled) {
-        hlsInstance.loadSource(resolveFetchUrl(normalizedUrl, "manifest"));
+      if (!settled && !safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_probe_error")) {
+        failPreload("hlsjs loadSource unavailable after probe error");
       }
     });
   });
