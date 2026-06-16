@@ -1286,6 +1286,8 @@ function asStringArray(value) {
 
 function normalizeContract(customData) {
   const root = asObject(customData);
+  const play = asObject(root.playback);
+  const sb = asObject(root.streamBootstrap);
   return {
     schemaVersion: Number(root.schemaVersion) || 1,
     auth: asObject(root.auth),
@@ -1293,7 +1295,10 @@ function normalizeContract(customData) {
     proxy: asObject(root.proxy),
     networkPolicy: asObject(root.networkPolicy),
     hosting: asObject(root.hosting),
-    playback: asObject(root.playback),
+    playback: Object.assign({}, play, {
+      phonePrimaryUrl: String(sb.phonePrimaryUrl || play.phonePrimaryUrl || "").trim(),
+      preferReceiverEngine: String(sb.preferReceiverEngine || play.preferReceiverEngine || "").trim(),
+    }),
     channelName: String(root.channelName || ""),
     debug: asObject(root.debug),
   };
@@ -1487,6 +1492,22 @@ function stripConflictingHlsHintsOnTsUrl(url) {
   }
 }
 
+/** In static TS-only mode, optionally lead with m3u8 when the phone prefers HLS (VLC-style live.php). */
+function phoneReceiverWantsM3u8BeforeTsForLivePhp(baseUrl, customData) {
+  if (!isXtreamStyleUrl(baseUrl)) return false;
+  if (!xtreamNeedsDirectTsOnly()) return false;
+  const lower = String(baseUrl || "").toLowerCase();
+  if (!lower.includes("/live.php")) return false;
+  const root = asObject(customData);
+  const sb = asObject(root.streamBootstrap);
+  const pb = asObject(root.playback);
+  const pref = String(sb.preferReceiverEngine || pb.preferReceiverEngine || "").toLowerCase();
+  if (pref === "hlsjs") return true;
+  if (pref === "caf-ts" || pref === "mpegts" || pref === "dashjs") return false;
+  if (isTruthyFlag(pb.phonePlayingAsHls) && !isTruthyFlag(pb.phonePlayingAsTs)) return true;
+  return false;
+}
+
 function buildCompatibilityCandidates(baseUrl, customData) {
   const candidates = [];
   const seen = new Set();
@@ -1500,6 +1521,11 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const phoneResolved = String((customData && customData.phoneResolvedUrl) || "").trim();
   if (phoneResolved) {
     push(phoneResolved);
+  }
+
+  const phonePrimary = String((customData && customData.streamBootstrap && customData.streamBootstrap.phonePrimaryUrl) || "").trim();
+  if (phonePrimary) {
+    push(phonePrimary);
   }
 
   baseUrl = normalizeCandidateUrl(stripConflictingHlsHintsOnTsUrl(baseUrl));
@@ -1525,6 +1551,15 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   }
 
   if (xtreamTsOnly) {
+    if (phoneReceiverWantsM3u8BeforeTsForLivePhp(baseUrl, customData)) {
+      const m3u8Lead = toM3u8Variant(baseUrl);
+      if (m3u8Lead) {
+        push(m3u8Lead);
+        push(appendQueryParam(m3u8Lead, "type", "m3u8"));
+        push(appendQueryParam(m3u8Lead, "output", "m3u8"));
+        push(appendQueryParam(m3u8Lead, "format", "hls"));
+      }
+    }
     // Static Cast receivers cannot proxy; many Xtream m3u8 endpoints return HTTP 458 on Cast.
     push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
     if (looksTs) {
@@ -2366,33 +2401,29 @@ function startHlsJsPlayback(sourceUrl, selectedLoad) {
 
     armStallWatchdog("hlsjs.start");
     hlsInstance.attachMedia(castVideoEl);
+    debugLog("hlsjs.start_immediate", {
+      url: normalizedUrl,
+      index: activeCandidateIndex,
+      headers: Object.keys(buildIptvRequestHeaders(normalizedUrl)),
+      userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
+      urlCheck: inspectStreamUrl(normalizedUrl),
+    });
+    if (!safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_immediate")) {
+      failPreload("hlsjs loadSource failed on immediate start");
+      return;
+    }
 
-    probeStreamUrl(normalizedUrl).then((probe) => {
+    void probeStreamUrl(normalizedUrl).then((probe) => {
       debugLog("hlsjs.probe", { url: normalizedUrl, index: activeCandidateIndex, probe });
-      if (settled) return;
-      if (!hlsLive()) return;
+      if (settled || !hlsLive()) return;
       if (Number.isInteger(probe.uaIndex)) {
         activeIptvUaIndex = probe.uaIndex;
-      }
-      debugLog("hlsjs.start", {
-        url: normalizedUrl,
-        index: activeCandidateIndex,
-        headers: Object.keys(buildIptvRequestHeaders(normalizedUrl)),
-        urlCheck: inspectStreamUrl(normalizedUrl),
-        userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
-        probePlaylist: !!probe.isPlaylist,
-      });
-      if (!safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_probe_ok")) {
-        failPreload("hlsjs loadSource unavailable after probe");
       }
     }).catch((probeErr) => {
       debugLog("hlsjs.probe.error", {
         url: normalizedUrl,
         message: probeErr && probeErr.message ? probeErr.message : "unknown",
       });
-      if (!settled && !safeHlsLoadSource(resolveFetchUrl(normalizedUrl, "manifest"), "hlsjs_probe_error")) {
-        failPreload("hlsjs loadSource unavailable after probe error");
-      }
     });
   });
 }
@@ -2619,6 +2650,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     }
 
     try {
+      beginMpegtsSession("immediate");
       void probeBinaryStreamUrl(sourceUrl).then((probe) => {
         debugLog("mpegts.probe", { url: sourceUrl, index: activeCandidateIndex, probe });
         if (settled) return;
@@ -2629,8 +2661,6 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
           if (probeIndicates458Block(probe.attempts)) {
             iptvDirectBlocked458 = true;
           }
-          // Fetch probes cannot set User-Agent on Chromecast; vueott often returns
-          // HTTP 458 to fetch while mpegts fetch-stream-loader still works.
           if (probe.likelyCorsBlocked) {
             debugLog("mpegts.probe_bypass", {
               url: sourceUrl,
@@ -2638,20 +2668,18 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
               attempts: probe.attempts,
             });
           } else {
-          debugLog("mpegts.probe_bypass", {
-            url: sourceUrl,
-            reason: "probe_advisory_failed",
-            attempts: probe.attempts,
-          });
+            debugLog("mpegts.probe_bypass", {
+              url: sourceUrl,
+              reason: "probe_advisory_failed",
+              attempts: probe.attempts,
+            });
           }
         }
-        beginMpegtsSession(probe.ok ? "probe_ok" : "probe_bypass");
       }).catch((probeErr) => {
         debugLog("mpegts.probe.error", {
           url: sourceUrl,
           message: probeErr && probeErr.message ? probeErr.message : "unknown",
         });
-        if (!settled) beginMpegtsSession("probe_error_fallback");
       });
     } catch (e) {
       debugLog("mpegts.attach_error", {
@@ -3047,6 +3075,8 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       customDataKeys: Object.keys(customData),
       schemaVersion: activeContract.schemaVersion,
       channelName: activeContract.channelName,
+      preferReceiverEngine: (activeContract.playback && activeContract.playback.preferReceiverEngine) || "",
+      phonePrimaryUrl: (activeContract.playback && activeContract.playback.phonePrimaryUrl) || "",
       urlCheck: inspectStreamUrl(baseUrl),
       activeIptvUaIndex,
       userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
