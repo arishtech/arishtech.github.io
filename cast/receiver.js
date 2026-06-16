@@ -1487,6 +1487,13 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const looksHls = extensionHint === "m3u8" || lower.endsWith(".m3u8");
   const isXtreamStyle = isXtreamStyleUrl(baseUrl);
   const xtreamTsOnly = isXtreamStyle && xtreamNeedsDirectTsOnly();
+  const senderCandidates = customData && Array.isArray(customData.candidateUrls) ? customData.candidateUrls : [];
+
+  // Sender-ranked URLs before local expansions (live.php /live/play/ query hacks, etc.) so
+  // simple streams and non-token URLs match phone order; avoids several wrong attempts first.
+  if (!xtreamTsOnly) {
+    senderCandidates.forEach((candidateUrl) => push(candidateUrl));
+  }
 
   if (xtreamTsOnly) {
     // Static Cast receivers cannot proxy; many Xtream m3u8 endpoints return HTTP 458 on Cast.
@@ -1543,12 +1550,8 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     push(rewriteQueryParam(baseUrl, "ext", "ts"));
   }
 
-  if (customData && Array.isArray(customData.candidateUrls)) {
-    customData.candidateUrls.forEach((candidateUrl) => {
-      if (!xtreamTsOnly) {
-        push(candidateUrl);
-        return;
-      }
+  if (xtreamTsOnly && senderCandidates.length) {
+    senderCandidates.forEach((candidateUrl) => {
       if (isTsCandidate(candidateUrl)) {
         push(candidateUrl);
         return;
@@ -3002,9 +3005,17 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (l
       activeCandidateIndex =
         ri != null ? Math.max(0, Math.min(ri, activeCandidates.length - 1)) : 0;
     } else {
-      const ci = readSenderCandidateIndex(customData.candidateIndex);
-      activeCandidateIndex =
-        ci != null ? Math.max(0, Math.min(ci, activeCandidates.length - 1)) : 0;
+      // Android candidateIndex indexes *sender* list order, not receiver-expanded candidates.
+      // Always start from the URL CAF actually put on this LOAD (contentUrl/contentId).
+      const normalizedBase = normalizeCandidateUrl(baseUrl);
+      const matchIdx = activeCandidates.findIndex((c) => normalizeCandidateUrl(c) === normalizedBase);
+      if (matchIdx >= 0) {
+        activeCandidateIndex = matchIdx;
+      } else {
+        const ci = readSenderCandidateIndex(customData.candidateIndex);
+        activeCandidateIndex =
+          ci != null ? Math.max(0, Math.min(ci, activeCandidates.length - 1)) : 0;
+      }
     }
 
     loadSessionPreferredStartIndex = activeCandidateIndex;
