@@ -984,6 +984,7 @@ function startAvSyncWatchdog() {
 }
 
 function attemptAvSyncResync(reason, detail) {
+  if (pendingCustomPlayerBoot) return false;
   const now = Date.now();
   if (now - avSyncLastNudgeMs < AV_SYNC_NUDGE_COOLDOWN_MS) return false;
   if (!avSyncNudgeWindowStart || now - avSyncNudgeWindowStart > 60000) {
@@ -1043,6 +1044,9 @@ function attemptAvSyncResync(reason, detail) {
 
 function avSyncWatchdogTick() {
   if (!castVideoEl) return;
+  // Do not nudge/pause the video element while HLS.js or mpegts.js is still attaching — CAF may
+  // fire PLAYER_PLAY before finalizeCustomPlayerBoot; pause() here races mpegts.play().
+  if (pendingCustomPlayerBoot) return;
   const now = Date.now();
   const paused = castVideoEl.paused;
   const currentTime = Number(castVideoEl.currentTime) || 0;
@@ -1563,6 +1567,19 @@ function buildCompatibilityCandidates(baseUrl, customData) {
 
   if (isXtreamStyle && xtreamTsOnly && looksLikeLivePhp && !looksTs && !looksHls) {
     push(appendQueryParam(baseUrl, "extension", "ts"));
+  }
+
+  // TS-only mode prefers direct TS first (458 on m3u8 fetch is common), but if TS never plays
+  // we still need HLS variants as later candidates — otherwise candidateCount stays 1 and we exhaust.
+  if (xtreamTsOnly && isXtreamStyle) {
+    const m3u8Fallback = toM3u8Variant(baseUrl);
+    if (m3u8Fallback) push(m3u8Fallback);
+    if (!looksHls) {
+      push(appendQueryParam(baseUrl, "extension", "m3u8"));
+      push(appendQueryParam(baseUrl, "type", "m3u8"));
+      push(appendQueryParam(baseUrl, "output", "m3u8"));
+      push(appendQueryParam(baseUrl, "format", "hls"));
+    }
   }
 
   return candidates;
@@ -3350,7 +3367,9 @@ safeAddPlayerEventListener(cast.framework.events.EventType.PLAYER_PLAY, (event) 
   if (activeCustomPlayer) {
     startPlaybackKeepalive();
     installVolumeBridge();
-  } else {
+  } else if (!pendingCustomPlayerBoot) {
+    // Avoid starting AV sync during mpegts/hlsjs bootstrap — it can pause() the media element
+    // while mpegts.js play() is in flight (VueOTT / live.php "play interrupted" noise).
     startAvSyncWatchdog();
   }
   debugLog("player.play", {
