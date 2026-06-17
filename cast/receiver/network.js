@@ -346,6 +346,7 @@ export function installIptvNetworkShim(requestUrl) {
   removeIptvNetworkShim();
   const target = normalizeCandidateUrl(requestUrl);
   const headerPack = buildFetchRequestHeaders(target);
+  const xhrHeaders = Object.assign({}, headerPack.headers, headerPack.blocked);
   const headers = headerPack.headers;
   const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
   const OriginalXHR = window.XMLHttpRequest;
@@ -381,9 +382,9 @@ export function installIptvNetworkShim(requestUrl) {
     const nativeSend = xhr.send;
     xhr.send = function patchedSend() {
       if (shouldShim(xhrUrl)) {
-        Object.keys(headers).forEach((name) => {
+        Object.keys(xhrHeaders).forEach((name) => {
           try {
-            nativeSetHeader.call(xhr, name, headers[name]);
+            nativeSetHeader.call(xhr, name, xhrHeaders[name]);
           } catch (_e) {}
         });
       }

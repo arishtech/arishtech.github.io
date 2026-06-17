@@ -134,9 +134,16 @@ export function mpegtsIsAvailable() {
 export function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
   const cloned = Object.assign({}, loadRequestData);
   cloned.media = Object.assign({}, asObject(loadRequestData && loadRequestData.media));
+  const cd = asObject(loadRequestData && loadRequestData.customData);
+  const streamReq = asObject(cd.streamRequest);
+  const srUrl = normalizeCandidateUrl(String(streamReq.url || "").trim());
+  const normalizedCandidate = normalizeCandidateUrl(candidateUrl);
+  const srCt = String(streamReq.contentType || "").trim();
+  const contentType =
+    srUrl && normalizedCandidate === srUrl && srCt ? srCt : inferContentType(candidateUrl);
   cloned.media.contentId = candidateUrl;
   cloned.media.contentUrl = candidateUrl;
-  cloned.media.contentType = inferContentType(candidateUrl);
+  cloned.media.contentType = contentType;
   if (retryIndex !== undefined) {
     const originalCustomData = asObject(loadRequestData && loadRequestData.customData);
     const originalMedia = asObject(loadRequestData && loadRequestData.media);

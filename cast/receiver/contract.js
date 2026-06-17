@@ -8,9 +8,12 @@ export function normalizeContract(customData) {
   const root = asObject(customData);
   const play = asObject(root.playback);
   const sb = asObject(root.streamBootstrap);
+  const streamReq = asObject(root.streamRequest);
+  const auth = asObject(root.auth);
+  const mergedAuthHeaders = Object.assign({}, asObject(auth.headers), asObject(streamReq.headers));
   return {
     schemaVersion: Number(root.schemaVersion) || 1,
-    auth: asObject(root.auth),
+    auth: Object.assign({}, auth, { headers: mergedAuthHeaders }),
     token: asObject(root.token),
     proxy: asObject(root.proxy),
     networkPolicy: asObject(root.networkPolicy),
@@ -21,5 +24,6 @@ export function normalizeContract(customData) {
     }),
     channelName: String(root.channelName || ""),
     debug: asObject(root.debug),
+    streamRequest: streamReq,
   };
 }

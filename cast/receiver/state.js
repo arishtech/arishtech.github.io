@@ -14,6 +14,7 @@ export const defaultContract = {
   playback: {},
   channelName: "",
   debug: {},
+  streamRequest: {},
 };
 
 export const state = {

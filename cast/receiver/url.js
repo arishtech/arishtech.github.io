@@ -284,6 +284,10 @@ export function buildCompatibilityCandidates(baseUrl, customData) {
     candidates.push(normalized);
   };
 
+  const streamReq = asObject(customData && customData.streamRequest);
+  const streamReqUrl = String(streamReq.url || "").trim();
+  if (streamReqUrl) push(streamReqUrl);
+
   const phoneResolved = String((customData && customData.phoneResolvedUrl) || "").trim();
   if (phoneResolved) push(phoneResolved);
 

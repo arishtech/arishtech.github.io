@@ -4,12 +4,6 @@
     <meta charset="utf-8">
     <title>PreetTV Cast Receiver</title>
 
-    <script
-        src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
-    </script>
-
-    <script src="receiver.js"></script>
-
     <style>
         body {
             margin: 0;
@@ -23,24 +17,33 @@
             --progress-color: #ff0000;
             --splash-image: none;
         }
+
+        /* Overlay: after <cast-media-player> in DOM + high z-index so logs stay on top of CAF UI. */
+        #debug {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            max-height: 40vh;
+            overflow: auto;
+            box-sizing: border-box;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.85);
+            color: lime;
+            font-size: clamp(14px, 2.2vmin, 24px);
+            line-height: 1.35;
+            z-index: 2147483647;
+            pointer-events: none;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
     </style>
-	<style>
-		#debug{
-			position:absolute;
-			top:0;
-			left:0;
-			width:100%;
-			max-height:400px;
-			overflow:auto;
-			background:black;
-			color:lime;
-			font-size:24px;
-			z-index:9999;
-		}
-	</style>
 </head>
 <body>
-	<div id="debug"></div>
     <cast-media-player></cast-media-player>
+    <div id="debug" aria-hidden="true"></div>
+    <!-- Scripts after #debug so receiver.js log() can attach to the overlay immediately. -->
+    <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
+    <script src="receiver.js"></script>
 </body>
 </html>
