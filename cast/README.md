@@ -11,7 +11,7 @@ This folder contains a minimal Custom Web Receiver app for Google Cast.
 ## Debugging on the TV
 
 - A **status line** is always shown at the bottom (loading, errors, “Playing …”).
-- Tap **Logs** (bottom-right, large button) to open the rolling log (last ~120 events). Add **`?logs=1`** or **`?panel=1`** to the receiver page URL in the Cast Console so the panel opens on load (helpful when the remote focus is awkward).
+- Tap **Logs** to toggle the **right panel** and the **bottom log dock** (same text). Add **`?logs=1`** to open the panel on load; add **`?dock=1`** (or `?logdock=1`) to show the **bottom dock** on load (recommended on Chromecast).
 - Verbose `network.policy.applied` lines only appear when `?debug=1` (or `receiver-debug` on `<body>`).
 - The receiver also reads `customData.streamUrl` if CAF omits `media.contentUrl` / `contentId`.
 

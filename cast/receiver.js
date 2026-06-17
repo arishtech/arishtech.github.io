@@ -364,6 +364,12 @@ function armStallWatchdog(source) {
   stallWatchdogTimer = setTimeout(() => {
     if (serial !== stallWatchdogSerial) return;
     if (candidatesExhausted) return;
+    // HLS.js / mpegts boot can exceed 22s on slow IPTV manifests; do not advance while JS player is still starting.
+    if (pendingCustomPlayerBoot) {
+      debugLog("candidate.watchdog.deferred_boot", { source, pendingCustomPlayerBoot, index: activeCandidateIndex });
+      armStallWatchdog(String(source || "watchdog") + ".boot");
+      return;
+    }
     if (activeCustomPlayer && castVideoEl && (!castVideoEl.paused || castVideoEl.readyState >= 3)) return;
     debugLog("candidate.watchdog", { source, index: activeCandidateIndex });
     void tryLoadNextCandidateOnReceiverError("watchdog");
@@ -2047,8 +2053,13 @@ if (useCastReceiver) {
     const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
     const errorCode = Number(detailCode) || 0;
     if (candidatesExhausted || candidateAdvanceInFlight) return;
-    if (pendingCustomPlayerBoot && [101, 104, 301, 905].indexOf(errorCode) >= 0) {
-      debugLog("player.error.suppressed_boot_stub", { errorCode, pendingCustomPlayerBoot });
+    // CAF often emits benign errors while about:blank stub + Hls.js/mpegts attach; never advance candidates during that window.
+    if (pendingCustomPlayerBoot) {
+      debugLog("player.error.suppressed_pending_boot", {
+        errorCode,
+        pendingCustomPlayerBoot,
+        reason: event && event.reason ? String(event.reason) : "",
+      });
       return;
     }
     if (activeCustomPlayer && (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)) {
