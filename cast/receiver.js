@@ -282,7 +282,7 @@ playerManager.addEventListener(
     event => {
 
         console.log("MEDIA STATUS");
-        console.log(event);
+        log(event);
     }
 );
 
@@ -292,7 +292,18 @@ playerManager.addEventListener(
 context.start({
     disableIdleTimeout: true
 });
+await new Promise(r => setTimeout(r, 15000));
 
-console.log("=================================");
-console.log("PreetTV Cast Receiver Ready");
-console.log("=================================");
+log("=================================");
+log("PreetTV Cast Receiver Ready");
+log("=================================");
+function log(msg) {
+
+    console.log(msg);
+
+    const div = document.getElementById("debug");
+
+    if(div){
+        div.innerHTML += msg + "<br>";
+    }
+}

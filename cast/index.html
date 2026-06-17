@@ -24,8 +24,23 @@
             --splash-image: none;
         }
     </style>
+	<style>
+		#debug{
+			position:absolute;
+			top:0;
+			left:0;
+			width:100%;
+			max-height:400px;
+			overflow:auto;
+			background:black;
+			color:lime;
+			font-size:24px;
+			z-index:9999;
+		}
+	</style>
 </head>
 <body>
     <cast-media-player></cast-media-player>
+	<div id="debug"></div>
 </body>
 </html>
