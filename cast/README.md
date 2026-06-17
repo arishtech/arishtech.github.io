@@ -22,15 +22,25 @@ We keep a plain **`<video id="castVideo">`** for those custom players; `<cast-me
 
 ## On-screen UI (TV)
 
-- **Channel name** — top bar (`#castChannelTitle`), filled from LOAD `customData.channelName` or media metadata title.
-- **Watermark** — “Preet Live Streaming Player” (subtle, lower third).
+- **Branding header** (top): **title** “Preet Live Streaming Player” (`#castBrandTitle`, bold in `index.html`) and **subtitle** current channel (`#castChannelSubtitle`), filled from LOAD `customData.channelName` or media metadata title (`setReceiverChannelSubtitle` in `receiver.js`). To put the **channel** as the larger line instead, swap the order of those two `<div>`s in `index.html` and move the static string onto the element you want as the product name.
 - **Loader** — full-screen overlay from LOAD until `#castVideo` fires `playing` / `canplaythrough`, or on errors (see `setReceiverLoaderVisible` in `receiver.js`).
+
+## Buffering (live stability)
+
+The receiver uses **larger forward buffers** than typical defaults to reduce stalls and frame drops on Chromecast (at the cost of more delay behind the live edge):
+
+- **CAF / Shaka** (native HLS/DASH when Shaka/MPL is used): `PlaybackConfig.shakaConfig.streaming` — `bufferingGoal`, `rebufferingGoal`, `bufferBehind` (see `PREET_SHAKA_STREAMING_BUFFER` in `receiver.js`). Also `autoResumeDuration` / `autoPauseDuration` hints for non-Shaka paths.
+- **mpegts.js**: larger `stashInitialSize` and relaxed `liveBufferLatency*` / `liveSync*` (see `PREET_MPEGTS_BUFFER_CONFIG`).
+- **Hls.js**: `maxBufferLength` / `maxMaxBufferLength` / timeouts (see `PREET_HLS_BUFFER_CONFIG`).
+- **dash.js**: `updateSettings` streaming targets (see `PREET_DASH_STREAMING_SETTINGS`).
+
+Tune those constants in **`receiver.js`** if you need even more buffer or lower latency.
 
 ## Source layout
 
 | File | Role |
 |------|------|
-| `index.html` | Styles, **loader / channel title / watermark**, debug log, CDN libs, CAF SDK, **`receiver.js`** |
+| `index.html` | Styles, **loader / top branding (title + channel subtitle)**, debug log, CDN libs, CAF SDK, **`receiver.js`** |
 | `receiver.js` | All receiver logic — **edit this file** for behavior changes |
 | `test-browser.html` | Optional local HLS/native smoke test (not used by Cast) |
 

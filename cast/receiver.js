@@ -190,7 +190,7 @@ function syncReceiverLogPanelFromSources(customData, reason) {
   console.log("[receiver] log panel " + (receiverLogToDomEnabled ? "ON" : "OFF") + (reason ? " — " + reason : ""));
 }
 
-/* ---------- Cast receiver UI: loader, channel bar, watermark (HTML), auto-hide loader ---------- */
+/* ---------- Cast receiver UI: loader, top branding (title + channel subtitle), auto-hide loader ---------- */
 
 function setReceiverLoaderVisible(visible) {
   const el = document.getElementById("castLoader");
@@ -200,8 +200,9 @@ function setReceiverLoaderVisible(visible) {
   el.setAttribute("aria-busy", visible ? "true" : "false");
 }
 
-function setReceiverChannelTitle(text) {
-  const el = document.getElementById("castChannelTitle");
+/** Product branding stays in HTML (#castBrandTitle); LOAD fills the channel line below it. */
+function setReceiverChannelSubtitle(text) {
+  const el = document.getElementById("castChannelSubtitle");
   if (!el) return;
   const t = text && String(text).trim() ? String(text).trim() : "Preet Player";
   el.textContent = t;
@@ -650,6 +651,83 @@ async function resolveStream(url, headers, contentTypeHint) {
 
 const STUB_MEDIA_URL = "about:blank";
 
+/**
+ * Larger buffers reduce live frame drops on Chromecast at the cost of higher latency to the live edge.
+ * CAF merges this into Shaka when using the native player (HLS/DASH via Shaka / MPL per SDK defaults).
+ * @see https://developers.google.com/cast/docs/reference/web_receiver/cast.framework.PlaybackConfig
+ */
+const PREET_SHAKA_STREAMING_BUFFER = {
+  bufferingGoal: 22,
+  rebufferingGoal: 5,
+  bufferBehind: 60,
+};
+
+function applyPreetShakaBufferTuning(playbackConfig) {
+  if (!playbackConfig || typeof playbackConfig !== "object") return;
+  try {
+    const base = playbackConfig.shakaConfig && typeof playbackConfig.shakaConfig === "object" ? playbackConfig.shakaConfig : {};
+    const baseStream = base.streaming && typeof base.streaming === "object" ? base.streaming : {};
+    playbackConfig.shakaConfig = Object.assign({}, base, {
+      streaming: Object.assign({}, baseStream, PREET_SHAKA_STREAMING_BUFFER),
+    });
+  } catch (_e) {}
+}
+
+/** MPL / legacy CAF paths (ignored by Shaka where noted in Cast docs). */
+function applyPreetCafResumeHints(playbackConfig) {
+  if (!playbackConfig || typeof playbackConfig !== "object") return;
+  try {
+    if (playbackConfig.autoResumeDuration == null) playbackConfig.autoResumeDuration = 8;
+    if (playbackConfig.autoPauseDuration == null) playbackConfig.autoPauseDuration = 4;
+  } catch (_e) {}
+}
+
+function mergePreetPlaybackBufferHints(playbackConfig) {
+  applyPreetShakaBufferTuning(playbackConfig);
+  applyPreetCafResumeHints(playbackConfig);
+}
+
+/** mpegts.js MSE transmux — stash + live-sync windows (seconds where applicable). */
+const PREET_MPEGTS_BUFFER_CONFIG = {
+  enableWorker: false,
+  enableStashBuffer: true,
+  stashInitialSize: 6 * 1024 * 1024,
+  liveBufferLatencyChasing: true,
+  liveBufferLatencyMaxLatency: 14,
+  liveBufferLatencyMinRemain: 2.2,
+  liveSync: true,
+  liveSyncMaxLatency: 14,
+  liveSyncTargetLatency: 6,
+  autoCleanupSourceBuffer: true,
+  fixAudioTimestampGap: true,
+};
+
+/** Hls.js live — more forward buffer before the player stalls. */
+const PREET_HLS_BUFFER_CONFIG = {
+  enableWorker: false,
+  lowLatencyMode: false,
+  maxBufferLength: 55,
+  maxMaxBufferLength: 120,
+  liveBackBufferLength: 0,
+  maxBufferHole: 0.35,
+  highBufferWatchdogPeriod: 2,
+  maxFragLookUpTolerance: 0.25,
+  manifestLoadingTimeOut: 20000,
+  levelLoadingTimeOut: 20000,
+  fragLoadingTimeOut: 28000,
+};
+
+/** dash.js 4.x streaming buffer targets (seconds where applicable). */
+const PREET_DASH_STREAMING_SETTINGS = {
+  streaming: {
+    stableBufferTime: 16,
+    bufferTimeDefault: 18,
+    bufferTimeAtTopQuality: 24,
+    bufferTimeAtTopQualityLongForm: 36,
+    bufferToKeep: 28,
+  },
+};
+
 /** @type {unknown} */
 let preetMpegtsInstance = null;
 
@@ -882,19 +960,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
         hasAudio: true,
         hasVideo: true,
       },
-      {
-        enableWorker: false,
-        enableStashBuffer: true,
-        stashInitialSize: 2048 * 1024,
-        liveBufferLatencyChasing: true,
-        liveBufferLatencyMaxLatency: 5,
-        liveBufferLatencyMinRemain: 0.8,
-        liveSync: true,
-        liveSyncMaxLatency: 5,
-        liveSyncTargetLatency: 2.5,
-        autoCleanupSourceBuffer: true,
-        fixAudioTimestampGap: true,
-      }
+      PREET_MPEGTS_BUFFER_CONFIG
     );
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
@@ -959,17 +1025,17 @@ function tryStartPreetHls(playbackUrl, headers) {
   const hdr = headers && typeof headers === "object" ? headers : {};
   log("Hls.js: attachMedia #castVideo, url=" + playbackUrl);
   try {
-    preetHlsInstance = new Hls({
-      enableWorker: false,
-      lowLatencyMode: false,
-      xhrSetup: function (xhr) {
-        Object.keys(hdr).forEach(function (k) {
-          try {
-            xhr.setRequestHeader(k, hdr[k]);
-          } catch (_e) {}
-        });
-      },
-    });
+    preetHlsInstance = new Hls(
+      Object.assign({}, PREET_HLS_BUFFER_CONFIG, {
+        xhrSetup: function (xhr) {
+          Object.keys(hdr).forEach(function (k) {
+            try {
+              xhr.setRequestHeader(k, hdr[k]);
+            } catch (_e) {}
+          });
+        },
+      })
+    );
     preetHlsInstance.on(Hls.Events.ERROR, function (_ev, data) {
       if (data && data.fatal) {
         logError("Hls fatal: " + stringifyForLog(data.type) + " " + stringifyForLog(data.details));
@@ -1023,6 +1089,11 @@ function tryStartPreetDash(playbackUrl, headers) {
   try {
     preetDashInstance = dashjs.MediaPlayer().create();
     try {
+      if (typeof preetDashInstance.updateSettings === "function") {
+        preetDashInstance.updateSettings(PREET_DASH_STREAMING_SETTINGS);
+      }
+    } catch (_e0) {}
+    try {
       if (typeof preetDashInstance.extend === "function") {
         preetDashInstance.extend(
           "RequestModifier",
@@ -1065,6 +1136,7 @@ function tryStartPreetDash(playbackUrl, headers) {
  */
 playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
   try {
+    mergePreetPlaybackBufferHints(playbackConfig);
     const headers = extractPlaybackHeaders(loadRequestData.customData);
     log("CAF playback header keys: " + Object.keys(headers).join(", ") || "(none)");
 
@@ -1099,7 +1171,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
   try {
     destroyAllCustomPlayers();
     setReceiverLoaderVisible(true);
-    setReceiverChannelTitle(extractChannelLabelFromLoadRequest(loadRequestData));
+    setReceiverChannelSubtitle(extractChannelLabelFromLoadRequest(loadRequestData));
 
     const media = loadRequestData.media;
     const originalUrl = (media && (media.contentUrl || media.contentId)) || "";
@@ -1255,10 +1327,21 @@ try {
   logError("setMediaElement failed: " + formatAnyError(e));
 }
 
-context.start({
-  disableIdleTimeout: true,
-  useShakaForHls: true,
-});
+try {
+  const startPlaybackConfig = new cast.framework.PlaybackConfig();
+  mergePreetPlaybackBufferHints(startPlaybackConfig);
+  context.start({
+    disableIdleTimeout: true,
+    useShakaForHls: true,
+    playbackConfig: startPlaybackConfig,
+  });
+} catch (e) {
+  logWarn("context.start with PlaybackConfig failed: " + formatAnyError(e) + " — using defaults");
+  context.start({
+    disableIdleTimeout: true,
+    useShakaForHls: true,
+  });
+}
 
 installPreetRemoteControlBridge();
 
