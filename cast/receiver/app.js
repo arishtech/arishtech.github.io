@@ -54,6 +54,7 @@ if (state.useCastReceiver) {
 } else {
   initBrowserPlayback();
 }
+window.__preetCastReceiverBooted = true;
 
 function initBrowserPlayback() {
   const castVideoEl = getCastVideoEl();

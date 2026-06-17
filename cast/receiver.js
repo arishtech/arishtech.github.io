@@ -1,207 +1,65 @@
+/* PreetTV Cast receiver — bundled (no ES modules). Built by tools/bundle_receiver.py */
 /* global cast, Hls, dashjs, mpegts */
-/**
- * PreetTV Cast receiver (simplified). Uses Hls.js, dash.js, mpegts.js + CAF native fallbacks.
- * Full legacy copy: receiver.legacy.full.js
- */
+(function () {
 "use strict";
 
-const castGlobal = typeof window !== "undefined" ? window.cast : undefined;
-const hasCastFramework = !!(
-  castGlobal &&
-  castGlobal.framework &&
-  castGlobal.framework.CastReceiverContext
-);
+/* --- receiver/constants.js --- */
+/** @type {readonly string[]} */
+const IPTV_USER_AGENTS = [
+  "VLC/3.0.20 LibVLC/3.0.20",
+  "Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36",
+  "PreetTV Cast/1.0",
+];
 
-const context = hasCastFramework ? castGlobal.framework.CastReceiverContext.getInstance() : null;
-const playerManager = context ? context.getPlayerManager() : null;
-
-function getStreamUrlFromPage() {
-  const search = window.location.search || "";
-  if (!search) return "";
-  const marker = "url=";
-  const idx = search.toLowerCase().indexOf(marker);
-  if (idx === -1) return "";
-  const raw = search.substring(idx + marker.length);
-  if (!raw) return "";
-  try {
-    return decodeURIComponent(raw.replace(/\+/g, " ")).trim();
-  } catch (_e) {
-    return raw.trim();
-  }
-}
-
-function isBrowserTestMode() {
-  try {
-    const query = new URLSearchParams(window.location.search || "");
-    const flag = String(query.get("browser") || query.get("test") || "").trim().toLowerCase();
-    if (flag === "1" || flag === "true" || flag === "yes") return true;
-  } catch (_e) {}
-  return !!getStreamUrlFromPage();
-}
-
-const browserTestMode = isBrowserTestMode();
-const useCastReceiver = !!(hasCastFramework && playerManager && context && !browserTestMode);
-
-const statusEl = document.getElementById("status");
-const brandEl = document.getElementById("preetBrand");
-const nowPlayingEl = document.getElementById("preetNowPlaying");
-const loaderEl = document.getElementById("preetLoader");
-const loaderTextEl = document.getElementById("preetLoaderText");
-const castVideoEl = document.getElementById("castVideo");
-
-if (castVideoEl && playerManager && useCastReceiver && typeof playerManager.setMediaElement === "function") {
-  playerManager.setMediaElement(castVideoEl);
-}
-
-const DEFAULT_IPTV_USER_AGENT =
-  "Mozilla/5.0 (Linux; Android 11; Mobile) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
-const VLC_IPTV_USER_AGENT = "VLC/3.0.20 LibVLC/3.0.20";
-const PREET_CAST_USER_AGENT = "PreetTV Cast/1.0";
-const IPTV_USER_AGENTS = [VLC_IPTV_USER_AGENT, DEFAULT_IPTV_USER_AGENT, PREET_CAST_USER_AGENT];
-
-let activeIptvUaIndex = 0;
-let debugEnabled = false;
-let debugSequence = 0;
-const debugHistory = (window.__preettvDebug = window.__preettvDebug || []);
+const DEFAULT_IPTV_USER_AGENT = IPTV_USER_AGENTS[1];
+const CUSTOM_PLAYER_STUB_URL = "about:blank";
 const DEBUG_HISTORY_LIMIT = 200;
 
-const DEBUG_QUERY_FLAG = (() => {
-  try {
-    const query = new URLSearchParams(window.location.search || "");
-    const value = String(query.get("debug") || "").trim().toLowerCase();
-    return value === "1" || value === "true" || value === "yes" || value === "verbose";
-  } catch (_e) {
-    return false;
-  }
-})();
-debugEnabled = DEBUG_QUERY_FLAG || document.body.classList.contains("receiver-debug");
-
-let activeCandidates = [];
-let activeCandidateIndex = 0;
-let lastLoadTemplate = null;
-let hlsInstance = null;
-let dashInstance = null;
-let mpegtsInstance = null;
-let hlsJsInvocationCounter = 0;
-
-let activeCustomPlayer = null;
-let activeCustomPlayerUrl = "";
-let pendingCustomPlayerBoot = null;
-let candidateAdvanceInFlight = false;
-let candidatesExhausted = false;
-let loadSessionPreferredStartIndex = 0;
-let receiverBackwardFallbackUsed = false;
-let volumeBridgeInstalled = false;
-
-let stallWatchdogTimer = null;
-let stallWatchdogSerial = 0;
-/** Watchdog timeouts while pendingCustomPlayerBoot is set (mpegts/hlsjs still attaching). */
-let stallWatchdogBootDeferCount = 0;
 const STALL_WATCHDOG_MS = 22000;
 const STALL_WATCHDOG_BOOT_DEFER_MAX = 6;
+const HLS_BOOT_TIMEOUT_MS = 35000;
+const MPEGTS_BOOT_WALL_MS = 55000;
 
-let activeContract = {
-  schemaVersion: 1,
-  auth: {},
-  token: {},
-  proxy: {},
-  networkPolicy: {},
-  hosting: {},
-  playback: {},
-  channelName: "",
-};
-
-const CUSTOM_PLAYER_STUB_URL = "about:blank";
-
-function stopPlaybackKeepalive() {}
-
-function debugLog(event, payload) {
-  const ev = String(event || "");
-  const isNoise = ev === "network.policy.applied";
-  if (isNoise && !debugEnabled) return;
-  const entry = {
-    seq: ++debugSequence,
-    ts: new Date().toISOString(),
-    event: ev,
-    payload: payload || {},
-  };
-  debugHistory.push(entry);
-  if (debugHistory.length > DEBUG_HISTORY_LIMIT) debugHistory.shift();
-  if (typeof window.__preettvNotifyDebugLog === "function") {
+/* --- receiver/util.js --- */
+/**
+ * Shared parsing / coercion helpers (pure).
+ * @param {unknown} value
+ * @returns {Record<string, unknown>}
+ */
+function asObject(value) {
+  if (value && typeof value === "object" && !Array.isArray(value)) return /** @type {Record<string, unknown>} */ (value);
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    if (!trimmed) return {};
     try {
-      window.__preettvNotifyDebugLog();
+      const parsed = JSON.parse(trimmed);
+      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return /** @type {Record<string, unknown>} */ (parsed);
     } catch (_e) {}
   }
+  return {};
 }
 
-function setStatus(text) {
-  if (statusEl) statusEl.textContent = text || "";
+/** @param {unknown} value */
+function isTruthyFlag(value) {
+  if (value === true || value === 1) return true;
+  const normalized = String(value == null ? "" : value).trim().toLowerCase();
+  return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
 }
 
-function setBrandingVisible(visible) {
-  if (brandEl) brandEl.style.display = visible ? "block" : "none";
+/** @param {unknown} value */
+function asStringArray(value) {
+  return Array.isArray(value) ? value.map((v) => String(v || "").trim()).filter((v) => v.length > 0) : [];
 }
 
-function showLoader(text) {
-  if (loaderEl) loaderEl.classList.remove("hidden");
-  if (loaderTextEl) loaderTextEl.textContent = text || "Loading…";
+/** @param {unknown} value */
+function readSenderCandidateIndex(value) {
+  if (value == null) return null;
+  if (Number.isInteger(value)) return /** @type {number} */ (value);
+  const parsed = parseInt(String(value).trim(), 10);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
-function hideLoader() {
-  if (loaderEl) loaderEl.classList.add("hidden");
-}
-
-function updateCastChannelNameUi(name) {
-  if (!nowPlayingEl) return;
-  const label = String(name || "").trim();
-  if (!label) {
-    nowPlayingEl.classList.add("hidden");
-    nowPlayingEl.textContent = "";
-    return;
-  }
-  nowPlayingEl.classList.remove("hidden");
-  nowPlayingEl.textContent = label;
-}
-
-function applyReceiverVolume(level, muted) {
-  if (!castVideoEl) return;
-  const vol = Math.max(0, Math.min(1, Number(level) || 0));
-  castVideoEl.volume = muted ? 0 : vol;
-  castVideoEl.muted = !!muted;
-}
-
-function installVolumeBridge() {
-  if (volumeBridgeInstalled || !playerManager || !castVideoEl) return;
-  volumeBridgeInstalled = true;
-  try {
-    applyReceiverVolume(playerManager.getVolumeLevel(), playerManager.isMute());
-  } catch (_e) {}
-
-  safeAddPlayerEventListener(cast.framework.events.EventType.STREAM_VOLUME_CHANGED, (event) => {
-    const level = event && typeof event.volume === "number" ? event.volume : playerManager.getVolumeLevel();
-    const muted = event && typeof event.isMute === "boolean" ? event.isMute : playerManager.isMute();
-    applyReceiverVolume(level, muted);
-  }, "STREAM_VOLUME_CHANGED");
-
-  try {
-    playerManager.setMessageInterceptor(cast.framework.messages.MessageType.SET_VOLUME, (data) => {
-      if (data) applyReceiverVolume(data.volume, data.isMute);
-      return data;
-    });
-  } catch (e) {
-    debugLog("player.set_volume.interceptor_error", { message: e && e.message ? e.message : "unknown" });
-  }
-}
-
-function safeAddPlayerEventListener(eventType, handler, label) {
-  if (!playerManager || typeof playerManager.addEventListener !== "function") return;
-  try {
-    playerManager.addEventListener(eventType, handler);
-  } catch (e) {
-    debugLog("player.add_listener.error", { label, message: e && e.message ? e.message : "unknown" });
-  }
-}
-
+/** @param {unknown} err */
 function serializeReceiverError(err) {
   if (err == null) return "unknown";
   if (typeof err.message === "string" && err.message.trim()) return err.message.trim();
@@ -213,43 +71,9 @@ function serializeReceiverError(err) {
   }
 }
 
-function applyDebugConfigFromContract(contract, rawCustom) {
-  const dbg = asObject(contract.debug);
-  const raw = asObject(rawCustom);
-  const rawDbg = asObject(raw.debug);
-  if (dbg.enabled === true || rawDbg.enabled === true || raw.castDebugEnabled === true) {
-    debugEnabled = true;
-    document.body.classList.add("receiver-debug");
-  }
-}
-
-function resolveFetchUrl(url, requestType) {
-  const normalized = normalizeCandidateUrl(url);
-  if (!isProxyEnabled()) return normalized;
-  const netInfo = { url: normalized, headers: {} };
-  applyProxyPolicy(netInfo, requestType || "manifest");
-  return netInfo.url;
-}
-
-function buildMpegtsPlayerConfig() {
-  return {
-    enableWorker: false,
-    lazyLoad: false,
-    enableStashBuffer: true,
-    stashInitialSize: 2048 * 1024,
-    liveBufferLatencyChasing: true,
-    liveBufferLatencyMaxLatency: 5,
-    liveBufferLatencyMinRemain: 0.8,
-    liveSync: true,
-    liveSyncMaxLatency: 5,
-    liveSyncTargetLatency: 2.5,
-    autoCleanupSourceBuffer: true,
-    fixAudioTimestampGap: true,
-  };
-}
-
+/** @param {unknown} err */
 function isPlayInterruptedError(err) {
-  const msg = String((err && err.message) || err || "");
+  const msg = String((err && /** @type {{ message?: string }} */ (err).message) || err || "");
   return (
     msg.indexOf("interrupted by a call to pause") >= 0 ||
     msg.indexOf("interrupted by a new load") >= 0 ||
@@ -257,440 +81,374 @@ function isPlayInterruptedError(err) {
   );
 }
 
-function markCandidatesExhausted(reason) {
-  if (candidatesExhausted) return;
-  candidatesExhausted = true;
-  hideLoader();
-  setBrandingVisible(true);
-  updateCastChannelNameUi("");
-  setStatus("All receiver fallback candidates exhausted");
-  debugLog("candidate.exhausted", { reason, activeCandidateIndex, candidateCount: activeCandidates.length });
+/** @param {unknown} value */
+function summarizeHeaders(value) {
+  const h = asObject(value);
+  const keys = Object.keys(h);
+  return { count: keys.length, keys };
 }
 
-function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
-  const cloned = Object.assign({}, loadRequestData);
-  cloned.media = Object.assign({}, loadRequestData.media);
-  cloned.media.contentId = candidateUrl;
-  cloned.media.contentUrl = candidateUrl;
-  cloned.media.contentType = inferContentType(candidateUrl);
-  if (retryIndex !== undefined) {
-    const originalCustomData = asObject(loadRequestData.customData);
-    const originalMedia = asObject(loadRequestData.media);
-    const originalBaseUrl = String(
-      originalCustomData._retryBaseUrl || originalMedia.contentUrl || originalMedia.contentId || ""
-    );
-    cloned.customData = Object.assign({}, originalCustomData, {
-      _retryBaseUrl: originalBaseUrl,
-      _retryCandidateIndex: retryIndex,
-      candidateIndex: retryIndex,
-    });
+/* --- receiver/state.js --- */
+/**
+ * Single mutable session state for the Cast receiver (explicit data model).
+ * Modules import `state` and mutate fields — avoids implicit globals.
+ */
+const defaultContract = {
+  schemaVersion: 1,
+  auth: {},
+  token: {},
+  proxy: {},
+  networkPolicy: {},
+  hosting: {},
+  playback: {},
+  channelName: "",
+  debug: {},
+};
+
+const state = {
+  useCastReceiver: false,
+  context: null,
+  playerManager: null,
+
+  activeContract: { ...defaultContract },
+
+  activeCandidates: [],
+  activeCandidateIndex: 0,
+  lastLoadTemplate: null,
+  loadSessionPreferredStartIndex: 0,
+  receiverBackwardFallbackUsed: false,
+  candidatesExhausted: false,
+  candidateAdvanceInFlight: false,
+
+  activeIptvUaIndex: 0,
+
+  hlsInstance: null,
+  hlsJsInvocationCounter: 0,
+  dashInstance: null,
+  mpegtsInstance: null,
+
+  activeCustomPlayer: null,
+  activeCustomPlayerUrl: "",
+  pendingCustomPlayerBoot: null,
+
+  stallWatchdogTimer: null,
+  stallWatchdogSerial: 0,
+  stallWatchdogBootDeferCount: 0,
+
+  shakaFilterRegistered: false,
+  volumeBridgeInstalled: false,
+
+  activeIptvNetworkShim: null,
+
+  debugEnabled: false,
+  debugSequence: 0,
+  debugHistory: [],
+
+  CUSTOM_PLAYER_STUB_URL,
+};
+
+/* --- receiver/logger.js --- */
+const DEBUG_QUERY_FLAG = (() => {
+  try {
+    const query = new URLSearchParams(window.location.search || "");
+    const value = String(query.get("debug") || "").trim().toLowerCase();
+    return value === "1" || value === "true" || value === "yes" || value === "verbose";
+  } catch (_e) {
+    return false;
   }
-  return cloned;
+})();
+
+const ring = window.__preettvDebug || [];
+window.__preettvDebug = ring;
+state.debugHistory = ring;
+
+state.debugEnabled = DEBUG_QUERY_FLAG || document.body.classList.contains("receiver-debug");
+
+/**
+ * @param {string} event
+ * @param {Record<string, unknown>} [payload]
+ */
+function debugLog(event, payload) {
+  const ev = String(event || "");
+  const isNoise = ev === "network.policy.applied";
+  if (isNoise && !state.debugEnabled) return;
+  const entry = {
+    seq: ++state.debugSequence,
+    ts: new Date().toISOString(),
+    event: ev,
+    payload: payload || {},
+  };
+  state.debugHistory.push(entry);
+  if (state.debugHistory.length > DEBUG_HISTORY_LIMIT) state.debugHistory.shift();
+  if (typeof window.__preettvNotifyDebugLog === "function") {
+    try {
+      window.__preettvNotifyDebugLog();
+    } catch (_e) {}
+  }
 }
 
-function prepareCustomPlayerStubLoad(selectedLoad, sourceUrl, playerType) {
-  const stub = Object.assign({}, selectedLoad);
-  stub.media = Object.assign({}, selectedLoad.media);
-  stub.media.contentId = sourceUrl;
-  stub.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
-  stub.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
-  stub.media.streamType = cast.framework.messages.StreamType.LIVE;
-  stub.customData = Object.assign({}, asObject(selectedLoad.customData), {
-    _customPlayer: playerType,
-    _customPlayerUrl: sourceUrl,
-  });
-  pendingCustomPlayerBoot = playerType;
-  return stub;
+/** @param {Record<string, unknown>} contract @param {Record<string, unknown>} rawCustom */
+function applyDebugConfigFromContract(contract, rawCustom) {
+  const dbg = /** @type {Record<string, unknown>} */ (contract.debug || {});
+  const raw = /** @type {Record<string, unknown>} */ (rawCustom || {});
+  const rawDbg = /** @type {Record<string, unknown>} */ (raw.debug || {});
+  if (dbg.enabled === true || rawDbg.enabled === true || raw.castDebugEnabled === true) {
+    state.debugEnabled = true;
+    document.body.classList.add("receiver-debug");
+  }
 }
 
-function readVideoBlobUrl() {
-  if (!castVideoEl) return "";
-  const mediaSrc = castVideoEl.currentSrc || castVideoEl.src || "";
-  return mediaSrc.startsWith("blob:") ? mediaSrc : "";
+/* --- receiver/dom.js --- */
+const statusEl = () => document.getElementById("status");
+const brandEl = () => document.getElementById("preetBrand");
+const nowPlayingEl = () => document.getElementById("preetNowPlaying");
+const loaderEl = () => document.getElementById("preetLoader");
+const loaderTextEl = () => document.getElementById("preetLoaderText");
+const getCastVideoEl = () => document.getElementById("castVideo");
+
+/** @param {string} text */
+function setStatus(text) {
+  const el = statusEl();
+  if (el) el.textContent = text || "";
+}
+
+/** @param {boolean} visible */
+function setBrandingVisible(visible) {
+  const el = brandEl();
+  if (el) el.style.display = visible ? "block" : "none";
+}
+
+/** @param {string} [text] */
+function showLoader(text) {
+  const l = loaderEl();
+  const t = loaderTextEl();
+  if (l) l.classList.remove("hidden");
+  if (t) t.textContent = text || "Loading…";
+}
+
+function hideLoader() {
+  const l = loaderEl();
+  if (l) l.classList.add("hidden");
+}
+
+/** @param {string} name */
+function updateCastChannelNameUi(name) {
+  const el = nowPlayingEl();
+  if (!el) return;
+  const label = String(name || "").trim();
+  if (!label) {
+    el.classList.add("hidden");
+    el.textContent = "";
+    return;
+  }
+  el.classList.remove("hidden");
+  el.textContent = label;
+}
+
+/** @param {number} level @param {boolean} muted */
+function applyReceiverVolume(level, muted) {
+  const castVideoEl = getCastVideoEl();
+  if (!castVideoEl) return;
+  const vol = Math.max(0, Math.min(1, Number(level) || 0));
+  castVideoEl.volume = muted ? 0 : vol;
+  castVideoEl.muted = !!muted;
+}
+
+function installVolumeBridge() {
+  const castGlobal = window.cast;
+  const castVideoEl = getCastVideoEl();
+  if (state.volumeBridgeInstalled || !state.playerManager || !castVideoEl || !castGlobal?.framework) return;
+  state.volumeBridgeInstalled = true;
+  try {
+    applyReceiverVolume(state.playerManager.getVolumeLevel(), state.playerManager.isMute());
+  } catch (_e) {}
+
+  const Ev = castGlobal.framework.events.EventType;
+  const volEv = Ev && Ev.STREAM_VOLUME_CHANGED;
+  safeAddPlayerEventListener(volEv, (event) => {
+    const level = event && typeof event.volume === "number" ? event.volume : state.playerManager.getVolumeLevel();
+    const muted = event && typeof event.isMute === "boolean" ? event.isMute : state.playerManager.isMute();
+    applyReceiverVolume(level, muted);
+  }, "STREAM_VOLUME_CHANGED");
+
+  try {
+    state.playerManager.setMessageInterceptor(castGlobal.framework.messages.MessageType.SET_VOLUME, (data) => {
+      if (data) applyReceiverVolume(data.volume, data.isMute);
+      return data;
+    });
+  } catch (e) {
+    debugLog("player.set_volume.interceptor_error", { message: e && e.message ? e.message : "unknown" });
+  }
+}
+
+/**
+ * @param {string|number|undefined|null} eventType
+ * @param {(e: unknown) => void} handler
+ * @param {string} label
+ */
+function safeAddPlayerEventListener(eventType, handler, label) {
+  if (!state.playerManager || typeof state.playerManager.addEventListener !== "function") return;
+  if (eventType == null || eventType === "") return;
+  try {
+    state.playerManager.addEventListener(eventType, handler);
+  } catch (e) {
+    debugLog("player.add_listener.error", { label, message: e && e.message ? e.message : "unknown" });
+  }
+}
+
+function bindMediaElementToPlayer() {
+  const castVideoEl = getCastVideoEl();
+  if (castVideoEl && state.playerManager && state.useCastReceiver && typeof state.playerManager.setMediaElement === "function") {
+    state.playerManager.setMediaElement(castVideoEl);
+  }
 }
 
 function onPlaybackStartedUi() {
   hideLoader();
   setBrandingVisible(false);
   installVolumeBridge();
-  if (useCastReceiver && playerManager) {
+  if (state.useCastReceiver && state.playerManager) {
     try {
       requestAnimationFrame(() => {
         try {
-          playerManager.play();
+          state.playerManager.play();
         } catch (_e) {}
       });
     } catch (_e) {}
   }
 }
 
-function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
-  activeCustomPlayer = playerType;
-  activeCustomPlayerUrl = sourceUrl;
-  pendingCustomPlayerBoot = null;
-  selectedLoad.media.contentId = sourceUrl;
-  selectedLoad.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
-  selectedLoad.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
-  selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
-  selectedLoad.customData = Object.assign({}, asObject(selectedLoad.customData), {
-    _customPlayer: playerType,
-    _customPlayerUrl: sourceUrl,
-    _customPlayerActive: true,
+/* --- receiver/contract.js --- */
+/**
+ * Normalizes sender `customData` into the receiver contract (Phase 2).
+ * @param {Record<string, unknown>} customData
+ */
+function normalizeContract(customData) {
+  const root = asObject(customData);
+  const play = asObject(root.playback);
+  const sb = asObject(root.streamBootstrap);
+  return {
+    schemaVersion: Number(root.schemaVersion) || 1,
+    auth: asObject(root.auth),
+    token: asObject(root.token),
+    proxy: asObject(root.proxy),
+    networkPolicy: asObject(root.networkPolicy),
+    hosting: asObject(root.hosting),
+    playback: Object.assign({}, play, {
+      phonePrimaryUrl: String(sb.phonePrimaryUrl || play.phonePrimaryUrl || "").trim(),
+      preferReceiverEngine: String(sb.preferReceiverEngine || play.preferReceiverEngine || "").trim(),
+    }),
+    channelName: String(root.channelName || ""),
+    debug: asObject(root.debug),
+  };
+}
+
+/* --- receiver/url.js --- */
+function repairStreamUrl(url) {
+  let out = String(url || "");
+  if (!out) return out;
+
+  const separatorFixes = [
+    [/([?&])source_group-/gi, "$1source_group="],
+    [/([?&])play_token-/gi, "$1play_token="],
+    [/([?&])extension-/gi, "$1extension="],
+    [/([?&])extension@/gi, "$1extension="],
+    [/([?&])stream-/gi, "$1stream="],
+    [/([?&])mac-/gi, "$1mac="],
+    [/([?&])output-/gi, "$1output="],
+    [/([?&])format-/gi, "$1format="],
+    [/([?&])type-/gi, "$1type="],
+    [/([?&])ext-(?!ension)/gi, "$1ext="],
+    [/([?&])play_token@/gi, "$1play_token="],
+    [/([?&])source_group@/gi, "$1source_group="],
+    [/([?&])source_group\s+/gi, "$1source_group="],
+    [/([?&])play_token\s+/gi, "$1play_token="],
+    [/([?&])extension\s+/gi, "$1extension="],
+  ];
+  separatorFixes.forEach(([pattern, replacement]) => {
+    out = out.replace(pattern, replacement);
   });
-  onPlaybackStartedUi();
-  debugLog("playback.custom_started", { playerType });
-  return selectedLoad;
+
+  out = out.replace(/source group/gi, "source_group");
+  out = out.replace(/play token/gi, "play_token");
+  out = out.replace(/(play_token=[^&\s]+)\s*source_group/gi, "$1&source_group");
+  out = out.replace(/(play_token=[^&\s]+)source_group/gi, "$1&source_group=");
+
+  out = out.replace(/\/play\/Live\.php/gi, "/play/live.php");
+  out = out.replace(/([?&])nac-/gi, "$1mac=");
+  out = out.replace(/([?&])stream(\d{3,})(?=[&]|$)/gi, "$1stream=$2");
+  out = out.replace(/([?&])extensions=/gi, "$1extension=");
+  out = out.replace(/([?&])extensions([^=&/])/gi, "$1extension=$2");
+  out = out.replace(/play the /gi, "play_token=");
+  out = out.replace(/play to /gi, "play_token=");
+  out = out.replace(/Sksource_group/gi, "source_group");
+  out = out.replace(/&source group/gi, "&source_group");
+  out = out.replace(/line\.vwe+ott\.com/gi, "line.vueott.com");
+  out = out.replace(/line\.wue+ott\.com/gi, "line.vueott.com");
+  out = out.replace(/line\.vue+stt\.com/gi, "line.vueott.com");
+
+  return out;
 }
 
-function buildCafNativeTsLoad(selectedLoad, sourceUrl) {
-  const nativeLoad = Object.assign({}, selectedLoad);
-  const normalized = normalizeCandidateUrl(sourceUrl);
-  nativeLoad.media = Object.assign({}, selectedLoad.media, {
-    contentId: normalized,
-    contentUrl: normalized,
-    contentType: "video/mp2t",
-    streamType: cast.framework.messages.StreamType.LIVE,
-  });
-  return nativeLoad;
-}
-
-function clearStallWatchdog() {
-  if (stallWatchdogTimer) {
-    clearTimeout(stallWatchdogTimer);
-    stallWatchdogTimer = null;
-  }
-}
-
-function armStallWatchdog(source) {
-  clearStallWatchdog();
-  const serial = ++stallWatchdogSerial;
-  stallWatchdogTimer = setTimeout(() => {
-    if (serial !== stallWatchdogSerial) return;
-    if (candidatesExhausted) return;
-    // HLS.js / mpegts boot can exceed 22s; defer a few times then force failover (otherwise .boot.boot… forever).
-    if (pendingCustomPlayerBoot) {
-      stallWatchdogBootDeferCount += 1;
-      if (stallWatchdogBootDeferCount >= STALL_WATCHDOG_BOOT_DEFER_MAX) {
-        stallWatchdogBootDeferCount = 0;
-        debugLog("candidate.watchdog.boot_cap", {
-          source,
-          pendingCustomPlayerBoot,
-          index: activeCandidateIndex,
-          defers: STALL_WATCHDOG_BOOT_DEFER_MAX,
-        });
-        destroyHls();
-        destroyDash();
-        destroyMpegts();
-        clearCustomPlayer();
-        pendingCustomPlayerBoot = null;
-        void tryLoadNextCandidateOnReceiverError("watchdog_js_boot_cap");
-        return;
-      }
-      debugLog("candidate.watchdog.deferred_boot", {
-        source,
-        pendingCustomPlayerBoot,
-        index: activeCandidateIndex,
-        bootDeferCount: stallWatchdogBootDeferCount,
-      });
-      armStallWatchdog("js_boot_defer");
-      return;
-    }
-    stallWatchdogBootDeferCount = 0;
-    if (activeCustomPlayer && castVideoEl && (!castVideoEl.paused || castVideoEl.readyState >= 3)) return;
-    debugLog("candidate.watchdog", { source, index: activeCandidateIndex });
-    void tryLoadNextCandidateOnReceiverError("watchdog");
-  }, STALL_WATCHDOG_MS);
-}
-
-let shakaFilterRegistered = false;
-
-function classifyCafShakaRequestType(type) {
-  if (type === 0) return "manifest";
-  if (type === 1) return "segment";
-  if (type === 2) return "license";
-  return "segment";
-}
-
-function ensureShakaRequestFilters() {
-  if (shakaFilterRegistered || !playerManager) return;
+function rewriteQueryParam(url, key, value) {
   try {
-    const player = typeof playerManager.getPlayer === "function" ? playerManager.getPlayer() : null;
-    const engine = player && typeof player.getNetworkingEngine === "function" ? player.getNetworkingEngine() : null;
-    if (!engine || typeof engine.registerRequestFilter !== "function") return;
-    engine.registerRequestFilter((type, request) => {
-      if (!request) return;
-      const url = request.uris && request.uris[0] ? String(request.uris[0]) : "";
-      const info = { url, headers: Object.assign({}, asObject(request.headers)) };
-      applyNetworkPolicy(info, classifyCafShakaRequestType(type));
-      request.headers = info.headers;
-      request.allowCrossSiteCredentials = false;
-    });
-    shakaFilterRegistered = true;
-    debugLog("network.shaka_filter.registered", {});
-  } catch (e) {
-    debugLog("network.shaka_filter.error", { message: e && e.message ? e.message : "unknown" });
-  }
-}
-
-function createPlaybackConfig() {
-  const playbackConfig = new cast.framework.PlaybackConfig();
-  playbackConfig.manifestRequestHandler = (networkRequestInfo) => {
-    applyNetworkPolicy(networkRequestInfo, "manifest");
-  };
-  playbackConfig.segmentRequestHandler = (networkRequestInfo) => {
-    applyNetworkPolicy(networkRequestInfo, "segment");
-  };
-  playbackConfig.licenseRequestHandler = (networkRequestInfo) => {
-    applyNetworkPolicy(networkRequestInfo, "license");
-  };
-  return playbackConfig;
-}
-/* AUTO-EXTRACTED from receiver.legacy.full.js */
-
-function destroyHls() {
-  if (hlsInstance) {
-    try { hlsInstance.destroy(); } catch (_e) {}
-    hlsInstance = null;
-  }
-}
-
-function destroyDash() {
-  if (dashInstance) {
-    try { dashInstance.off(dashjs.MediaPlayer.events.ERROR); } catch (_e) {}
-    try { dashInstance.reset(); } catch (_e) {}
-    dashInstance = null;
-  }
-}
-
-let activeIptvNetworkShim = null;
-
-function streamHostsMatch(requestUrl, candidateUrl) {
-  try {
-    const a = new URL(normalizeCandidateUrl(requestUrl));
-    const b = new URL(normalizeCandidateUrl(candidateUrl));
-    return a.host === b.host;
+    const u = new URL(repairStreamUrl(url));
+    if (!u.searchParams.has(key)) return null;
+    u.searchParams.set(key, value);
+    return normalizeCandidateUrl(u.toString());
   } catch (_e) {
-    return false;
+    return null;
   }
 }
 
-function installIptvNetworkShim(requestUrl) {
-  removeIptvNetworkShim();
-  const target = normalizeCandidateUrl(requestUrl);
-  const headerPack = buildFetchRequestHeaders(target);
-  const headers = headerPack.headers;
-  const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
-  const OriginalXHR = window.XMLHttpRequest;
-
-  function shouldShim(url) {
-    return streamHostsMatch(target, url);
-  }
-
-  if (originalFetch) {
-    window.fetch = function patchedFetch(input, init) {
-      const url = typeof input === "string" ? input : (input && input.url ? input.url : "");
-      if (shouldShim(url)) {
-        const mergedInit = Object.assign({}, init || {}, {
-          mode: "cors",
-          credentials: "omit",
-        });
-        mergedInit.headers = Object.assign({}, headers, asObject(mergedInit.headers));
-        return originalFetch(input, mergedInit);
-      }
-      return originalFetch(input, init);
-    };
-  }
-
-  function PatchedXHR() {
-    const xhr = new OriginalXHR();
-    let xhrUrl = "";
-    const nativeOpen = xhr.open;
-    xhr.open = function patchedOpen(method, url) {
-      xhrUrl = String(url || "");
-      return nativeOpen.apply(xhr, arguments);
-    };
-    const nativeSetHeader = xhr.setRequestHeader;
-    xhr.setRequestHeader = function patchedSetHeader(name, value) {
-      return nativeSetHeader.call(xhr, name, value);
-    };
-    const nativeSend = xhr.send;
-    xhr.send = function patchedSend() {
-      if (shouldShim(xhrUrl)) {
-        Object.keys(headers).forEach((name) => {
-          try { nativeSetHeader.call(xhr, name, headers[name]); } catch (_e) {}
-        });
-      }
-      return nativeSend.apply(xhr, arguments);
-    };
-    return xhr;
-  }
-  PatchedXHR.prototype = OriginalXHR.prototype;
-  window.XMLHttpRequest = PatchedXHR;
-
-  activeIptvNetworkShim = {
-    restore() {
-      if (originalFetch) window.fetch = originalFetch;
-      window.XMLHttpRequest = OriginalXHR;
-      activeIptvNetworkShim = null;
-    },
-  };
-  return activeIptvNetworkShim;
-}
-
-function removeIptvNetworkShim() {
-  if (activeIptvNetworkShim && typeof activeIptvNetworkShim.restore === "function") {
-    activeIptvNetworkShim.restore();
-  }
-}
-
-function destroyMpegts() {
-  removeIptvNetworkShim();
-  if (mpegtsInstance) {
-    try { mpegtsInstance.off(mpegts.Events.ERROR); } catch (_e) {}
-    try { mpegtsInstance.pause(); } catch (_e) {}
-    try { mpegtsInstance.unload(); } catch (_e) {}
-    try { mpegtsInstance.detachMediaElement(); } catch (_e) {}
-    try { mpegtsInstance.destroy(); } catch (_e) {}
-    mpegtsInstance = null;
-  }
-}
-
-function clearCustomPlayer() {
-  activeCustomPlayer = null;
-  activeCustomPlayerUrl = "";
-  stopPlaybackKeepalive();
-}
-
-const BROWSER_FORBIDDEN_REQUEST_HEADERS = new Set([
-  "accept-charset",
-  "accept-encoding",
-  "access-control-request-headers",
-  "access-control-request-method",
-  "connection",
-  "content-length",
-  "cookie",
-  "cookie2",
-  "date",
-  "dnt",
-  "expect",
-  "host",
-  "keep-alive",
-  "origin",
-  "referer",
-  "te",
-  "trailer",
-  "transfer-encoding",
-  "upgrade",
-  "user-agent",
-  "via",
-]);
-
-function isForbiddenBrowserRequestHeader(name) {
-  return BROWSER_FORBIDDEN_REQUEST_HEADERS.has(String(name || "").toLowerCase());
-}
-
-function partitionIptvHeaders(headers) {
-  const all = asObject(headers);
-  const fetchSafe = {};
-  const fetchBlocked = {};
-  Object.keys(all).forEach((name) => {
-    if (isForbiddenBrowserRequestHeader(name)) {
-      fetchBlocked[name] = all[name];
-    } else {
-      fetchSafe[name] = all[name];
-    }
-  });
-  return { caf: Object.assign({}, all), fetchSafe, fetchBlocked };
-}
-
-function classifyFetchError(error) {
-  const message = String((error && error.message) || error || "");
-  const lower = message.toLowerCase();
-  if (
-    lower.indexOf("failed to fetch") >= 0 ||
-    lower.indexOf("networkerror") >= 0 ||
-    lower.indexOf("network error") >= 0 ||
-    lower.indexOf("load failed") >= 0 ||
-    lower.indexOf("cors") >= 0
-  ) {
-    return { kind: "cors_or_network", message };
-  }
-  return { kind: "unknown", message };
-}
-
-function readCorsResponseHeaders(response) {
-  if (!response || typeof response.headers !== "object" || !response.headers.get) {
-    return {};
-  }
-  return {
-    allowOrigin: response.headers.get("access-control-allow-origin") || "",
-    allowHeaders: response.headers.get("access-control-allow-headers") || "",
-    allowMethods: response.headers.get("access-control-allow-methods") || "",
-    exposeHeaders: response.headers.get("access-control-expose-headers") || "",
-  };
-}
-
-function auditNetworkEnvironment(requestUrl) {
-  const target = normalizeCandidateUrl(requestUrl);
-  let streamOrigin = "";
+function appendQueryParam(url, key, value) {
   try {
-    streamOrigin = new URL(target).origin;
-  } catch (_e) {}
-  const receiverOrigin = (() => {
-    try {
-      return window.location.origin;
-    } catch (_e) {
-      return "";
-    }
-  })();
-  const fullHeaders = buildCafRequestHeaders(target);
-  const parts = partitionIptvHeaders(fullHeaders);
-  return {
-    receiverOrigin,
-    streamOrigin,
-    crossOrigin: !!(streamOrigin && receiverOrigin && streamOrigin !== receiverOrigin),
-    fetchMode: "cors",
-    credentials: "omit",
-    cafCanSetUserAgent: true,
-    fetchBlockedHeaders: parts.fetchBlocked,
-    fetchAllowedHeaders: parts.fetchSafe,
-    note: "User-Agent/Referer/Origin apply on CAF native requests only; browser fetch/XHR cannot set them.",
-  };
-}
-
-function buildCafRequestHeaders(requestUrl, uaIndex) {
-  const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
-  const chosenUa = IPTV_USER_AGENTS[
-    Number.isInteger(uaIndex) ? uaIndex : activeIptvUaIndex
-  ] || DEFAULT_IPTV_USER_AGENT;
-  info.headers["User-Agent"] = chosenUa;
-  info.headers.Accept = "*/*";
-  mergeRequestHeaders(info);
-  try {
-    const streamOrigin = new URL(info.url);
-    const referer = `${streamOrigin.protocol}//${streamOrigin.host}/`;
-    if (!Object.keys(info.headers).some((name) => name.toLowerCase() === "referer")) {
-      info.headers.Referer = referer;
-    }
-  } catch (_e) {}
-  return info.headers;
-}
-
-function buildFetchRequestHeaders(requestUrl, uaIndex) {
-  const cafHeaders = buildCafRequestHeaders(requestUrl, uaIndex);
-  const parts = partitionIptvHeaders(cafHeaders);
-  if (!parts.fetchSafe.Accept) {
-    parts.fetchSafe.Accept = "*/*";
+    const u = new URL(repairStreamUrl(url));
+    u.searchParams.set(key, value);
+    return normalizeCandidateUrl(u.toString());
+  } catch (_e) {
+    return null;
   }
-  return {
-    headers: parts.fetchSafe,
-    blocked: parts.fetchBlocked,
-  };
 }
 
-function buildIptvRequestHeaders(requestUrl, uaIndex) {
-  return buildCafRequestHeaders(requestUrl, uaIndex);
+function normalizeCandidateUrl(url) {
+  const input = repairStreamUrl(String(url || ""));
+  if (!input) return input;
+
+  let out = input
+    .replace(/([?&])ext-m3u8(?=&|$)/gi, "$1ext=m3u8")
+    .replace(/([?&])extension-m3u8(?=&|$)/gi, "$1extension=m3u8")
+    .replace(/([?&])output-m3u8(?=&|$)/gi, "$1output=m3u8")
+    .replace(/([?&])type-m3u8(?=&|$)/gi, "$1type=m3u8")
+    .replace(/([?&])format-hls(?=&|$)/gi, "$1format=hls");
+
+  try {
+    const u = new URL(out);
+    return u.toString();
+  } catch (_e) {
+    return out;
+  }
 }
+
+function stripConflictingHlsHintsOnTsUrl(url) {
+  try {
+    const u = new URL(repairStreamUrl(String(url || "").trim()));
+    const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
+    if (ext !== "ts") return String(url);
+    let changed = false;
+    ["format", "type", "output"].forEach((key) => {
+      const v = (u.searchParams.get(key) || "").toLowerCase();
+      if (v === "hls" || v === "m3u8") {
+        u.searchParams.delete(key);
+        changed = true;
+      }
+    });
+    return changed ? u.toString() : String(url);
+  } catch (_e) {
+    return String(url || "");
+  }
+}
+
 function isHlsCandidate(url) {
   const s = (url || "").toLowerCase();
   return (
@@ -804,106 +562,13 @@ function isXtreamStyleUrl(url) {
   return false;
 }
 
-function getPlaybackStrategy(url, options) {
-  const forBrowser = !!(options && options.forBrowser);
-  const pb = asObject(activeContract.playback);
-  const chStream = String(pb.channelStreamType || "").toLowerCase();
-  // Sender-reported playback shape (what worked on the phone) â€” bias before channel metadata.
-  if (!forBrowser && useCastReceiver) {
-    if (isTruthyFlag(pb.phonePlayingAsDash) && isDashCandidate(url)) {
-      return "dashjs";
-    }
-    if (isTruthyFlag(pb.phonePlayingAsHls) && isHlsCandidate(url)) {
-      return "hlsjs";
-    }
-    if (isTruthyFlag(pb.phonePlayingAsTs) && isTsCandidate(url)) {
-      return "caf-ts";
-    }
-  }
-  if (!forBrowser && useCastReceiver && chStream.includes("hls")) {
-    if (isHlsCandidate(url)) return "hlsjs";
-    if (shouldAttemptHlsJs(url)) return "hlsjs";
-  }
-  if (!forBrowser && (chStream.includes("dash") || chStream.includes("mpd")) && isDashCandidate(url)) {
-    return "dashjs";
-  }
-  if (isProgressiveCandidate(url)) return "native";
-  if (isDashCandidate(url)) return "dashjs";
-  if (isTsCandidate(url)) {
-    // CAF can set User-Agent on native TS; phone often uses VLC â€” we still UA-rotate on errors.
-    if (useCastReceiver) return "caf-ts";
-    return "mpegts";
-  }
-  // IPTV HLS: CAF native Shaka often fails (905) on MPEG-TS-in-HLS; HLS.js matches phone playback.
-  if (isHlsCandidate(url)) {
-    if (forBrowser) return "hlsjs";
-    if (useCastReceiver) return "hlsjs";
-    if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return "hlsjs";
-    return "caf-hls";
-  }
-  if (shouldAttemptHlsJs(url)) return "hlsjs";
-  return "native";
-}
-
-function inspectStreamUrl(url) {
-  try {
-    const u = new URL(String(url || ""));
-    const issues = [];
-    const raw = u.href;
-    if (raw.includes("mac-") && !raw.includes("mac=")) issues.push("mac_separator_corrupt");
-    if (raw.includes("extension-") && !raw.includes("extension=")) issues.push("extension_separator_corrupt");
-    if (raw.includes("stream-") && !raw.includes("stream=")) issues.push("stream_separator_corrupt");
-    if (u.pathname.toLowerCase().includes("live.php") && !u.searchParams.has("stream")) {
-      issues.push("missing_stream_param");
-    }
-    return {
-      ok: issues.length === 0,
-      issues,
-      host: u.host,
-      extension: u.searchParams.get("extension") || u.searchParams.get("ext") || "",
-      stream: u.searchParams.get("stream") || "",
-      hasStream: u.searchParams.has("stream"),
-      hasPlayToken: u.searchParams.has("play_token"),
-    };
-  } catch (e) {
-    return { ok: false, issues: ["invalid_url"], error: e && e.message ? e.message : "unknown" };
-  }
-}
-
-function hlsIsAvailable() {
-  return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
-}
-
-function dashIsAvailable() {
-  return castVideoEl && typeof dashjs !== "undefined";
-}
-
-function mpegtsIsAvailable() {
-  return castVideoEl && typeof mpegts !== "undefined" && mpegts.isSupported();
-}
-
-function pickInitialUaIndex(url) {
-  // VLC UA first for Xtream / live IPTV â€” closer to phone (LibVLC) and often required by CDNs.
-  if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return 0;
-  return 1;
-}
-
-function rotateIptvUserAgent(reason) {
-  activeIptvUaIndex = (activeIptvUaIndex + 1) % IPTV_USER_AGENTS.length;
-  debugLog("network.ua.rotate", {
-    reason,
-    activeIptvUaIndex,
-    userAgent: IPTV_USER_AGENTS[activeIptvUaIndex],
-  });
-}
-
 function isProxyEnabled() {
-  const proxyCfg = asObject(activeContract.proxy);
+  const proxyCfg = asObject(state.activeContract.proxy);
   return proxyCfg.enabled === true && String(proxyCfg.baseUrl || proxyCfg.manifestBaseUrl || "").trim() !== "";
 }
 
 function isStaticHosting() {
-  const hosting = asObject(activeContract.hosting);
+  const hosting = asObject(state.activeContract.hosting);
   if (hosting.mode === "static" || hosting.static === true) return true;
   try {
     const host = new URL(window.location.href).hostname.toLowerCase();
@@ -920,257 +585,23 @@ function isStaticHosting() {
   return false;
 }
 
-function isVueottStyleUrl(url) {
-  return isXtreamStyleUrl(url);
-}
-
 function xtreamNeedsDirectTsOnly() {
-  const playback = asObject(activeContract.playback);
+  const playback = asObject(state.activeContract.playback);
   if (playback.xtreamPreferTs === true || playback.vueottPreferTs === true) return true;
   return isStaticHosting() || !isProxyEnabled();
 }
 
 function toTsVariant(url) {
-  return (
-    rewriteQueryParam(url, "extension", "ts") ||
-    rewriteQueryParam(url, "ext", "ts") ||
-    appendQueryParam(url, "extension", "ts")
-  );
-}
-
-function vueottNeedsDirectTsOnly() {
-  return xtreamNeedsDirectTsOnly();
-}
-
-function tryEnableExplicitProxy(reason) {
-  if (isProxyEnabled()) return true;
-  const proxyCfg = asObject(activeContract.proxy);
-  const explicitBase = String(proxyCfg.baseUrl || proxyCfg.manifestBaseUrl || "").trim();
-  if (!explicitBase) {
-    debugLog("proxy.unavailable", {
-      reason,
-      staticHosting: isStaticHosting(),
-      message: "no_explicit_backend_proxy",
-    });
-    return false;
-  }
-  activeContract.proxy = Object.assign({}, proxyCfg, {
-    enabled: true,
-    baseUrl: explicitBase,
-    manifestBaseUrl: String(proxyCfg.manifestBaseUrl || explicitBase).trim(),
-    segmentBaseUrl: String(proxyCfg.segmentBaseUrl || explicitBase).trim(),
-    licenseBaseUrl: String(proxyCfg.licenseBaseUrl || explicitBase).trim(),
-  });
-  debugLog("proxy.enabled", { reason, baseUrl: explicitBase });
-  return true;
-}
-
-function summarizeHeaders(headers) {
-  const h = asObject(headers);
-  const keys = Object.keys(h);
-  return { count: keys.length, keys };
-}
-
-function readSenderCandidateIndex(value) {
-  if (value == null) return null;
-  if (Number.isInteger(value)) return value;
-  const parsed = parseInt(String(value).trim(), 10);
-  return Number.isFinite(parsed) ? parsed : null;
-}
-
-function asObject(value) {
-  if (value && typeof value === "object" && !Array.isArray(value)) return value;
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    if (!trimmed) return {};
-    try {
-      const parsed = JSON.parse(trimmed);
-      if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) return parsed;
-    } catch (_e) {}
-  }
-  return {};
-}
-
-function isTruthyFlag(value) {
-  if (value === true || value === 1) return true;
-  const normalized = String(value == null ? "" : value).trim().toLowerCase();
-  return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on";
-}
-
-function asStringArray(value) {
-  return Array.isArray(value)
-    ? value.map((v) => String(v || "").trim()).filter((v) => v.length > 0)
-    : [];
-}
-
-function normalizeContract(customData) {
-  const root = asObject(customData);
-  const play = asObject(root.playback);
-  const sb = asObject(root.streamBootstrap);
-  return {
-    schemaVersion: Number(root.schemaVersion) || 1,
-    auth: asObject(root.auth),
-    token: asObject(root.token),
-    proxy: asObject(root.proxy),
-    networkPolicy: asObject(root.networkPolicy),
-    hosting: asObject(root.hosting),
-    playback: Object.assign({}, play, {
-      phonePrimaryUrl: String(sb.phonePrimaryUrl || play.phonePrimaryUrl || "").trim(),
-      preferReceiverEngine: String(sb.preferReceiverEngine || play.preferReceiverEngine || "").trim(),
-    }),
-    channelName: String(root.channelName || ""),
-    debug: asObject(root.debug),
-  };
-}
-
-function enableReceiverDebugUi() {
-  try {
-    if (typeof document !== "undefined" && document.body) {
-      document.body.classList.add("receiver-debug");
-    }
-    window.__preettvReceiverDebugUiEnabled = true;
-    if (statusEl) statusEl.style.removeProperty("display");
-    if (typeof window.__preettvActivateDebugUi === "function") {
-      window.__preettvActivateDebugUi();
-    } else {
-      window.__preettvPendingDebugUi = true;
-    }
-  } catch (_e) {}
-}
-
-function rewriteQueryParam(url, key, value) {
-  try {
-    const u = new URL(repairStreamUrl(url));
-    if (!u.searchParams.has(key)) return null;
-    u.searchParams.set(key, value);
-    return normalizeCandidateUrl(u.toString());
-  } catch (_e) {
-    return null;
-  }
-}
-
-function appendQueryParam(url, key, value) {
-  try {
-    const u = new URL(repairStreamUrl(url));
-    u.searchParams.set(key, value);
-    return normalizeCandidateUrl(u.toString());
-  } catch (_e) {
-    return null;
-  }
-}
-
-function repairStreamUrl(url) {
-  let out = String(url || "");
-  if (!out) return out;
-
-  const separatorFixes = [
-    [/([?&])source_group-/gi, "$1source_group="],
-    [/([?&])play_token-/gi, "$1play_token="],
-    [/([?&])extension-/gi, "$1extension="],
-    [/([?&])extension@/gi, "$1extension="],
-    [/([?&])stream-/gi, "$1stream="],
-    [/([?&])mac-/gi, "$1mac="],
-    [/([?&])output-/gi, "$1output="],
-    [/([?&])format-/gi, "$1format="],
-    [/([?&])type-/gi, "$1type="],
-    [/([?&])ext-(?!ension)/gi, "$1ext="],
-    [/([?&])play_token@/gi, "$1play_token="],
-    [/([?&])source_group@/gi, "$1source_group="],
-    [/([?&])source_group\s+/gi, "$1source_group="],
-    [/([?&])play_token\s+/gi, "$1play_token="],
-    [/([?&])extension\s+/gi, "$1extension="],
-  ];
-  separatorFixes.forEach(([pattern, replacement]) => {
-    out = out.replace(pattern, replacement);
-  });
-
-  out = out.replace(/source group/gi, "source_group");
-  out = out.replace(/play token/gi, "play_token");
-  out = out.replace(/(play_token=[^&\s]+)\s*source_group/gi, "$1&source_group");
-  out = out.replace(/(play_token=[^&\s]+)source_group/gi, "$1&source_group=");
-
-  out = out.replace(/\/play\/Live\.php/gi, "/play/live.php");
-  out = out.replace(/([?&])nac-/gi, "$1mac=");
-  out = out.replace(/([?&])stream(\d{3,})(?=[&]|$)/gi, "$1stream=$2");
-  out = out.replace(/([?&])extensions=/gi, "$1extension=");
-  out = out.replace(/([?&])extensions([^=&/])/gi, "$1extension=$2");
-  out = out.replace(/play the /gi, "play_token=");
-  out = out.replace(/play to /gi, "play_token=");
-  out = out.replace(/Sksource_group/gi, "source_group");
-  out = out.replace(/&source group/gi, "&source_group");
-  out = out.replace(/line\.vwe+ott\.com/gi, "line.vueott.com");
-  out = out.replace(/line\.wue+ott\.com/gi, "line.vueott.com");
-  out = out.replace(/line\.vue+stt\.com/gi, "line.vueott.com");
-
-  return out;
+  return rewriteQueryParam(url, "extension", "ts") || rewriteQueryParam(url, "ext", "ts") || appendQueryParam(url, "extension", "ts");
 }
 
 function toM3u8Variant(url) {
   const repaired = repairStreamUrl(url);
-  const rewritten = rewriteQueryParam(repaired, "extension", "m3u8")
-    || rewriteQueryParam(repaired, "ext", "m3u8");
+  const rewritten = rewriteQueryParam(repaired, "extension", "m3u8") || rewriteQueryParam(repaired, "ext", "m3u8");
   if (rewritten) return normalizeCandidateUrl(rewritten);
   return normalizeCandidateUrl(appendQueryParam(repaired, "extension", "m3u8") || repaired);
 }
 
-function normalizeCandidateUrl(url) {
-  const input = repairStreamUrl(String(url || ""));
-  if (!input) return input;
-
-  let out = input
-    .replace(/([?&])ext-m3u8(?=&|$)/gi, "$1ext=m3u8")
-    .replace(/([?&])extension-m3u8(?=&|$)/gi, "$1extension=m3u8")
-    .replace(/([?&])output-m3u8(?=&|$)/gi, "$1output=m3u8")
-    .replace(/([?&])type-m3u8(?=&|$)/gi, "$1type=m3u8")
-    .replace(/([?&])format-hls(?=&|$)/gi, "$1format=hls");
-
-  try {
-    const u = new URL(out);
-    return u.toString();
-  } catch (_e) {
-    return out;
-  }
-}
-
-function inferContentType(url) {
-  const lower = (url || "").toLowerCase();
-  try {
-    const u = new URL(url);
-    const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
-    const type = (u.searchParams.get("type") || u.searchParams.get("output") || u.searchParams.get("format") || "").toLowerCase();
-    // Explicit extension=ts must win over format=hls / type=m3u8 on the same query (bad combos
-    // from stacked fallbacks confuse CAF/Shaka and MEDIA_STATUS flips mpegURL vs mp2t).
-    if (ext === "ts" || lower.endsWith(".ts")) return "video/mp2t";
-    if (lower.endsWith(".m3u8") || ext === "m3u8" || type === "m3u8" || type === "hls") return "application/x-mpegURL";
-    if (lower.endsWith(".mpd") || ext === "mpd" || type === "mpd" || type === "dash") return "application/dash+xml";
-    if (type === "ts") return "video/mp2t";
-    if (lower.endsWith(".mp4") || ext === "mp4" || type === "mp4") return "video/mp4";
-    if (lower.endsWith(".webm") || ext === "webm" || type === "webm") return "video/webm";
-  } catch (_e) {}
-  return "video/*";
-}
-
-/** Drop format=/type=/output= HLS hints when extension is TS (avoids hybrid URLs that confuse CAF). */
-function stripConflictingHlsHintsOnTsUrl(url) {
-  try {
-    const u = new URL(repairStreamUrl(String(url || "").trim()));
-    const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
-    if (ext !== "ts") return String(url);
-    let changed = false;
-    ["format", "type", "output"].forEach((key) => {
-      const v = (u.searchParams.get(key) || "").toLowerCase();
-      if (v === "hls" || v === "m3u8") {
-        u.searchParams.delete(key);
-        changed = true;
-      }
-    });
-    return changed ? u.toString() : String(url);
-  } catch (_e) {
-    return String(url || "");
-  }
-}
-
-/** In static TS-only mode, optionally lead with m3u8 when the phone prefers HLS (VLC-style live.php). */
 function phoneReceiverWantsM3u8BeforeTsForLivePhp(baseUrl, customData) {
   if (!isXtreamStyleUrl(baseUrl)) return false;
   if (!xtreamNeedsDirectTsOnly()) return false;
@@ -1197,14 +628,12 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   };
 
   const phoneResolved = String((customData && customData.phoneResolvedUrl) || "").trim();
-  if (phoneResolved) {
-    push(phoneResolved);
-  }
+  if (phoneResolved) push(phoneResolved);
 
-  const phonePrimary = String((customData && customData.streamBootstrap && customData.streamBootstrap.phonePrimaryUrl) || "").trim();
-  if (phonePrimary) {
-    push(phonePrimary);
-  }
+  const phonePrimary = String(
+    (customData && customData.streamBootstrap && customData.streamBootstrap.phonePrimaryUrl) || ""
+  ).trim();
+  if (phonePrimary) push(phonePrimary);
 
   baseUrl = normalizeCandidateUrl(stripConflictingHlsHintsOnTsUrl(baseUrl));
   const lower = (baseUrl || "").toLowerCase();
@@ -1222,8 +651,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   const xtreamTsOnly = isXtreamStyle && xtreamNeedsDirectTsOnly();
   const senderCandidates = customData && Array.isArray(customData.candidateUrls) ? customData.candidateUrls : [];
 
-  // Sender-ranked URLs before local expansions (live.php /live/play/ query hacks, etc.) so
-  // simple streams and non-token URLs match phone order; avoids several wrong attempts first.
   if (!xtreamTsOnly) {
     senderCandidates.forEach((candidateUrl) => push(candidateUrl));
   }
@@ -1238,7 +665,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
         push(appendQueryParam(m3u8Lead, "format", "hls"));
       }
     }
-    // Static Cast receivers cannot proxy; many Xtream m3u8 endpoints return HTTP 458 on Cast.
     push(toTsVariant(baseUrl) || normalizeCandidateUrl(baseUrl));
     if (looksTs) {
       push(normalizeCandidateUrl(baseUrl));
@@ -1279,7 +705,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
         withM3u8Path.pathname = `${pathname}.m3u8`;
         push(withM3u8Path.toString());
       }
-      // Query-style HLS hints (some CDNs match phone clients that send extension/type only).
       push(appendQueryParam(baseUrl, "extension", "m3u8"));
       push(appendQueryParam(baseUrl, "type", "m3u8"));
       push(appendQueryParam(baseUrl, "output", "hls"));
@@ -1307,8 +732,6 @@ function buildCompatibilityCandidates(baseUrl, customData) {
     push(appendQueryParam(baseUrl, "extension", "ts"));
   }
 
-  // TS-only mode prefers direct TS first (458 on m3u8 fetch is common), but if TS never plays
-  // we still need HLS variants as later candidates — otherwise candidateCount stays 1 and we exhaust.
   if (xtreamTsOnly && isXtreamStyle) {
     const m3u8Base = toM3u8Variant(baseUrl);
     if (m3u8Base) {
@@ -1322,8 +745,139 @@ function buildCompatibilityCandidates(baseUrl, customData) {
   return candidates;
 }
 
+function inferContentType(url) {
+  const lower = (url || "").toLowerCase();
+  try {
+    const u = new URL(url);
+    const ext = (u.searchParams.get("extension") || u.searchParams.get("ext") || "").toLowerCase();
+    const type = (u.searchParams.get("type") || u.searchParams.get("output") || u.searchParams.get("format") || "").toLowerCase();
+    if (ext === "ts" || lower.endsWith(".ts")) return "video/mp2t";
+    if (lower.endsWith(".m3u8") || ext === "m3u8" || type === "m3u8" || type === "hls") return "application/x-mpegURL";
+    if (lower.endsWith(".mpd") || ext === "mpd" || type === "mpd" || type === "dash") return "application/dash+xml";
+    if (type === "ts") return "video/mp2t";
+    if (lower.endsWith(".mp4") || ext === "mp4" || type === "mp4") return "video/mp4";
+    if (lower.endsWith(".webm") || ext === "webm" || type === "webm") return "video/webm";
+  } catch (_e) {}
+  return "video/*";
+}
+
+/**
+ * @param {string} url
+ * @param {{ forBrowser?: boolean }} [options]
+ */
+function getPlaybackStrategy(url, options) {
+  const forBrowser = !!(options && options.forBrowser);
+  const pb = asObject(state.activeContract.playback);
+  const chStream = String(pb.channelStreamType || "").toLowerCase();
+
+  if (!forBrowser && state.useCastReceiver) {
+    if (isTruthyFlag(pb.phonePlayingAsDash) && isDashCandidate(url)) {
+      return "dashjs";
+    }
+    if (isTruthyFlag(pb.phonePlayingAsHls) && isHlsCandidate(url)) {
+      return "hlsjs";
+    }
+    if (isTruthyFlag(pb.phonePlayingAsTs) && isTsCandidate(url)) {
+      return "caf-ts";
+    }
+  }
+  if (!forBrowser && state.useCastReceiver && chStream.includes("hls")) {
+    if (isHlsCandidate(url)) return "hlsjs";
+    if (shouldAttemptHlsJs(url)) return "hlsjs";
+  }
+  if (!forBrowser && (chStream.includes("dash") || chStream.includes("mpd")) && isDashCandidate(url)) {
+    return "dashjs";
+  }
+  if (isProgressiveCandidate(url)) return "native";
+  if (isDashCandidate(url)) return "dashjs";
+  if (isTsCandidate(url)) {
+    if (state.useCastReceiver) return "caf-ts";
+    return "mpegts";
+  }
+  if (isHlsCandidate(url)) {
+    if (forBrowser) return "hlsjs";
+    if (state.useCastReceiver) return "hlsjs";
+    if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return "hlsjs";
+    return "caf-hls";
+  }
+  if (shouldAttemptHlsJs(url)) return "hlsjs";
+  return "native";
+}
+
+function pickInitialUaIndex(url) {
+  if (isXtreamStyleUrl(url) || isLikelyLiveStream(url)) return 0;
+  return 1;
+}
+
+function getStreamUrlFromPage() {
+  const search = window.location.search || "";
+  if (!search) return "";
+  const marker = "url=";
+  const idx = search.toLowerCase().indexOf(marker);
+  if (idx === -1) return "";
+  const raw = search.substring(idx + marker.length);
+  if (!raw) return "";
+  try {
+    return decodeURIComponent(raw.replace(/\+/g, " ")).trim();
+  } catch (_e) {
+    return raw.trim();
+  }
+}
+
+function isBrowserTestMode() {
+  try {
+    const query = new URLSearchParams(window.location.search || "");
+    const flag = String(query.get("browser") || query.get("test") || "").trim().toLowerCase();
+    if (flag === "1" || flag === "true" || flag === "yes") return true;
+  } catch (_e) {}
+  return !!getStreamUrlFromPage();
+}
+
+/* --- receiver/network.js --- */
+const BROWSER_FORBIDDEN_REQUEST_HEADERS = new Set([
+  "accept-charset",
+  "accept-encoding",
+  "access-control-request-headers",
+  "access-control-request-method",
+  "connection",
+  "content-length",
+  "cookie",
+  "cookie2",
+  "date",
+  "dnt",
+  "expect",
+  "host",
+  "keep-alive",
+  "origin",
+  "referer",
+  "te",
+  "trailer",
+  "transfer-encoding",
+  "upgrade",
+  "user-agent",
+  "via",
+]);
+
+function isForbiddenBrowserRequestHeader(name) {
+  return BROWSER_FORBIDDEN_REQUEST_HEADERS.has(String(name || "").toLowerCase());
+}
+
+function partitionIptvHeaders(headers) {
+  const all = asObject(headers);
+  const fetchSafe = {};
+  const fetchBlocked = {};
+  Object.keys(all).forEach((name) => {
+    if (isForbiddenBrowserRequestHeader(name)) {
+      fetchBlocked[name] = all[name];
+    } else {
+      fetchSafe[name] = all[name];
+    }
+  });
+  return { caf: Object.assign({}, all), fetchSafe, fetchBlocked };
+}
+
 function applyTokenQueryPolicy(url) {
-  const tokenCfg = asObject(activeContract.token);
+  const tokenCfg = asObject(state.activeContract.token);
   const queryValues = asObject(tokenCfg.queryValues);
   const passthroughKeys = asStringArray(tokenCfg.passthroughQueryKeys);
   const allKeys = new Set([...Object.keys(queryValues), ...passthroughKeys]);
@@ -1343,19 +897,23 @@ function applyTokenQueryPolicy(url) {
   }
 }
 
-function applyProxyPolicy(url, requestType) {
-  const proxyCfg = asObject(activeContract.proxy);
-  const enabled = proxyCfg.enabled === true;
-  if (!enabled) return url;
+/**
+ * Rewrites a plain URL string through the proxy contract (returns original if disabled).
+ * @param {string} url
+ * @param {string} requestType manifest|segment|license
+ */
+function applyProxyRewrite(url, requestType) {
+  const proxyCfg = asObject(state.activeContract.proxy);
+  if (proxyCfg.enabled !== true) return url;
 
   const key =
     requestType === "manifest"
       ? "manifestBaseUrl"
       : requestType === "segment"
-      ? "segmentBaseUrl"
-      : requestType === "license"
-      ? "licenseBaseUrl"
-      : "baseUrl";
+        ? "segmentBaseUrl"
+        : requestType === "license"
+          ? "licenseBaseUrl"
+          : "baseUrl";
 
   const base = String(proxyCfg[key] || proxyCfg.baseUrl || "").trim();
   if (!base) return url;
@@ -1365,8 +923,8 @@ function applyProxyPolicy(url, requestType) {
     const originalUrlParam = String(proxyCfg.originalUrlParam || "url");
     proxyUrl.searchParams.set(originalUrlParam, url);
 
-    if (proxyCfg.addChannelName && activeContract.channelName) {
-      proxyUrl.searchParams.set("channel", activeContract.channelName);
+    if (proxyCfg.addChannelName && state.activeContract.channelName) {
+      proxyUrl.searchParams.set("channel", state.activeContract.channelName);
     }
 
     return proxyUrl.toString();
@@ -1375,28 +933,17 @@ function applyProxyPolicy(url, requestType) {
   }
 }
 
-function applyDefaultIptvHeaders(networkRequestInfo) {
-  const headers = asObject(networkRequestInfo.headers);
-  const hasUserAgent = Object.keys(headers).some((name) => name.toLowerCase() === "user-agent");
-  if (!hasUserAgent) {
-    headers["User-Agent"] = IPTV_USER_AGENTS[activeIptvUaIndex] || DEFAULT_IPTV_USER_AGENT;
-  }
-
-  try {
-    const origin = new URL(String(networkRequestInfo.url || ""));
-    const referer = `${origin.protocol}//${origin.host}/`;
-    const hasReferer = Object.keys(headers).some((name) => name.toLowerCase() === "referer");
-    if (!hasReferer) {
-      headers["Referer"] = referer;
-    }
-  } catch (_e) {}
-
-  networkRequestInfo.headers = headers;
+/** @param {string} url @param {string} [requestType] */
+function resolveFetchUrl(url, requestType) {
+  let out = normalizeCandidateUrl(url);
+  const proxyCfg = asObject(state.activeContract.proxy);
+  if (proxyCfg.enabled !== true) return out;
+  return applyProxyRewrite(out, requestType || "manifest");
 }
 
 function mergeRequestHeaders(networkRequestInfo) {
-  const authCfg = asObject(activeContract.auth);
-  const policyCfg = asObject(activeContract.networkPolicy);
+  const authCfg = asObject(state.activeContract.auth);
+  const policyCfg = asObject(state.activeContract.networkPolicy);
   const allowlist = asStringArray(policyCfg.allowedHeaderNames).map((h) => h.toLowerCase());
   const denylist = asStringArray(policyCfg.blockedHeaderNames).map((h) => h.toLowerCase());
 
@@ -1431,6 +978,25 @@ function mergeRequestHeaders(networkRequestInfo) {
   networkRequestInfo.headers = merged;
 }
 
+function applyDefaultIptvHeaders(networkRequestInfo) {
+  const headers = asObject(networkRequestInfo.headers);
+  const hasUserAgent = Object.keys(headers).some((name) => name.toLowerCase() === "user-agent");
+  if (!hasUserAgent) {
+    headers["User-Agent"] = IPTV_USER_AGENTS[state.activeIptvUaIndex] || DEFAULT_IPTV_USER_AGENT;
+  }
+
+  try {
+    const origin = new URL(String(networkRequestInfo.url || ""));
+    const referer = `${origin.protocol}//${origin.host}/`;
+    const hasReferer = Object.keys(headers).some((name) => name.toLowerCase() === "referer");
+    if (!hasReferer) {
+      headers["Referer"] = referer;
+    }
+  } catch (_e) {}
+
+  networkRequestInfo.headers = headers;
+}
+
 function classifyHlsRequestType(url) {
   const lower = String(url || "").toLowerCase();
   if (
@@ -1447,6 +1013,10 @@ function classifyHlsRequestType(url) {
   return "segment";
 }
 
+/**
+ * @param {{ url?: string, headers?: Record<string, unknown> }} networkRequestInfo
+ * @param {string} requestType
+ */
 function applyNetworkPolicy(networkRequestInfo, requestType) {
   try {
     let rewritten = String(networkRequestInfo.url || "");
@@ -1459,7 +1029,7 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
     };
 
     rewritten = applyTokenQueryPolicy(rewritten);
-    rewritten = applyProxyPolicy(rewritten, requestType);
+    rewritten = applyProxyRewrite(rewritten, requestType);
     networkRequestInfo.url = rewritten;
 
     mergeRequestHeaders(networkRequestInfo);
@@ -1482,16 +1052,268 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
   }
 }
 
-function hlsIsAvailable() {
-  return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
+function buildCafRequestHeaders(requestUrl, uaIndex) {
+  const info = { url: normalizeCandidateUrl(requestUrl), headers: {} };
+  const chosenUa = IPTV_USER_AGENTS[Number.isInteger(uaIndex) ? uaIndex : state.activeIptvUaIndex] || DEFAULT_IPTV_USER_AGENT;
+  info.headers["User-Agent"] = chosenUa;
+  info.headers.Accept = "*/*";
+  mergeRequestHeaders(info);
+  try {
+    const streamOrigin = new URL(info.url);
+    const referer = `${streamOrigin.protocol}//${streamOrigin.host}/`;
+    if (!Object.keys(info.headers).some((name) => name.toLowerCase() === "referer")) {
+      info.headers.Referer = referer;
+    }
+  } catch (_e) {}
+  return info.headers;
 }
 
-function dashIsAvailable() {
-  return castVideoEl && typeof dashjs !== "undefined";
+function buildFetchRequestHeaders(requestUrl, uaIndex) {
+  const cafHeaders = buildCafRequestHeaders(requestUrl, uaIndex);
+  const parts = partitionIptvHeaders(cafHeaders);
+  if (!parts.fetchSafe.Accept) {
+    parts.fetchSafe.Accept = "*/*";
+  }
+  return {
+    headers: parts.fetchSafe,
+    blocked: parts.fetchBlocked,
+  };
 }
 
-function mpegtsIsAvailable() {
-  return castVideoEl && typeof mpegts !== "undefined" && mpegts.isSupported();
+function buildIptvRequestHeaders(requestUrl, uaIndex) {
+  return buildCafRequestHeaders(requestUrl, uaIndex);
+}
+
+function auditNetworkEnvironment(requestUrl) {
+  const target = normalizeCandidateUrl(requestUrl);
+  let streamOrigin = "";
+  try {
+    streamOrigin = new URL(target).origin;
+  } catch (_e) {}
+  let receiverOrigin = "";
+  try {
+    receiverOrigin = window.location.origin;
+  } catch (_e) {}
+  const fullHeaders = buildCafRequestHeaders(target);
+  const parts = partitionIptvHeaders(fullHeaders);
+  return {
+    receiverOrigin,
+    streamOrigin,
+    crossOrigin: !!(streamOrigin && receiverOrigin && streamOrigin !== receiverOrigin),
+    fetchMode: "cors",
+    credentials: "omit",
+    cafCanSetUserAgent: true,
+    fetchBlockedHeaders: parts.fetchBlocked,
+    fetchAllowedHeaders: parts.fetchSafe,
+    note: "User-Agent/Referer/Origin apply on CAF native requests only; browser fetch/XHR cannot set them.",
+  };
+}
+
+function rotateIptvUserAgent(reason) {
+  state.activeIptvUaIndex = (state.activeIptvUaIndex + 1) % IPTV_USER_AGENTS.length;
+  debugLog("network.ua.rotate", {
+    reason,
+    activeIptvUaIndex: state.activeIptvUaIndex,
+    userAgent: IPTV_USER_AGENTS[state.activeIptvUaIndex],
+  });
+}
+
+function classifyCafShakaRequestType(type) {
+  if (type === 0) return "manifest";
+  if (type === 1) return "segment";
+  if (type === 2) return "license";
+  return "segment";
+}
+
+function ensureShakaRequestFilters() {
+  if (state.shakaFilterRegistered || !state.playerManager) return;
+  try {
+    const player = typeof state.playerManager.getPlayer === "function" ? state.playerManager.getPlayer() : null;
+    const engine = player && typeof player.getNetworkingEngine === "function" ? player.getNetworkingEngine() : null;
+    if (!engine || typeof engine.registerRequestFilter !== "function") return;
+    engine.registerRequestFilter((type, request) => {
+      if (!request) return;
+      const url = request.uris && request.uris[0] ? String(request.uris[0]) : "";
+      const info = { url, headers: Object.assign({}, asObject(request.headers)) };
+      applyNetworkPolicy(info, classifyCafShakaRequestType(type));
+      request.headers = info.headers;
+      request.allowCrossSiteCredentials = false;
+    });
+    state.shakaFilterRegistered = true;
+    debugLog("network.shaka_filter.registered", {});
+  } catch (e) {
+    debugLog("network.shaka_filter.error", { message: e && e.message ? e.message : "unknown" });
+  }
+}
+
+function createPlaybackConfig() {
+  const castGlobal = window.cast;
+  const playbackConfig = new castGlobal.framework.PlaybackConfig();
+  playbackConfig.manifestRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "manifest");
+  };
+  playbackConfig.segmentRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "segment");
+  };
+  playbackConfig.licenseRequestHandler = (networkRequestInfo) => {
+    applyNetworkPolicy(networkRequestInfo, "license");
+  };
+  return playbackConfig;
+}
+
+function streamHostsMatch(requestUrl, candidateUrl) {
+  try {
+    const a = new URL(normalizeCandidateUrl(requestUrl));
+    const b = new URL(normalizeCandidateUrl(candidateUrl));
+    return a.host === b.host;
+  } catch (_e) {
+    return false;
+  }
+}
+
+function installIptvNetworkShim(requestUrl) {
+  removeIptvNetworkShim();
+  const target = normalizeCandidateUrl(requestUrl);
+  const headerPack = buildFetchRequestHeaders(target);
+  const headers = headerPack.headers;
+  const originalFetch = typeof window.fetch === "function" ? window.fetch.bind(window) : null;
+  const OriginalXHR = window.XMLHttpRequest;
+
+  function shouldShim(url) {
+    return streamHostsMatch(target, url);
+  }
+
+  if (originalFetch) {
+    window.fetch = function patchedFetch(input, init) {
+      const url = typeof input === "string" ? input : input && input.url ? input.url : "";
+      if (shouldShim(url)) {
+        const mergedInit = Object.assign({}, init || {}, {
+          mode: "cors",
+          credentials: "omit",
+        });
+        mergedInit.headers = Object.assign({}, headers, asObject(mergedInit.headers));
+        return originalFetch(input, mergedInit);
+      }
+      return originalFetch(input, init);
+    };
+  }
+
+  function PatchedXHR() {
+    const xhr = new OriginalXHR();
+    let xhrUrl = "";
+    const nativeOpen = xhr.open;
+    xhr.open = function patchedOpen(method, url) {
+      xhrUrl = String(url || "");
+      return nativeOpen.apply(xhr, arguments);
+    };
+    const nativeSetHeader = xhr.setRequestHeader;
+    const nativeSend = xhr.send;
+    xhr.send = function patchedSend() {
+      if (shouldShim(xhrUrl)) {
+        Object.keys(headers).forEach((name) => {
+          try {
+            nativeSetHeader.call(xhr, name, headers[name]);
+          } catch (_e) {}
+        });
+      }
+      return nativeSend.apply(xhr, arguments);
+    };
+    return xhr;
+  }
+  PatchedXHR.prototype = OriginalXHR.prototype;
+  window.XMLHttpRequest = PatchedXHR;
+
+  state.activeIptvNetworkShim = {
+    restore() {
+      if (originalFetch) window.fetch = originalFetch;
+      window.XMLHttpRequest = OriginalXHR;
+      state.activeIptvNetworkShim = null;
+    },
+  };
+  return state.activeIptvNetworkShim;
+}
+
+function removeIptvNetworkShim() {
+  if (state.activeIptvNetworkShim && typeof state.activeIptvNetworkShim.restore === "function") {
+    state.activeIptvNetworkShim.restore();
+  }
+}
+
+/* --- receiver/players.js --- */
+/* global Hls, dashjs, mpegts */
+function stopPlaybackKeepalive() {}
+
+function destroyHls() {
+  if (state.hlsInstance) {
+    try {
+      state.hlsInstance.destroy();
+    } catch (_e) {}
+    state.hlsInstance = null;
+  }
+}
+
+function destroyDash() {
+  if (state.dashInstance) {
+    try {
+      state.dashInstance.off(dashjs.MediaPlayer.events.ERROR);
+    } catch (_e) {}
+    try {
+      state.dashInstance.reset();
+    } catch (_e) {}
+    state.dashInstance = null;
+  }
+}
+
+function destroyMpegts() {
+  removeIptvNetworkShim();
+  if (state.mpegtsInstance) {
+    try {
+      state.mpegtsInstance.off(mpegts.Events.ERROR);
+    } catch (_e) {}
+    try {
+      state.mpegtsInstance.pause();
+    } catch (_e) {}
+    try {
+      state.mpegtsInstance.unload();
+    } catch (_e) {}
+    try {
+      state.mpegtsInstance.detachMediaElement();
+    } catch (_e) {}
+    try {
+      state.mpegtsInstance.destroy();
+    } catch (_e) {}
+    state.mpegtsInstance = null;
+  }
+}
+
+function clearCustomPlayer() {
+  state.activeCustomPlayer = null;
+  state.activeCustomPlayerUrl = "";
+  stopPlaybackKeepalive();
+}
+
+function readVideoBlobUrl() {
+  const castVideoEl = getCastVideoEl();
+  if (!castVideoEl) return "";
+  const mediaSrc = castVideoEl.currentSrc || castVideoEl.src || "";
+  return mediaSrc.startsWith("blob:") ? mediaSrc : "";
+}
+
+function buildMpegtsPlayerConfig() {
+  return {
+    enableWorker: false,
+    lazyLoad: false,
+    enableStashBuffer: true,
+    stashInitialSize: 2048 * 1024,
+    liveBufferLatencyChasing: true,
+    liveBufferLatencyMaxLatency: 5,
+    liveBufferLatencyMinRemain: 0.8,
+    liveSync: true,
+    liveSyncMaxLatency: 5,
+    liveSyncTargetLatency: 2.5,
+    autoCleanupSourceBuffer: true,
+    fixAudioTimestampGap: true,
+  };
 }
 
 function buildHlsJsConfig() {
@@ -1505,26 +1327,117 @@ function buildHlsJsConfig() {
     xhrSetup(xhr, requestUrl) {
       const info = { url: String(requestUrl || ""), headers: {} };
       applyNetworkPolicy(info, classifyHlsRequestType(info.url));
-      Object.keys(asObject(info.headers)).forEach((k) => {
+      const h = /** @type {Record<string, string>} */ (info.headers || {});
+      Object.keys(h).forEach((k) => {
         try {
-          xhr.setRequestHeader(k, info.headers[k]);
+          xhr.setRequestHeader(k, h[k]);
         } catch (_e) {}
       });
     },
   };
 }
 
+function hlsIsAvailable() {
+  const castVideoEl = getCastVideoEl();
+  return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
+}
+
+function dashIsAvailable() {
+  const castVideoEl = getCastVideoEl();
+  return castVideoEl && typeof dashjs !== "undefined";
+}
+
+function mpegtsIsAvailable() {
+  const castVideoEl = getCastVideoEl();
+  return castVideoEl && typeof mpegts !== "undefined" && mpegts.isSupported();
+}
+
+/**
+ * @param {unknown} loadRequestData
+ * @param {string} candidateUrl
+ * @param {number} [retryIndex]
+ */
+function prepareLoadForCandidate(loadRequestData, candidateUrl, retryIndex) {
+  const cloned = Object.assign({}, loadRequestData);
+  cloned.media = Object.assign({}, asObject(loadRequestData && loadRequestData.media));
+  cloned.media.contentId = candidateUrl;
+  cloned.media.contentUrl = candidateUrl;
+  cloned.media.contentType = inferContentType(candidateUrl);
+  if (retryIndex !== undefined) {
+    const originalCustomData = asObject(loadRequestData && loadRequestData.customData);
+    const originalMedia = asObject(loadRequestData && loadRequestData.media);
+    const originalBaseUrl = String(
+      originalCustomData._retryBaseUrl || originalMedia.contentUrl || originalMedia.contentId || ""
+    );
+    cloned.customData = Object.assign({}, originalCustomData, {
+      _retryBaseUrl: originalBaseUrl,
+      _retryCandidateIndex: retryIndex,
+      candidateIndex: retryIndex,
+    });
+  }
+  return cloned;
+}
+
+function prepareCustomPlayerStubLoad(selectedLoad, sourceUrl, playerType) {
+  const cast = window.cast;
+  const stub = Object.assign({}, selectedLoad);
+  stub.media = Object.assign({}, asObject(selectedLoad.media));
+  stub.media.contentId = sourceUrl;
+  stub.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
+  stub.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
+  stub.media.streamType = cast.framework.messages.StreamType.LIVE;
+  stub.customData = Object.assign({}, /** @type {Record<string, unknown>} */ (selectedLoad.customData || {}), {
+    _customPlayer: playerType,
+    _customPlayerUrl: sourceUrl,
+  });
+  state.pendingCustomPlayerBoot = playerType;
+  return stub;
+}
+
+function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
+  const cast = window.cast;
+  state.activeCustomPlayer = playerType;
+  state.activeCustomPlayerUrl = sourceUrl;
+  state.pendingCustomPlayerBoot = null;
+  if (!selectedLoad.media) selectedLoad.media = {};
+  selectedLoad.media.contentId = sourceUrl;
+  selectedLoad.media.contentUrl = CUSTOM_PLAYER_STUB_URL;
+  selectedLoad.media.contentType = playerType === "dashjs" ? "application/dash+xml" : "video/mp4";
+  selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
+  selectedLoad.customData = Object.assign({}, /** @type {Record<string, unknown>} */ (selectedLoad.customData || {}), {
+    _customPlayer: playerType,
+    _customPlayerUrl: sourceUrl,
+    _customPlayerActive: true,
+  });
+  onPlaybackStartedUi();
+  debugLog("playback.custom_started", { playerType });
+  return selectedLoad;
+}
+
+function buildCafNativeTsLoad(selectedLoad, sourceUrl) {
+  const cast = window.cast;
+  const nativeLoad = Object.assign({}, selectedLoad);
+  const normalized = normalizeCandidateUrl(sourceUrl);
+  nativeLoad.media = Object.assign({}, asObject(selectedLoad.media), {
+    contentId: normalized,
+    contentUrl: normalized,
+    contentType: "video/mp2t",
+    streamType: cast.framework.messages.StreamType.LIVE,
+  });
+  return nativeLoad;
+}
+
 function hlsLive() {
-  return hlsInstance && hlsInstance.__preetInvocation === hlsJsInvocationCounter;
+  return state.hlsInstance && state.hlsInstance.__preetInvocation === state.hlsJsInvocationCounter;
 }
 
 function safeHlsLoadSource(url, label) {
-  if (!hlsInstance || !hlsLive()) {
+  if (!state.hlsInstance || !hlsLive()) {
     debugLog("hlsjs.loadSource.skipped", { label, url });
     return false;
   }
   try {
-    hlsInstance.loadSource(url);
+    state.hlsInstance.loadSource(url);
     debugLog("hlsjs.loadSource", { label, url });
     return true;
   } catch (e) {
@@ -1533,22 +1446,28 @@ function safeHlsLoadSource(url, label) {
   }
 }
 
-function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
+/**
+ * @param {string} rawSourceUrl
+ * @param {unknown} selectedLoad
+ * @param {{ clearStallWatchdog: () => void, armStallWatchdog: (s: string) => void, onFatal: (err: Error) => void }} hooks
+ */
+function startHlsJsPlayback(rawSourceUrl, selectedLoad, hooks) {
+  const castVideoEl = getCastVideoEl();
   const sourceUrl = normalizeCandidateUrl(rawSourceUrl);
   return new Promise((resolve, reject) => {
     destroyHls();
     destroyDash();
     destroyMpegts();
     clearCustomPlayer();
-    pendingCustomPlayerBoot = "hlsjs";
+    state.pendingCustomPlayerBoot = "hlsjs";
 
     if (!hlsIsAvailable()) {
-      pendingCustomPlayerBoot = null;
+      state.pendingCustomPlayerBoot = null;
       reject(new Error("hlsjs unavailable"));
       return;
     }
 
-    const myId = ++hlsJsInvocationCounter;
+    const myId = ++state.hlsJsInvocationCounter;
     let settled = false;
     let hlsUaAttempts = 0;
     let mediaAttached = false;
@@ -1556,14 +1475,14 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
     const bootDeadline = setTimeout(() => {
       if (settled) return;
       failPreload("hlsjs boot timeout (no manifest/blob)");
-    }, 35000);
+    }, HLS_BOOT_TIMEOUT_MS);
 
     function failPreload(reason) {
       if (settled) return;
       settled = true;
       clearTimeout(bootDeadline);
-      pendingCustomPlayerBoot = null;
-      clearStallWatchdog();
+      state.pendingCustomPlayerBoot = null;
+      hooks.clearStallWatchdog();
       destroyHls();
       reject(new Error(reason || "hlsjs preload failed"));
     }
@@ -1572,8 +1491,8 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
       if (settled) return;
       settled = true;
       clearTimeout(bootDeadline);
-      pendingCustomPlayerBoot = null;
-      clearStallWatchdog();
+      state.pendingCustomPlayerBoot = null;
+      hooks.clearStallWatchdog();
       resolve(finalized);
     }
 
@@ -1586,7 +1505,7 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
         debugLog("hlsjs.ready", {
           url: sourceUrl,
           mediaSrc: readVideoBlobUrl(),
-          index: activeCandidateIndex,
+          index: state.activeCandidateIndex,
         });
         if (castVideoEl) {
           castVideoEl.play().catch((e) => {
@@ -1615,10 +1534,10 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
       waitForBlob();
     }
 
-    hlsInstance = new Hls(buildHlsJsConfig());
-    hlsInstance.__preetInvocation = myId;
+    state.hlsInstance = new Hls(buildHlsJsConfig());
+    state.hlsInstance.__preetInvocation = myId;
 
-    hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
+    state.hlsInstance.on(Hls.Events.ERROR, (_evt, data) => {
       if (!data || !data.fatal || !hlsLive()) return;
       debugLog("hlsjs.fatal_error", { url: sourceUrl, details: data.details, type: data.type });
 
@@ -1636,37 +1555,43 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
         failPreload(data.details || "hlsjs fatal");
         return;
       }
-      void handleCustomInterceptorFailure("hlsjs", new Error(data.details || "fatal"), selectedLoad, sourceUrl);
+      void hooks.onFatal(new Error(data.details || "fatal"));
     });
 
-    hlsInstance.once(Hls.Events.MEDIA_ATTACHED, () => {
+    state.hlsInstance.once(Hls.Events.MEDIA_ATTACHED, () => {
       mediaAttached = true;
       debugLog("hlsjs.media_attached", { url: sourceUrl });
       trySettleAfterReady();
     });
 
-    hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
+    state.hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
       manifestParsed = true;
       debugLog("hlsjs.manifest_parsed", { url: sourceUrl });
       trySettleAfterReady();
     });
 
-    armStallWatchdog("hlsjs.start");
-    hlsInstance.attachMedia(castVideoEl);
+    hooks.armStallWatchdog("hlsjs.start");
+    state.hlsInstance.attachMedia(castVideoEl);
     if (!safeHlsLoadSource(resolveFetchUrl(sourceUrl, "manifest"), "hlsjs_immediate")) {
       failPreload("hlsjs loadSource failed");
     }
   });
 }
 
-function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
+/**
+ * @param {string} rawSourceUrl
+ * @param {unknown} selectedLoad
+ * @param {{ clearStallWatchdog: () => void, armStallWatchdog: (s: string) => void, onFatal: (err: Error) => void }} hooks
+ */
+function startMpegtsPlayback(rawSourceUrl, selectedLoad, hooks) {
+  const castVideoEl = getCastVideoEl();
   const sourceUrl = normalizeCandidateUrl(rawSourceUrl);
   return new Promise((resolve, reject) => {
     destroyHls();
     destroyDash();
     destroyMpegts();
     clearCustomPlayer();
-    pendingCustomPlayerBoot = "mpegts";
+    state.pendingCustomPlayerBoot = "mpegts";
 
     let settled = false;
     let mpegtsUaAttempts = 0;
@@ -1679,13 +1604,13 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     }
     mpegtsBootWallTimer = setTimeout(() => {
       if (settled) return;
-      debugLog("mpegts.boot_wall_timeout", { url: sourceUrl, index: activeCandidateIndex });
+      debugLog("mpegts.boot_wall_timeout", { url: sourceUrl, index: state.activeCandidateIndex });
       failPreload("mpegts boot timeout (no playing/canplay within 55s)");
-    }, 55000);
+    }, MPEGTS_BOOT_WALL_MS);
 
     if (!mpegtsIsAvailable()) {
       clearMpegtsBootWallTimer();
-      pendingCustomPlayerBoot = null;
+      state.pendingCustomPlayerBoot = null;
       reject(new Error("mpegts unavailable"));
       return;
     }
@@ -1694,8 +1619,8 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
       if (settled) return;
       settled = true;
       clearMpegtsBootWallTimer();
-      pendingCustomPlayerBoot = null;
-      clearStallWatchdog();
+      state.pendingCustomPlayerBoot = null;
+      hooks.clearStallWatchdog();
       destroyMpegts();
       reject(new Error(reason || "mpegts preload failed"));
     }
@@ -1704,9 +1629,9 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
       if (settled) return;
       settled = true;
       clearMpegtsBootWallTimer();
-      pendingCustomPlayerBoot = null;
-      clearStallWatchdog();
-      resolve();
+      state.pendingCustomPlayerBoot = null;
+      hooks.clearStallWatchdog();
+      resolve(undefined);
     }
 
     function beginMpegtsSession() {
@@ -1714,7 +1639,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
       const headers = buildIptvRequestHeaders(sourceUrl);
       destroyMpegts();
       installIptvNetworkShim(sourceUrl);
-      mpegtsInstance = mpegts.createPlayer(
+      state.mpegtsInstance = mpegts.createPlayer(
         {
           type: "mpegts",
           isLive: true,
@@ -1726,7 +1651,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
         buildMpegtsPlayerConfig()
       );
 
-      mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
+      state.mpegtsInstance.on(mpegts.Events.ERROR, (errorType, errorDetail) => {
         const invalidStatus = String(errorDetail || "").indexOf("HttpStatusCodeInvalid") >= 0;
         debugLog("mpegts.error", { errorType, errorDetail, url: sourceUrl });
         if (!settled && invalidStatus && mpegtsUaAttempts < IPTV_USER_AGENTS.length - 1) {
@@ -1743,18 +1668,13 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
           failPreload(String(errorDetail || errorType || "mpegts fatal"));
           return;
         }
-        void handleCustomInterceptorFailure(
-          "mpegts",
-          new Error(String(errorDetail || errorType)),
-          selectedLoad,
-          sourceUrl
-        );
+        void hooks.onFatal(new Error(String(errorDetail || errorType)));
       });
 
-      armStallWatchdog("mpegts.start");
-      mpegtsInstance.attachMediaElement(castVideoEl);
-      mpegtsInstance.load();
-      const pr = mpegtsInstance.play();
+      hooks.armStallWatchdog("mpegts.start");
+      state.mpegtsInstance.attachMediaElement(castVideoEl);
+      state.mpegtsInstance.load();
+      const pr = state.mpegtsInstance.play();
       if (pr && typeof pr.catch === "function") {
         pr.catch((playErr) => {
           const message = playErr && playErr.message ? playErr.message : "mpegts play failed";
@@ -1785,7 +1705,13 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
   });
 }
 
-function startDashJsPlayback(sourceUrl, selectedLoad) {
+/**
+ * @param {string} sourceUrl
+ * @param {unknown} selectedLoad
+ * @param {{ clearStallWatchdog: () => void, armStallWatchdog: (s: string) => void, onFatal: (err: Error) => void }} hooks
+ */
+function startDashJsPlayback(sourceUrl, selectedLoad, hooks) {
+  const castVideoEl = getCastVideoEl();
   return new Promise((resolve) => {
     destroyHls();
     destroyDash();
@@ -1799,64 +1725,72 @@ function startDashJsPlayback(sourceUrl, selectedLoad) {
     }
 
     let settled = false;
-    dashInstance = dashjs.MediaPlayer().create();
-    dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
+    state.dashInstance = dashjs.MediaPlayer().create();
+    state.dashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, () => {
       if (settled) return;
       settled = true;
-      clearStallWatchdog();
+      hooks.clearStallWatchdog();
       const finalized = finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "dashjs");
-      dashInstance.play();
+      state.dashInstance.play();
       setStatus("Playing (DASH)");
       resolve(finalized);
     });
-    dashInstance.on(dashjs.MediaPlayer.events.ERROR, () => {
+    state.dashInstance.on(dashjs.MediaPlayer.events.ERROR, () => {
       if (settled) return;
       settled = true;
-      clearStallWatchdog();
-      void handleCustomInterceptorFailure("dashjs", new Error("dash error"), selectedLoad, sourceUrl);
+      hooks.clearStallWatchdog();
+      void hooks.onFatal(new Error("dash error"));
       resolve(selectedLoad);
     });
-    armStallWatchdog("dashjs.start");
-    dashInstance.attachView(castVideoEl);
-    dashInstance.attachSource(resolveFetchUrl(sourceUrl, "manifest"));
+    hooks.armStallWatchdog("dashjs.start");
+    state.dashInstance.attachView(castVideoEl);
+    state.dashInstance.attachSource(resolveFetchUrl(sourceUrl, "manifest"));
   });
 }
 
 async function tryNativeCafHlsReload(sourceUrl) {
-  if (!lastLoadTemplate || !playerManager) throw new Error("missing_template");
+  if (!state.lastLoadTemplate || !state.playerManager) throw new Error("missing_template");
   destroyHls();
   destroyDash();
   destroyMpegts();
   clearCustomPlayer();
-  pendingCustomPlayerBoot = null;
+  state.pendingCustomPlayerBoot = null;
+  const cast = window.cast;
   const normalized = normalizeCandidateUrl(sourceUrl);
-  const sel = prepareLoadForCandidate(lastLoadTemplate, normalized, activeCandidateIndex);
+  const sel = prepareLoadForCandidate(state.lastLoadTemplate, normalized, state.activeCandidateIndex);
   sel.media = Object.assign({}, sel.media, {
     contentId: normalized,
     contentUrl: normalized,
     contentType: "application/x-mpegURL",
     streamType: cast.framework.messages.StreamType.LIVE,
   });
-  const req = playerManager.load(sel);
+  const req = state.playerManager.load(sel);
   if (req && typeof req.then === "function") await req;
 }
 
 async function tryNativeCafTsReload(sourceUrl) {
-  if (!lastLoadTemplate || !playerManager) throw new Error("missing_template");
+  if (!state.lastLoadTemplate || !state.playerManager) throw new Error("missing_template");
   destroyHls();
   destroyDash();
   destroyMpegts();
   clearCustomPlayer();
-  pendingCustomPlayerBoot = null;
+  state.pendingCustomPlayerBoot = null;
   const nativeLoad = buildCafNativeTsLoad(
-    prepareLoadForCandidate(lastLoadTemplate, normalizeCandidateUrl(sourceUrl), activeCandidateIndex),
+    prepareLoadForCandidate(state.lastLoadTemplate, normalizeCandidateUrl(sourceUrl), state.activeCandidateIndex),
     sourceUrl
   );
-  const req = playerManager.load(nativeLoad);
+  const req = state.playerManager.load(nativeLoad);
   if (req && typeof req.then === "function") await req;
 }
 
-async function handleCustomInterceptorFailure(playerType, err, selectedLoad, sourceUrl) {
+/**
+ * @param {string} playerType
+ * @param {unknown} err
+ * @param {unknown} selectedLoad
+ * @param {string} sourceUrl
+ * @param {(reason: string) => Promise<void>} advanceCandidate
+ */
+async function handleCustomInterceptorFailure(playerType, err, selectedLoad, sourceUrl, advanceCandidate) {
   debugLog(playerType + ".failure", { message: serializeReceiverError(err), url: sourceUrl });
   destroyHls();
   destroyDash();
@@ -1868,7 +1802,7 @@ async function handleCustomInterceptorFailure(playerType, err, selectedLoad, sou
       await tryNativeCafHlsReload(sourceUrl);
       return;
     }
-    if (playerType === "mpegts" && isTsCandidate(sourceUrl) && useCastReceiver) {
+    if (playerType === "mpegts" && isTsCandidate(sourceUrl) && state.useCastReceiver) {
       await tryNativeCafTsReload(sourceUrl);
       return;
     }
@@ -1876,41 +1810,84 @@ async function handleCustomInterceptorFailure(playerType, err, selectedLoad, sou
     debugLog(playerType + ".native_fallback_failed", { message: serializeReceiverError(e) });
   }
 
-  await advanceCandidateAfterCustomFailure(playerType + "_failed");
+  await advanceCandidate(playerType + "_failed");
 }
 
-async function advanceCandidateAfterCustomFailure(reason) {
-  if (candidateAdvanceInFlight || candidatesExhausted) return false;
-  candidateAdvanceInFlight = true;
-  pendingCustomPlayerBoot = null;
-  try {
-    if (activeCandidateIndex >= activeCandidates.length - 1) {
-      markCandidatesExhausted(reason);
-      return false;
-    }
-    await tryLoadNextCandidateOnReceiverError(reason);
-    return true;
-  } finally {
-    candidateAdvanceInFlight = false;
+/* --- receiver/pipeline.js --- */
+function clearStallWatchdog() {
+  if (state.stallWatchdogTimer) {
+    clearTimeout(state.stallWatchdogTimer);
+    state.stallWatchdogTimer = null;
   }
+}
+
+function armStallWatchdog(source) {
+  clearStallWatchdog();
+  const serial = ++state.stallWatchdogSerial;
+  state.stallWatchdogTimer = setTimeout(() => {
+    if (serial !== state.stallWatchdogSerial) return;
+    if (state.candidatesExhausted) return;
+    const castVideoEl = document.getElementById("castVideo");
+    if (state.pendingCustomPlayerBoot) {
+      state.stallWatchdogBootDeferCount += 1;
+      if (state.stallWatchdogBootDeferCount >= STALL_WATCHDOG_BOOT_DEFER_MAX) {
+        state.stallWatchdogBootDeferCount = 0;
+        debugLog("candidate.watchdog.boot_cap", {
+          source,
+          pendingCustomPlayerBoot: state.pendingCustomPlayerBoot,
+          index: state.activeCandidateIndex,
+          defers: STALL_WATCHDOG_BOOT_DEFER_MAX,
+        });
+        destroyHls();
+        destroyDash();
+        destroyMpegts();
+        clearCustomPlayer();
+        state.pendingCustomPlayerBoot = null;
+        void tryLoadNextCandidateOnReceiverError("watchdog_js_boot_cap");
+        return;
+      }
+      debugLog("candidate.watchdog.deferred_boot", {
+        source,
+        pendingCustomPlayerBoot: state.pendingCustomPlayerBoot,
+        index: state.activeCandidateIndex,
+        bootDeferCount: state.stallWatchdogBootDeferCount,
+      });
+      armStallWatchdog("js_boot_defer");
+      return;
+    }
+    state.stallWatchdogBootDeferCount = 0;
+    if (state.activeCustomPlayer && castVideoEl && (!castVideoEl.paused || castVideoEl.readyState >= 3)) return;
+    debugLog("candidate.watchdog", { source, index: state.activeCandidateIndex });
+    void tryLoadNextCandidateOnReceiverError("watchdog");
+  }, STALL_WATCHDOG_MS);
+}
+
+function markCandidatesExhausted(reason) {
+  if (state.candidatesExhausted) return;
+  state.candidatesExhausted = true;
+  hideLoader();
+  setBrandingVisible(true);
+  updateCastChannelNameUi("");
+  setStatus("All receiver fallback candidates exhausted");
+  debugLog("candidate.exhausted", { reason, activeCandidateIndex: state.activeCandidateIndex, candidateCount: state.activeCandidates.length });
 }
 
 async function tryLoadNextCandidateOnReceiverError(reason) {
   clearStallWatchdog();
-  stallWatchdogBootDeferCount = 0;
+  state.stallWatchdogBootDeferCount = 0;
   destroyHls();
   destroyDash();
   destroyMpegts();
   clearCustomPlayer();
 
-  if (!lastLoadTemplate || candidatesExhausted) return;
+  if (!state.lastLoadTemplate || state.candidatesExhausted) return;
 
   async function attemptReceiverCandidateLoad(url, index, sourceTag) {
-    const load = prepareLoadForCandidate(lastLoadTemplate, url, index);
+    const load = prepareLoadForCandidate(state.lastLoadTemplate, url, index);
     const isRewind = sourceTag === "rewind";
     const label = isRewind
-      ? `Trying earlier format (${index + 1}/${activeCandidates.length})…`
-      : `Retrying ${index + 1}/${activeCandidates.length}…`;
+      ? `Trying earlier format (${index + 1}/${state.activeCandidates.length})…`
+      : `Retrying ${index + 1}/${state.activeCandidates.length}…`;
     showLoader(label);
     setStatus(label);
     debugLog(isRewind ? "candidate.rewind" : "candidate.retry", {
@@ -1920,18 +1897,18 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
       strategy: getPlaybackStrategy(url),
     });
     armStallWatchdog(isRewind ? "candidate.rewind" : "candidate.retry");
-    const req = playerManager.load(load);
+    const req = state.playerManager.load(load);
     if (req && typeof req.then === "function") await req;
   }
 
-  if (activeCandidateIndex >= activeCandidates.length - 1) {
-    if (!receiverBackwardFallbackUsed && loadSessionPreferredStartIndex > 0 && activeCandidates.length > 1) {
-      receiverBackwardFallbackUsed = true;
-      activeCandidateIndex = 0;
+  if (state.activeCandidateIndex >= state.activeCandidates.length - 1) {
+    if (!state.receiverBackwardFallbackUsed && state.loadSessionPreferredStartIndex > 0 && state.activeCandidates.length > 1) {
+      state.receiverBackwardFallbackUsed = true;
+      state.activeCandidateIndex = 0;
       rotateIptvUserAgent("candidate_rewind");
       try {
-        await attemptReceiverCandidateLoad(activeCandidates[0], 0, "rewind");
-      } catch (e) {
+        await attemptReceiverCandidateLoad(state.activeCandidates[0], 0, "rewind");
+      } catch (_e) {
         markCandidatesExhausted("candidate_rewind_failed");
       }
       return;
@@ -1940,29 +1917,49 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
     return;
   }
 
-  activeCandidateIndex += 1;
+  state.activeCandidateIndex += 1;
   rotateIptvUserAgent("candidate_retry");
-  const nextUrl = activeCandidates[activeCandidateIndex];
+  const nextUrl = state.activeCandidates[state.activeCandidateIndex];
   try {
-    await attemptReceiverCandidateLoad(nextUrl, activeCandidateIndex, "forward");
+    await attemptReceiverCandidateLoad(nextUrl, state.activeCandidateIndex, "forward");
   } catch (e) {
     setStatus(`Receiver retry failed: ${serializeReceiverError(e)}`);
-    if (activeCandidateIndex >= activeCandidates.length - 1) markCandidatesExhausted("candidate_retry_failed");
+    if (state.activeCandidateIndex >= state.activeCandidates.length - 1) markCandidatesExhausted("candidate_retry_failed");
   }
 }
 
-if (useCastReceiver) {
-  playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
+async function advanceCandidateAfterCustomFailure(reason) {
+  if (state.candidateAdvanceInFlight || state.candidatesExhausted) return false;
+  state.candidateAdvanceInFlight = true;
+  state.pendingCustomPlayerBoot = null;
+  try {
+    if (state.activeCandidateIndex >= state.activeCandidates.length - 1) {
+      markCandidatesExhausted(reason);
+      return false;
+    }
+    await tryLoadNextCandidateOnReceiverError(reason);
+    return true;
+  } finally {
+    state.candidateAdvanceInFlight = false;
+  }
+}
+
+function makeFailureHandler(stubLoad, selectedUrl) {
+  return (playerType, err) =>
+    void handleCustomInterceptorFailure(playerType, err, stubLoad, selectedUrl, advanceCandidateAfterCustomFailure);
+}
+
+function installCastPipeline() {
+  const cast = window.cast;
+  if (!state.playerManager) return;
+
+  state.playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, (loadRequestData) => {
     try {
       const media = loadRequestData.media || {};
       const customData = asObject(loadRequestData.customData);
       const streamFromCustom = String(customData.streamUrl || "").trim();
       const rawBaseUrl = String(
-        customData._retryBaseUrl ||
-          media.contentUrl ||
-          media.contentId ||
-          streamFromCustom ||
-          ""
+        customData._retryBaseUrl || media.contentUrl || media.contentId || streamFromCustom || ""
       );
       if (!rawBaseUrl) {
         debugLog("load.rejected_empty_url", { hasCustomData: Object.keys(customData).length > 0 });
@@ -1970,55 +1967,55 @@ if (useCastReceiver) {
       }
 
       const baseUrl = normalizeCandidateUrl(rawBaseUrl);
-      activeContract = normalizeContract(customData);
-      activeContract.channelName = String(customData.channelName || activeContract.channelName || "");
-      applyDebugConfigFromContract(activeContract, customData);
-      updateCastChannelNameUi(activeContract.channelName);
+      state.activeContract = normalizeContract(customData);
+      state.activeContract.channelName = String(customData.channelName || state.activeContract.channelName || "");
+      applyDebugConfigFromContract(state.activeContract, customData);
+      updateCastChannelNameUi(state.activeContract.channelName);
 
       showLoader("Loading stream…");
-      stallWatchdogBootDeferCount = 0;
-      candidatesExhausted = false;
-      receiverBackwardFallbackUsed = false;
-      activeIptvUaIndex = pickInitialUaIndex(baseUrl);
+      state.stallWatchdogBootDeferCount = 0;
+      state.candidatesExhausted = false;
+      state.receiverBackwardFallbackUsed = false;
+      state.activeIptvUaIndex = pickInitialUaIndex(baseUrl);
 
       debugLog("load.received", {
         mediaContentUrl: baseUrl,
-        preferReceiverEngine: activeContract.playback && activeContract.playback.preferReceiverEngine,
+        preferReceiverEngine: state.activeContract.playback && state.activeContract.playback.preferReceiverEngine,
         audit: auditNetworkEnvironment(baseUrl),
       });
 
-      if (playerManager && typeof playerManager.setPlaybackConfig === "function") {
-        playerManager.setPlaybackConfig(createPlaybackConfig());
+      if (state.playerManager && typeof state.playerManager.setPlaybackConfig === "function") {
+        state.playerManager.setPlaybackConfig(createPlaybackConfig());
       }
       ensureShakaRequestFilters();
 
-      activeCandidates = buildCompatibilityCandidates(baseUrl, customData).map((c) => normalizeCandidateUrl(c));
-      if (activeCandidates.length === 0) activeCandidates = [baseUrl];
+      state.activeCandidates = buildCompatibilityCandidates(baseUrl, customData).map((c) => normalizeCandidateUrl(c));
+      if (state.activeCandidates.length === 0) state.activeCandidates = [baseUrl];
 
       if (customData._retryCandidateIndex != null) {
         const ri = readSenderCandidateIndex(customData._retryCandidateIndex);
-        activeCandidateIndex =
-          ri != null ? Math.max(0, Math.min(ri, activeCandidates.length - 1)) : 0;
+        state.activeCandidateIndex =
+          ri != null ? Math.max(0, Math.min(ri, state.activeCandidates.length - 1)) : 0;
       } else {
         const normalizedBase = normalizeCandidateUrl(baseUrl);
-        const matchIdx = activeCandidates.findIndex((c) => normalizeCandidateUrl(c) === normalizedBase);
-        if (matchIdx >= 0) activeCandidateIndex = matchIdx;
+        const matchIdx = state.activeCandidates.findIndex((c) => normalizeCandidateUrl(c) === normalizedBase);
+        if (matchIdx >= 0) state.activeCandidateIndex = matchIdx;
         else {
           const ci = readSenderCandidateIndex(customData.candidateIndex);
-          activeCandidateIndex =
-            ci != null ? Math.max(0, Math.min(ci, activeCandidates.length - 1)) : 0;
+          state.activeCandidateIndex =
+            ci != null ? Math.max(0, Math.min(ci, state.activeCandidates.length - 1)) : 0;
         }
       }
-      loadSessionPreferredStartIndex = activeCandidateIndex;
+      state.loadSessionPreferredStartIndex = state.activeCandidateIndex;
 
-      const selectedUrl = normalizeCandidateUrl(activeCandidates[activeCandidateIndex] || baseUrl);
-      activeCandidates[activeCandidateIndex] = selectedUrl;
+      const selectedUrl = normalizeCandidateUrl(state.activeCandidates[state.activeCandidateIndex] || baseUrl);
+      state.activeCandidates[state.activeCandidateIndex] = selectedUrl;
       const selectedLoad = prepareLoadForCandidate(loadRequestData, selectedUrl);
       if ((selectedUrl || "").toLowerCase().includes("/live.php") || isLikelyLiveStream(selectedUrl)) {
         selectedLoad.media.streamType = cast.framework.messages.StreamType.LIVE;
       }
       selectedLoad.customData = Object.assign({}, asObject(selectedLoad.customData), { _retryBaseUrl: baseUrl });
-      lastLoadTemplate = loadRequestData;
+      state.lastLoadTemplate = loadRequestData;
 
       let strategy = getPlaybackStrategy(selectedUrl);
       if (strategy === "caf-ts" && mpegtsIsAvailable()) {
@@ -2026,11 +2023,17 @@ if (useCastReceiver) {
         debugLog("load.strategy.ts_use_mpegts", { selectedUrl });
       }
       debugLog("load.candidates", {
-        selectedIndex: activeCandidateIndex,
+        selectedIndex: state.activeCandidateIndex,
         selectedUrl,
-        candidateCount: activeCandidates.length,
+        candidateCount: state.activeCandidates.length,
         strategy,
       });
+
+      const hooks = {
+        clearStallWatchdog,
+        armStallWatchdog,
+        onFatal: () => {},
+      };
 
       if (strategy === "caf-ts") {
         destroyHls();
@@ -2047,25 +2050,28 @@ if (useCastReceiver) {
 
       if (strategy === "mpegts") {
         const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "mpegts");
-        void startMpegtsPlayback(selectedUrl, stubLoad).catch((err) => {
-          void handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl);
+        void startMpegtsPlayback(selectedUrl, stubLoad, hooks).catch((err) => {
+          void handleCustomInterceptorFailure("mpegts", err, stubLoad, selectedUrl, advanceCandidateAfterCustomFailure);
         });
         return stubLoad;
       }
 
       if (strategy === "hlsjs") {
         const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "hlsjs");
-        void startHlsJsPlayback(selectedUrl, stubLoad).catch((err) => {
-          void handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl);
+        void startHlsJsPlayback(selectedUrl, stubLoad, hooks).catch((err) => {
+          void handleCustomInterceptorFailure("hlsjs", err, stubLoad, selectedUrl, advanceCandidateAfterCustomFailure);
         });
         return stubLoad;
       }
 
       if (strategy === "dashjs") {
         const stubLoad = prepareCustomPlayerStubLoad(selectedLoad, selectedUrl, "dashjs");
-        void startDashJsPlayback(selectedUrl, stubLoad).then((fin) => {
+        hooks.onFatal = (err) => {
+          void handleCustomInterceptorFailure("dashjs", err, stubLoad, selectedUrl, advanceCandidateAfterCustomFailure);
+        };
+        void startDashJsPlayback(selectedUrl, stubLoad, hooks).then((fin) => {
           if (fin && fin.media && fin.media.contentUrl === CUSTOM_PLAYER_STUB_URL) {
-            void playerManager.load(fin).catch((e) => debugLog("dashjs.load.error", { message: serializeReceiverError(e) }));
+            void state.playerManager.load(fin).catch((e) => debugLog("dashjs.load.error", { message: serializeReceiverError(e) }));
           }
         });
         return stubLoad;
@@ -2096,18 +2102,17 @@ if (useCastReceiver) {
   safeAddPlayerEventListener(cast.framework.events.EventType.ERROR, (event) => {
     const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
     const errorCode = Number(detailCode) || 0;
-    if (candidatesExhausted || candidateAdvanceInFlight) return;
-    // CAF often emits benign errors while about:blank stub + Hls.js/mpegts attach; never advance candidates during that window.
-    if (pendingCustomPlayerBoot) {
+    if (state.candidatesExhausted || state.candidateAdvanceInFlight) return;
+    if (state.pendingCustomPlayerBoot) {
       debugLog("player.error.suppressed_pending_boot", {
         errorCode,
-        pendingCustomPlayerBoot,
+        pendingCustomPlayerBoot: state.pendingCustomPlayerBoot,
         reason: event && event.reason ? String(event.reason) : "",
       });
       return;
     }
-    if (activeCustomPlayer && (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)) {
-      debugLog("player.error.suppressed_custom", { errorCode, activeCustomPlayer });
+    if (state.activeCustomPlayer && (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)) {
+      debugLog("player.error.suppressed_custom", { errorCode, activeCustomPlayer: state.activeCustomPlayer });
       return;
     }
     debugLog("player.error", { errorCode, reason: event && event.reason ? event.reason : "" });
@@ -2115,9 +2120,54 @@ if (useCastReceiver) {
   }, "ERROR");
 }
 
+function registerUnhandledRejection() {
+  window.addEventListener("unhandledrejection", (ev) => {
+    const reason = ev && ev.reason;
+    const message = reason && reason.message ? reason.message : String(reason || "unknown");
+    debugLog("receiver.unhandledrejection", { reason: message });
+    if (message === "HttpStatusCodeInvalid" || message.includes("HttpStatusCodeInvalid")) {
+      if (ev && typeof ev.preventDefault === "function") ev.preventDefault();
+    }
+  });
+}
+
+/* --- receiver/app.js --- */
+/**
+ * PreetTV Cast receiver — entry (ES modules).
+ * Depends on: cast_receiver_framework.js, Hls, dashjs, mpegts (globals from index.html).
+ */
+const castGlobal = window.cast;
+const hasCastFramework = !!(castGlobal && castGlobal.framework && castGlobal.framework.CastReceiverContext);
+const context = hasCastFramework ? castGlobal.framework.CastReceiverContext.getInstance() : null;
+const playerManager = context ? context.getPlayerManager() : null;
+
+const browserTestMode = isBrowserTestMode();
+state.useCastReceiver = !!(hasCastFramework && playerManager && context && !browserTestMode);
+state.context = context;
+state.playerManager = playerManager;
+
+bindMediaElementToPlayer();
+registerUnhandledRejection();
+
+if (state.useCastReceiver) {
+  installCastPipeline();
+  context.start({ playbackConfig: createPlaybackConfig() });
+  installVolumeBridge();
+  setBrandingVisible(true);
+  setStatus("PreetTV receiver started");
+  debugLog("receiver.started", {
+    href: window.location.href,
+    hlsJs: typeof Hls !== "undefined",
+    dashjs: typeof dashjs !== "undefined",
+    mpegts: typeof mpegts !== "undefined",
+  });
+} else {
+  initBrowserPlayback();
+}
+window.__preetCastReceiverBooted = true;
+
 function initBrowserPlayback() {
-  let bcCandidates = [];
-  let bcCandidateIndex = 0;
+  const castVideoEl = getCastVideoEl();
 
   function browserLoadCandidate(candidateUrl) {
     if (!candidateUrl || !castVideoEl) return;
@@ -2128,31 +2178,31 @@ function initBrowserPlayback() {
     castVideoEl.load();
 
     if (isDashCandidate(candidateUrl)) {
-      dashInstance = dashjs.MediaPlayer().create();
-      dashInstance.attachView(castVideoEl);
-      dashInstance.attachSource(candidateUrl);
-      dashInstance.play();
+      state.dashInstance = dashjs.MediaPlayer().create();
+      state.dashInstance.attachView(castVideoEl);
+      state.dashInstance.attachSource(candidateUrl);
+      state.dashInstance.play();
       setStatus("Browser: DASH");
       return;
     }
     if (isHlsCandidate(candidateUrl) && hlsIsAvailable()) {
-      hlsInstance = new Hls(buildHlsJsConfig());
-      hlsInstance.attachMedia(castVideoEl);
-      hlsInstance.loadSource(candidateUrl);
-      hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
+      state.hlsInstance = new Hls(buildHlsJsConfig());
+      state.hlsInstance.attachMedia(castVideoEl);
+      state.hlsInstance.loadSource(candidateUrl);
+      state.hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
         castVideoEl.play().catch(() => {});
       });
       setStatus("Browser: HLS");
       return;
     }
     if (isTsCandidate(candidateUrl) && mpegtsIsAvailable()) {
-      mpegtsInstance = mpegts.createPlayer(
+      state.mpegtsInstance = mpegts.createPlayer(
         { type: "mpegts", isLive: true, url: candidateUrl, hasAudio: true, hasVideo: true },
         buildMpegtsPlayerConfig()
       );
-      mpegtsInstance.attachMediaElement(castVideoEl);
-      mpegtsInstance.load();
-      mpegtsInstance.play().catch(() => {});
+      state.mpegtsInstance.attachMediaElement(castVideoEl);
+      state.mpegtsInstance.load();
+      state.mpegtsInstance.play().catch(() => {});
       setStatus("Browser: MPEG-TS");
       return;
     }
@@ -2163,8 +2213,7 @@ function initBrowserPlayback() {
 
   function browserLoadUrl(url) {
     if (!url) return;
-    bcCandidates = buildCompatibilityCandidates(url, {});
-    bcCandidateIndex = 0;
+    const bcCandidates = buildCompatibilityCandidates(url, {}).map((c) => normalizeCandidateUrl(c));
     browserLoadCandidate(bcCandidates[0] || url);
   }
 
@@ -2196,26 +2245,4 @@ function initBrowserPlayback() {
   } catch (_e) {}
 }
 
-window.addEventListener("unhandledrejection", (ev) => {
-  const reason = ev && ev.reason;
-  const message = reason && reason.message ? reason.message : String(reason || "unknown");
-  debugLog("receiver.unhandledrejection", { reason: message });
-  if (message === "HttpStatusCodeInvalid" || message.includes("HttpStatusCodeInvalid")) {
-    if (ev && typeof ev.preventDefault === "function") ev.preventDefault();
-  }
-});
-
-if (useCastReceiver) {
-  context.start({ playbackConfig: createPlaybackConfig() });
-  installVolumeBridge();
-  setBrandingVisible(true);
-  setStatus("PreetTV receiver started");
-  debugLog("receiver.started", {
-    href: window.location.href,
-    hlsJs: typeof Hls !== "undefined",
-    dashjs: typeof dashjs !== "undefined",
-    mpegts: typeof mpegts !== "undefined",
-  });
-} else {
-  initBrowserPlayback();
-}
+})();

@@ -174,7 +174,22 @@
       window.__preettvNotifyDebugLog = renderLogs;
     })();
   </script>
-  <script type="module" src="receiver/app.js"></script>
+  <!-- Single-file bundle: ES module subpaths often 404 on static hosts; rebuild with: python tools/bundle_receiver.py -->
+  <script src="receiver.js"></script>
+  <script>
+    (function () {
+      function warnIfReceiverDidNotBoot() {
+        if (window.__preetCastReceiverBooted) return;
+        var s = document.getElementById("status");
+        if (s) {
+          s.textContent =
+            "Receiver failed to run (receiver.js missing, blocked, or has a JS error). Open chrome://inspect → Cast → inspect this page.";
+        }
+      }
+      if (document.readyState === "complete") warnIfReceiverDidNotBoot();
+      else window.addEventListener("load", warnIfReceiverDidNotBoot);
+    })();
+  </script>
   <script>
     (function () {
       var btn = document.getElementById("logDockToggle");

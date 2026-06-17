@@ -1,7 +1,7 @@
 # Phase 2.1 – Backend Proxy Reference Implementation
 
 This document defines the **exact HTTP contract** between the Cast receiver
-(modular `receiver/*.js`, network policy in `receiver/network.js`) and your backend proxy so your server team can wire up token
+(bundled as **`receiver.js`**; sources in `receiver/*.js`, network policy in `receiver/network.js`) and your backend proxy so your server team can wire up token
 refresh and header signing without touching the receiver code.
 
 ---
