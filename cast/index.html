@@ -16,6 +16,7 @@
     html, body { margin: 0; width: 100%; height: 100%; background: #000; color: #fff; font-family: system-ui, Arial, sans-serif; }
     #castVideo {
       position: absolute; inset: 0; width: 100%; height: 100%; background: #000;
+      z-index: 0;
     }
     #preetBrand {
       position: absolute; top: 0; left: 0; right: 0; padding: 22px 16px 12px; text-align: center;
@@ -43,20 +44,63 @@
     #status {
       position: absolute; left: 10px; bottom: 8px; right: 10px; font-size: 11px; opacity: 0.9; z-index: 5;
       display: block; max-width: 96%; word-break: break-word; pointer-events: none; line-height: 1.35;
+      padding-right: 88px;
     }
     body.receiver-debug #status { font-size: 10px; opacity: 0.75; }
     #debugToggle {
-      position: fixed; top: 8px; right: 8px; z-index: 10; font-size: 10px; padding: 4px 8px;
-      background: #4CAF50; color: #000; border: none; border-radius: 4px; cursor: pointer;
+      position: fixed;
+      bottom: 52px;
+      right: 10px;
+      z-index: 2147483002;
+      font-size: 14px;
+      padding: 10px 16px;
+      min-height: 40px;
+      min-width: 72px;
+      background: #4CAF50;
+      color: #000;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      pointer-events: auto;
+      box-shadow: 0 2px 8px rgba(0,0,0,.6);
     }
     #debugPanel {
-      position: fixed; top: 0; right: 0; bottom: 0; width: min(480px, 92vw); background: rgba(0,0,0,.92);
-      border-left: 1px solid #4CAF50; z-index: 9; font-family: ui-monospace, monospace; font-size: 10px;
-      display: none; flex-direction: column;
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: min(520px, 94vw);
+      max-width: 100%;
+      background: rgba(0,0,0,.94);
+      border-left: 2px solid #4CAF50;
+      z-index: 2147483001;
+      font-family: ui-monospace, monospace;
+      font-size: 11px;
+      display: none;
+      flex-direction: column;
+      pointer-events: auto;
+      min-height: 0;
     }
     body.panel-open #debugPanel { display: flex; }
-    #debugPanel .hdr { padding: 6px 8px; background: #111; border-bottom: 1px solid #333; cursor: pointer; color: #8f8; }
-    #debugPanel .log { flex: 1; overflow: auto; padding: 6px; color: #aea; white-space: pre-wrap; word-break: break-all; }
+    #debugPanel .hdr {
+      flex: 0 0 auto;
+      padding: 10px 12px;
+      background: #111;
+      border-bottom: 1px solid #333;
+      cursor: pointer;
+      color: #8f8;
+      font-size: 12px;
+    }
+    #debugPanel .log {
+      flex: 1 1 auto;
+      min-height: 0;
+      overflow: auto;
+      padding: 8px;
+      color: #cfc;
+      white-space: pre-wrap;
+      word-break: break-word;
+      -webkit-overflow-scrolling: touch;
+    }
   </style>
 </head>
 <body>
@@ -73,10 +117,10 @@
   </div>
   <div id="status"></div>
 
-  <button type="button" id="debugToggle">Logs</button>
-  <div id="debugPanel">
-    <div class="hdr" id="debugHdr">Logs (tap to close)</div>
-    <div class="log" id="debugLog"></div>
+  <button type="button" id="debugToggle" aria-controls="debugPanel" tabindex="0">Logs</button>
+  <div id="debugPanel" role="dialog" aria-label="Receiver log">
+    <div class="hdr" id="debugHdr">Close</div>
+    <div class="log" id="receiverDebugLogView"></div>
   </div>
 
   <div id="browserControls" style="display:none;position:absolute;bottom:16px;left:16px;right:16px;max-width:400px;
@@ -104,19 +148,28 @@
     (function () {
       var dbgBtn = document.getElementById("debugToggle");
       var panel = document.getElementById("debugPanel");
-      var logEl = document.getElementById("debugLog");
+      var logEl = document.getElementById("receiverDebugLogView");
       var hdr = document.getElementById("debugHdr");
       if (!dbgBtn || !panel || !logEl || !hdr) return;
       function render() {
         var h = window.__preettvDebug || [];
         logEl.textContent = h.slice(-120).map(function (x) {
-          return "#" + x.seq + " " + (x.ts || "").slice(11, 19) + " " + x.event + " " + JSON.stringify(x.payload || {});
+          return "#" + (x.seq != null ? x.seq : "?") + " " + (x.ts || "").slice(11, 19) + " " + (x.event || "") + " " + JSON.stringify(x.payload || {});
         }).join("\n");
         logEl.scrollTop = logEl.scrollHeight;
       }
-      dbgBtn.addEventListener("click", function () {
+      dbgBtn.addEventListener("click", function (ev) {
+        ev.preventDefault();
+        ev.stopPropagation();
         document.body.classList.toggle("panel-open");
         render();
+      });
+      dbgBtn.addEventListener("keydown", function (ev) {
+        if (ev.key === "Enter" || ev.key === " ") {
+          ev.preventDefault();
+          document.body.classList.toggle("panel-open");
+          render();
+        }
       });
       hdr.addEventListener("click", function () {
         document.body.classList.remove("panel-open");
@@ -125,6 +178,10 @@
       window.__preettvNotifyDebugLog = render;
       try {
         var q = new URLSearchParams(window.location.search || "");
+        if (q.get("logs") === "1" || q.get("panel") === "1") {
+          document.body.classList.add("panel-open");
+          render();
+        }
         if (q.get("url") || q.get("browser") === "1") {
           var el = document.getElementById("browserControls");
           if (el) el.style.display = "block";

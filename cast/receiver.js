@@ -1005,6 +1005,18 @@ function enableReceiverDebugUi() {
     }
   } catch (_e) {}
 }
+
+function rewriteQueryParam(url, key, value) {
+  try {
+    const u = new URL(repairStreamUrl(url));
+    if (!u.searchParams.has(key)) return null;
+    u.searchParams.set(key, value);
+    return normalizeCandidateUrl(u.toString());
+  } catch (_e) {
+    return null;
+  }
+}
+
 function appendQueryParam(url, key, value) {
   try {
     const u = new URL(repairStreamUrl(url));
