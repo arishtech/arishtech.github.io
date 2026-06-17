@@ -1,4 +1,4 @@
-﻿/* global cast, Hls, dashjs, mpegts */
+/* global cast, Hls, dashjs, mpegts */
 /**
  * PreetTV Cast receiver (simplified). Uses Hls.js, dash.js, mpegts.js + CAF native fallbacks.
  * Full legacy copy: receiver.legacy.full.js
@@ -95,7 +95,10 @@ let volumeBridgeInstalled = false;
 
 let stallWatchdogTimer = null;
 let stallWatchdogSerial = 0;
+/** Watchdog timeouts while pendingCustomPlayerBoot is set (mpegts/hlsjs still attaching). */
+let stallWatchdogBootDeferCount = 0;
 const STALL_WATCHDOG_MS = 22000;
+const STALL_WATCHDOG_BOOT_DEFER_MAX = 6;
 
 let activeContract = {
   schemaVersion: 1,
@@ -364,12 +367,35 @@ function armStallWatchdog(source) {
   stallWatchdogTimer = setTimeout(() => {
     if (serial !== stallWatchdogSerial) return;
     if (candidatesExhausted) return;
-    // HLS.js / mpegts boot can exceed 22s on slow IPTV manifests; do not advance while JS player is still starting.
+    // HLS.js / mpegts boot can exceed 22s; defer a few times then force failover (otherwise .boot.boot… forever).
     if (pendingCustomPlayerBoot) {
-      debugLog("candidate.watchdog.deferred_boot", { source, pendingCustomPlayerBoot, index: activeCandidateIndex });
-      armStallWatchdog(String(source || "watchdog") + ".boot");
+      stallWatchdogBootDeferCount += 1;
+      if (stallWatchdogBootDeferCount >= STALL_WATCHDOG_BOOT_DEFER_MAX) {
+        stallWatchdogBootDeferCount = 0;
+        debugLog("candidate.watchdog.boot_cap", {
+          source,
+          pendingCustomPlayerBoot,
+          index: activeCandidateIndex,
+          defers: STALL_WATCHDOG_BOOT_DEFER_MAX,
+        });
+        destroyHls();
+        destroyDash();
+        destroyMpegts();
+        clearCustomPlayer();
+        pendingCustomPlayerBoot = null;
+        void tryLoadNextCandidateOnReceiverError("watchdog_js_boot_cap");
+        return;
+      }
+      debugLog("candidate.watchdog.deferred_boot", {
+        source,
+        pendingCustomPlayerBoot,
+        index: activeCandidateIndex,
+        bootDeferCount: stallWatchdogBootDeferCount,
+      });
+      armStallWatchdog("js_boot_defer");
       return;
     }
+    stallWatchdogBootDeferCount = 0;
     if (activeCustomPlayer && castVideoEl && (!castVideoEl.paused || castVideoEl.readyState >= 3)) return;
     debugLog("candidate.watchdog", { source, index: activeCandidateIndex });
     void tryLoadNextCandidateOnReceiverError("watchdog");
@@ -1642,18 +1668,32 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     clearCustomPlayer();
     pendingCustomPlayerBoot = "mpegts";
 
+    let settled = false;
+    let mpegtsUaAttempts = 0;
+    let mpegtsBootWallTimer = null;
+    function clearMpegtsBootWallTimer() {
+      if (mpegtsBootWallTimer) {
+        clearTimeout(mpegtsBootWallTimer);
+        mpegtsBootWallTimer = null;
+      }
+    }
+    mpegtsBootWallTimer = setTimeout(() => {
+      if (settled) return;
+      debugLog("mpegts.boot_wall_timeout", { url: sourceUrl, index: activeCandidateIndex });
+      failPreload("mpegts boot timeout (no playing/canplay within 55s)");
+    }, 55000);
+
     if (!mpegtsIsAvailable()) {
+      clearMpegtsBootWallTimer();
       pendingCustomPlayerBoot = null;
       reject(new Error("mpegts unavailable"));
       return;
     }
 
-    let settled = false;
-    let mpegtsUaAttempts = 0;
-
     function failPreload(reason) {
       if (settled) return;
       settled = true;
+      clearMpegtsBootWallTimer();
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       destroyMpegts();
@@ -1663,6 +1703,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     function settle() {
       if (settled) return;
       settled = true;
+      clearMpegtsBootWallTimer();
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       resolve();
@@ -1733,6 +1774,7 @@ function startMpegtsPlayback(rawSourceUrl, selectedLoad) {
     if (castVideoEl) {
       castVideoEl.addEventListener("playing", onPlaying, { once: true });
       castVideoEl.addEventListener("canplay", onPlaying, { once: true });
+      castVideoEl.addEventListener("loadeddata", onPlaying, { once: true });
     }
 
     try {
@@ -1855,6 +1897,7 @@ async function advanceCandidateAfterCustomFailure(reason) {
 
 async function tryLoadNextCandidateOnReceiverError(reason) {
   clearStallWatchdog();
+  stallWatchdogBootDeferCount = 0;
   destroyHls();
   destroyDash();
   destroyMpegts();
@@ -1933,6 +1976,7 @@ if (useCastReceiver) {
       updateCastChannelNameUi(activeContract.channelName);
 
       showLoader("Loading stream…");
+      stallWatchdogBootDeferCount = 0;
       candidatesExhausted = false;
       receiverBackwardFallbackUsed = false;
       activeIptvUaIndex = pickInitialUaIndex(baseUrl);

@@ -4,15 +4,17 @@ This folder contains a minimal Custom Web Receiver app for Google Cast.
 
 ## Files
 
-- `index.html` - CAF v3, pinned Hls.js / dash.js / mpegts.js, `<video id="castVideo">`, status line, **Logs** panel
+- `index.html` - CAF v3, pinned Hls.js / dash.js / mpegts.js, `<video id="castVideo">`, status line, **Logs** bottom dock (toggle)
 - `receiver.js` - LOAD interceptor, URL candidates, Hls.js / dash.js / mpegts.js / CAF native paths, network policy
 - `receiver.legacy.full.js` - previous monolithic receiver (backup / diff reference)
 
 ## Debugging on the TV
 
 - A **status line** is always shown at the bottom (loading, errors, “Playing …”).
-- Tap **Logs** to toggle the **right panel** and the **bottom log dock** (same text). Add **`?logs=1`** to open the panel on load; add **`?dock=1`** (or `?logdock=1`) to show the **bottom dock** on load (recommended on Chromecast).
+- Tap **Logs** to toggle the **bottom log dock** only. Enabling **Cast logs** in the Android app turns on verbose capture on the receiver; the dock **stays closed** until you open it (no auto-open from sender debug flags). For QA you can still append **`?dock=1`** or **`?logdock=1`** to the receiver URL to open the dock on load.
+- While the dock is open, new log lines **auto-scroll only if you were already at the bottom**; if you scroll up to read history, scroll position is **preserved** when the buffer refreshes.
 - Verbose `network.policy.applied` lines only appear when `?debug=1` (or `receiver-debug` on `<body>`).
+- If **mpegts.js** never reaches playback (common with strict CDNs / blocked `User-Agent` in fetch), the receiver now **times out after ~55s** and **caps watchdog boot defers** (~6×22s) so it can fall back to **CAF native TS** or the **next candidate URL** instead of looping forever.
 - The receiver also reads `customData.streamUrl` if CAF omits `media.contentUrl` / `contentId`.
 
 ## What It Supports
