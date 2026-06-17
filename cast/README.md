@@ -2,6 +2,12 @@
 
 Google Cast **Custom Web Receiver** (CAF v3) for PreetTV: IPTV-friendly URL repair, multi-candidate fallbacks, Hls.js / dash.js / mpegts.js with CAF native escape hatches, and a Phase 2 `customData` contract aligned with the Android sender.
 
+## CAF bootstrap (reference: `cast-receiver-main`)
+
+The Eyevinn-style minimal receiver (`cast-receiver-main`) starts CAF with **`useShakaForHls: true`** so the **native HLS path uses Shaka** instead of the older default stack ([Shaka migration](https://developers.google.com/cast/docs/web_receiver/shaka_migration)). PreetTV adopts the same flag in `receiver/app.js` while keeping this project’s custom `<video>`, LOAD interceptor, and Hls.js / mpegts fallbacks.
+
+We do **not** mirror `<cast-media-player>` from that template: this receiver needs a plain `<video id="castVideo">` for custom players and UI. Optional extras there (build-time `CAST_RECEIVER_OPTIONS`, Parcel, Docker) are optional for self-hosted builds only.
+
 ## Source layout (modular) + what Cast actually loads
 
 Logic lives in **`receiver/*.js`** (ES modules for maintainability). **Chromecast and many static hosts do not reliably load nested ES modules** (404 / MIME / path issues), so **`index.html` loads a single classic script: `receiver.js`**.

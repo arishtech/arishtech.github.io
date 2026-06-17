@@ -41,7 +41,12 @@ registerUnhandledRejection();
 
 if (state.useCastReceiver) {
   installCastPipeline();
-  context.start({ playbackConfig: createPlaybackConfig() });
+  // Same idea as minimal receivers (e.g. cast-receiver-main): Shaka for HLS improves CAF native HLS.
+  // https://developers.google.com/cast/docs/web_receiver/shaka_migration
+  context.start({
+    useShakaForHls: true,
+    playbackConfig: createPlaybackConfig(),
+  });
   installVolumeBridge();
   setBrandingVisible(true);
   setStatus("PreetTV receiver started");
