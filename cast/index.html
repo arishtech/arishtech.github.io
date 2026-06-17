@@ -1,246 +1,31 @@
-<!doctype html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>PreetTV Cast Receiver</title>
-  <script src="https://www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
-  <script src="https://cdn.dashjs.org/v4.7.4/dash.all.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
-  <style>
-    html, body { margin: 0; width: 100%; height: 100%; background: #000; color: #fff; font-family: system-ui, Arial, sans-serif; }
-    #castVideo {
-      position: absolute; inset: 0; width: 100%; height: 100%; background: #000;
-      z-index: 0;
-    }
-    #preetBrand {
-      position: absolute; top: 0; left: 0; right: 0; padding: 22px 16px 12px; text-align: center;
-      background: linear-gradient(180deg, rgba(0,0,0,.75) 0%, transparent 100%); z-index: 3; pointer-events: none;
-    }
-    #preetBrand .title { font-size: clamp(18px, 3vw, 26px); font-weight: 700; text-shadow: 0 1px 6px #000; }
-    #preetBrand .sub { font-size: 13px; opacity: .75; margin-top: 4px; }
-    #preetNowPlaying {
-      position: absolute; top: 88px; left: 50%; transform: translateX(-50%); max-width: 92%; z-index: 3;
-      font-size: clamp(14px, 2.2vw, 20px); font-weight: 600; text-align: center; text-shadow: 0 1px 4px #000;
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none;
-    }
-    #preetNowPlaying.hidden { display: none; }
-    #preetLoader {
-      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
-      background: rgba(0,0,0,.55); z-index: 4; pointer-events: none;
-    }
-    #preetLoader.hidden { display: none; }
-    .spinner {
-      width: 48px; height: 48px; border: 3px solid rgba(76,175,80,.3); border-top-color: #4CAF50;
-      border-radius: 50%; animation: spin .85s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    #preetLoaderText { margin-top: 12px; font-size: 15px; max-width: 85%; text-align: center; }
-    #status {
-      position: absolute; left: 10px; bottom: 8px; right: 10px; font-size: 11px; opacity: 0.9; z-index: 5;
-      display: block; max-width: 96%; word-break: break-word; pointer-events: none; line-height: 1.35;
-      padding-right: 88px;
-    }
-    body.receiver-debug #status { font-size: 10px; opacity: 0.75; }
-    #logDockToggle {
-      position: fixed;
-      bottom: 52px;
-      right: 10px;
-      z-index: 2147483002;
-      font-size: 14px;
-      padding: 10px 16px;
-      min-height: 40px;
-      min-width: 72px;
-      background: #4CAF50;
-      color: #000;
-      border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      pointer-events: auto;
-      box-shadow: 0 2px 8px rgba(0,0,0,.6);
-    }
-    #receiverLogDock {
-      display: none;
-      position: fixed;
-      left: 0;
-      right: 0;
-      bottom: 96px;
-      height: min(28vh, 220px);
-      z-index: 2147483000;
-      margin: 0;
-      background: rgba(0,0,0,.9);
-      border-top: 2px solid #4CAF50;
-      font-family: ui-monospace, monospace;
-      font-size: 10px;
-      line-height: 1.35;
-      color: #cfc;
-      padding: 8px 10px;
-      overflow: auto;
-      pointer-events: auto;
-      white-space: pre-wrap;
-      word-break: break-word;
-      -webkit-overflow-scrolling: touch;
-    }
-    body.log-dock-on #receiverLogDock { display: block; }
-  </style>
+    <meta charset="utf-8">
+    <title>PreetTV Cast Receiver</title>
+
+    <script
+        src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js">
+    </script>
+
+    <script src="receiver.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            background: black;
+            overflow: hidden;
+        }
+
+        cast-media-player {
+            width: 100%;
+            height: 100%;
+            --progress-color: #ff0000;
+            --splash-image: none;
+        }
+    </style>
 </head>
 <body>
-  <video id="castVideo" playsinline preload="auto" crossorigin="anonymous"></video>
-
-  <div id="preetBrand">
-    <div class="title">Preet Live Streaming Player</div>
-    <div class="sub">Cast Receiver</div>
-  </div>
-  <div id="preetNowPlaying" class="hidden" aria-live="polite"></div>
-  <div id="preetLoader" class="hidden">
-    <div class="spinner" aria-hidden="true"></div>
-    <div id="preetLoaderText">Loading…</div>
-  </div>
-  <div id="status"></div>
-
-  <button type="button" id="logDockToggle" aria-controls="receiverLogDock" aria-expanded="false" tabindex="0">Logs</button>
-
-  <div id="browserControls" style="display:none;position:absolute;bottom:16px;left:16px;right:16px;max-width:400px;
-       background:rgba(0,0,0,.88);border:1px solid #4CAF50;border-radius:8px;padding:12px;z-index:6;font-size:12px;">
-    <div style="color:#4CAF50;font-weight:bold;margin-bottom:8px;">Browser test</div>
-    <input id="bcStreamUrl" type="text" placeholder="Stream URL"
-      style="width:100%;box-sizing:border-box;padding:8px;margin-bottom:8px;background:#222;border:1px solid #555;color:#fff;border-radius:4px;" />
-    <button type="button" onclick="bcLoad()" style="background:#4CAF50;color:#000;border:none;padding:8px 14px;border-radius:4px;font-weight:bold;cursor:pointer;">Load</button>
-    <button type="button" onclick="bcStop()" style="background:#555;color:#fff;border:none;padding:8px 14px;border-radius:4px;margin-left:8px;cursor:pointer;">Stop</button>
-  </div>
-
-  <pre id="receiverLogDock" aria-label="Receiver log"></pre>
-
-  <script>
-    (function () {
-      try {
-        var q = new URLSearchParams(window.location.search || "");
-        if (q.get("debug") === "1" || q.get("debug") === "true" || q.get("debug") === "verbose") {
-          document.body.classList.add("receiver-debug");
-        }
-        /* Cast “Cast logs” in app only enables verbose capture; dock stays closed until user taps Logs.
-           Optional: ?dock=1 or ?logdock=1 opens bottom dock on load (receiver URL / dev only). */
-        if (q.get("dock") === "1" || q.get("logdock") === "1") {
-          document.body.classList.add("log-dock-on");
-        }
-      } catch (e1) {}
-      window.__preettvDebug = window.__preettvDebug || [];
-
-      function formatLogLine(x) {
-        return (
-          "#" +
-          (x.seq != null ? x.seq : "?") +
-          " " +
-          (x.ts || "").slice(11, 19) +
-          " " +
-          (x.event || "") +
-          " " +
-          JSON.stringify(x.payload || {})
-        );
-      }
-
-      /**
-       * If the user was at (or near) the bottom, keep following new lines.
-       * If they scrolled up to read history, preserve scroll position when new lines append.
-       */
-      function renderLogs() {
-        var h = window.__preettvDebug || [];
-        var text = h
-          .slice(-120)
-          .map(formatLogLine)
-          .join("\n");
-        var dock = document.getElementById("receiverLogDock");
-        if (!dock) return;
-
-        var oldScroll = dock.scrollTop;
-        var oldHeight = dock.scrollHeight;
-        var client = dock.clientHeight || 0;
-        var nearBottom = client === 0 || oldHeight - oldScroll - client < 16;
-
-        dock.textContent = text;
-
-        var newHeight = dock.scrollHeight;
-        if (client === 0 || newHeight <= client) {
-          return;
-        }
-        if (nearBottom) {
-          dock.scrollTop = newHeight;
-        } else {
-          dock.scrollTop = Math.max(0, oldScroll + (newHeight - oldHeight));
-        }
-      }
-
-      window.__preettvNotifyDebugLog = renderLogs;
-    })();
-  </script>
-  <!-- Single-file bundle: ES module subpaths often 404 on static hosts; rebuild with: python tools/bundle_receiver.py -->
-  <script src="receiver.js"></script>
-  <script>
-    (function () {
-      function warnIfReceiverDidNotBoot() {
-        if (window.__preetCastReceiverBooted) return;
-        var s = document.getElementById("status");
-        if (s) {
-          s.textContent =
-            "Receiver failed to run (receiver.js missing, blocked, or has a JS error). Open chrome://inspect → Cast → inspect this page.";
-        }
-      }
-      if (document.readyState === "complete") warnIfReceiverDidNotBoot();
-      else window.addEventListener("load", warnIfReceiverDidNotBoot);
-    })();
-  </script>
-  <script>
-    (function () {
-      var btn = document.getElementById("logDockToggle");
-      var dock = document.getElementById("receiverLogDock");
-
-      function render() {
-        if (typeof window.__preettvNotifyDebugLog === "function") {
-          window.__preettvNotifyDebugLog();
-        }
-      }
-
-      function setExpanded(on) {
-        if (btn) btn.setAttribute("aria-expanded", on ? "true" : "false");
-      }
-
-      function toggleDock() {
-        var on = document.body.classList.toggle("log-dock-on");
-        setExpanded(on);
-        render();
-        if (on && dock) {
-          dock.scrollTop = dock.scrollHeight;
-        }
-      }
-
-      if (btn) {
-        btn.addEventListener("click", function (ev) {
-          ev.preventDefault();
-          ev.stopPropagation();
-          toggleDock();
-        });
-        btn.addEventListener("keydown", function (ev) {
-          if (ev.key === "Enter" || ev.key === " ") {
-            ev.preventDefault();
-            toggleDock();
-          }
-        });
-      }
-
-      setInterval(render, 500);
-
-      try {
-        var q = new URLSearchParams(window.location.search || "");
-        if (q.get("url") || q.get("browser") === "1") {
-          var el = document.getElementById("browserControls");
-          if (el) el.style.display = "block";
-        }
-      } catch (e2) {}
-
-      setExpanded(document.body.classList.contains("log-dock-on"));
-      render();
-    })();
-  </script>
+    <cast-media-player></cast-media-player>
 </body>
 </html>
