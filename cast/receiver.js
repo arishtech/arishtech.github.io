@@ -114,11 +114,12 @@ function stopPlaybackKeepalive() {}
 
 function debugLog(event, payload) {
   const ev = String(event || "");
-  if (!debugEnabled && ev.indexOf("error") === -1 && ev.indexOf("fatal") === -1) return;
+  const isNoise = ev === "network.policy.applied";
+  if (isNoise && !debugEnabled) return;
   const entry = {
     seq: ++debugSequence,
     ts: new Date().toISOString(),
-    event,
+    event: ev,
     payload: payload || {},
   };
   debugHistory.push(entry);
@@ -140,7 +141,7 @@ function setBrandingVisible(visible) {
 
 function showLoader(text) {
   if (loaderEl) loaderEl.classList.remove("hidden");
-  if (loaderTextEl) loaderTextEl.textContent = text || "Loadingâ€¦";
+  if (loaderTextEl) loaderTextEl.textContent = text || "Loading…";
 }
 
 function hideLoader() {
@@ -309,6 +310,15 @@ function onPlaybackStartedUi() {
   hideLoader();
   setBrandingVisible(false);
   installVolumeBridge();
+  if (useCastReceiver && playerManager) {
+    try {
+      requestAnimationFrame(() => {
+        try {
+          playerManager.play();
+        } catch (_e) {}
+      });
+    } catch (_e) {}
+  }
 }
 
 function finalizeCustomPlayerLoad(selectedLoad, sourceUrl, playerType) {
@@ -1051,15 +1061,6 @@ function repairStreamUrl(url) {
   return out;
 }
 
-function isPlayInterruptedError(err) {
-  const msg = String((err && err.message) || err || "");
-  return (
-    msg.indexOf("interrupted by a call to pause") >= 0 ||
-    msg.indexOf("interrupted by a new load") >= 0 ||
-    msg.indexOf("The play() request was interrupted") >= 0
-  );
-}
-
 function toM3u8Variant(url) {
   const repaired = repairStreamUrl(url);
   const rewritten = rewriteQueryParam(repaired, "extension", "m3u8")
@@ -1436,7 +1437,6 @@ function applyNetworkPolicy(networkRequestInfo, requestType) {
     });
   }
 }
-/* global cast, Hls, dashjs, mpegts â€” uses functions/state from bootstrap + _extracted_helpers */
 
 function hlsIsAvailable() {
   return castVideoEl && typeof Hls !== "undefined" && Hls.isSupported();
@@ -1507,10 +1507,17 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
     const myId = ++hlsJsInvocationCounter;
     let settled = false;
     let hlsUaAttempts = 0;
+    let mediaAttached = false;
+    let manifestParsed = false;
+    const bootDeadline = setTimeout(() => {
+      if (settled) return;
+      failPreload("hlsjs boot timeout (no manifest/blob)");
+    }, 35000);
 
     function failPreload(reason) {
       if (settled) return;
       settled = true;
+      clearTimeout(bootDeadline);
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       destroyHls();
@@ -1520,9 +1527,48 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
     function settle(finalized) {
       if (settled) return;
       settled = true;
+      clearTimeout(bootDeadline);
       pendingCustomPlayerBoot = null;
       clearStallWatchdog();
       resolve(finalized);
+    }
+
+    function trySettleAfterReady() {
+      if (!hlsLive() || settled) return;
+      if (!mediaAttached || !manifestParsed) return;
+
+      function completeSettle() {
+        const finalized = finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "hlsjs");
+        debugLog("hlsjs.ready", {
+          url: sourceUrl,
+          mediaSrc: readVideoBlobUrl(),
+          index: activeCandidateIndex,
+        });
+        if (castVideoEl) {
+          castVideoEl.play().catch((e) => {
+            debugLog("hlsjs.play.error", { message: e && e.message ? e.message : "unknown" });
+          });
+        }
+        setStatus("Playing (HLS.js)");
+        settle(finalized);
+      }
+
+      if (readVideoBlobUrl()) {
+        completeSettle();
+        return;
+      }
+      let attempts = 0;
+      const waitForBlob = () => {
+        if (settled) return;
+        if (!hlsLive()) return;
+        if (readVideoBlobUrl() || attempts >= 40) {
+          completeSettle();
+          return;
+        }
+        attempts += 1;
+        setTimeout(waitForBlob, 50);
+      };
+      waitForBlob();
     }
 
     hlsInstance = new Hls(buildHlsJsConfig());
@@ -1549,14 +1595,16 @@ function startHlsJsPlayback(rawSourceUrl, selectedLoad) {
       void handleCustomInterceptorFailure("hlsjs", new Error(data.details || "fatal"), selectedLoad, sourceUrl);
     });
 
-    hlsInstance.on(Hls.Events.MANIFEST_PARSED, () => {
-      if (!hlsLive() || settled) return;
-      const finalized = finalizeCustomPlayerLoad(selectedLoad, sourceUrl, "hlsjs");
-      if (castVideoEl) {
-        castVideoEl.play().catch((e) => debugLog("hlsjs.play.error", { message: e && e.message ? e.message : "" }));
-      }
-      setStatus("Playing (HLS.js)");
-      settle(finalized);
+    hlsInstance.once(Hls.Events.MEDIA_ATTACHED, () => {
+      mediaAttached = true;
+      debugLog("hlsjs.media_attached", { url: sourceUrl });
+      trySettleAfterReady();
+    });
+
+    hlsInstance.once(Hls.Events.MANIFEST_PARSED, () => {
+      manifestParsed = true;
+      debugLog("hlsjs.manifest_parsed", { url: sourceUrl });
+      trySettleAfterReady();
     });
 
     armStallWatchdog("hlsjs.start");
@@ -1800,8 +1848,8 @@ async function tryLoadNextCandidateOnReceiverError(reason) {
     const load = prepareLoadForCandidate(lastLoadTemplate, url, index);
     const isRewind = sourceTag === "rewind";
     const label = isRewind
-      ? `Trying earlier format (${index + 1}/${activeCandidates.length})â€¦`
-      : `Retrying ${index + 1}/${activeCandidates.length}â€¦`;
+      ? `Trying earlier format (${index + 1}/${activeCandidates.length})…`
+      : `Retrying ${index + 1}/${activeCandidates.length}…`;
     showLoader(label);
     setStatus(label);
     debugLog(isRewind ? "candidate.rewind" : "candidate.retry", {
@@ -1847,8 +1895,18 @@ if (useCastReceiver) {
     try {
       const media = loadRequestData.media || {};
       const customData = asObject(loadRequestData.customData);
-      const rawBaseUrl = String(customData._retryBaseUrl || media.contentUrl || media.contentId || "");
-      if (!rawBaseUrl) return loadRequestData;
+      const streamFromCustom = String(customData.streamUrl || "").trim();
+      const rawBaseUrl = String(
+        customData._retryBaseUrl ||
+          media.contentUrl ||
+          media.contentId ||
+          streamFromCustom ||
+          ""
+      );
+      if (!rawBaseUrl) {
+        debugLog("load.rejected_empty_url", { hasCustomData: Object.keys(customData).length > 0 });
+        return loadRequestData;
+      }
 
       const baseUrl = normalizeCandidateUrl(rawBaseUrl);
       activeContract = normalizeContract(customData);
@@ -1856,7 +1914,7 @@ if (useCastReceiver) {
       applyDebugConfigFromContract(activeContract, customData);
       updateCastChannelNameUi(activeContract.channelName);
 
-      showLoader("Loading streamâ€¦");
+      showLoader("Loading stream…");
       candidatesExhausted = false;
       receiverBackwardFallbackUsed = false;
       activeIptvUaIndex = pickInitialUaIndex(baseUrl);
@@ -1977,7 +2035,10 @@ if (useCastReceiver) {
     const detailCode = event && event.detailedErrorCode ? event.detailedErrorCode : "";
     const errorCode = Number(detailCode) || 0;
     if (candidatesExhausted || candidateAdvanceInFlight) return;
-    if (pendingCustomPlayerBoot) return;
+    if (pendingCustomPlayerBoot && [101, 104, 301, 905].indexOf(errorCode) >= 0) {
+      debugLog("player.error.suppressed_boot_stub", { errorCode, pendingCustomPlayerBoot });
+      return;
+    }
     if (activeCustomPlayer && (errorCode === 905 || errorCode === 104 || errorCode === 301 || errorCode === 101)) {
       debugLog("player.error.suppressed_custom", { errorCode, activeCustomPlayer });
       return;

@@ -4,13 +4,15 @@ This folder contains a minimal Custom Web Receiver app for Google Cast.
 
 ## Files
 
-- `index.html` - Receiver entry page with CAF script and `<cast-media-player>`
-- `receiver.js` - Receiver logic:
-  - reads sender `customData`
-  - builds IPTV compatibility URL candidates
-  - applies `contentType` inference
-  - retries next candidate on receiver-side playback error
-  - applies Phase 2 network policy hooks (auth/header/token/proxy)
+- `index.html` - CAF v3, pinned Hls.js / dash.js / mpegts.js, `<video id="castVideo">`, status line, **Logs** panel
+- `receiver.js` - LOAD interceptor, URL candidates, Hls.js / dash.js / mpegts.js / CAF native paths, network policy
+- `receiver.legacy.full.js` - previous monolithic receiver (backup / diff reference)
+
+## Debugging on the TV
+
+- A **status line** is always shown at the bottom (loading, errors, “Playing …”).
+- Tap **Logs** (top-right) to open the rolling log (last ~120 events). Verbose `network.policy.applied` lines only appear when `?debug=1` (or `receiver-debug` on `<body>`).
+- The receiver also reads `customData.streamUrl` if CAF omits `media.contentUrl` / `contentId`.
 
 ## What It Supports
 
