@@ -40,13 +40,69 @@ function formatAnyError(err) {
 }
 
 /**
+ * Human-readable Cast / MPL error (see Cast web_receiver error_codes).
+ * @param {unknown} code
+ */
+function describeDetailedErrorCode(code) {
+  const n = typeof code === "number" ? code : parseInt(String(code == null ? "" : code).replace(/\D/g, "").slice(0, 9), 10);
+  if (!Number.isFinite(n)) return "";
+  const table = {
+    100: "MEDIA_UNKNOWN",
+    101: "MEDIA_ABORTED",
+    102: "MEDIA_DECODE",
+    103: "MEDIA_NETWORK",
+    104: "MEDIA_SRC_NOT_SUPPORTED (raw TS / codec not playable in default Cast <video>)",
+    110: "SOURCE_BUFFER_FAILURE",
+    201: "MEDIAKEYS_NETWORK",
+    202: "MEDIAKEYS_UNSUPPORTED",
+    203: "MEDIAKEYS_WEBCRYPTO",
+    300: "NETWORK_UNKNOWN",
+    301: "SEGMENT_NETWORK",
+    311: "HLS_NETWORK_MASTER_PLAYLIST",
+    312: "HLS_NETWORK_PLAYLIST",
+    313: "HLS_NETWORK_NO_KEY_RESPONSE",
+    314: "HLS_NETWORK_KEY_LOAD",
+    315: "HLS_NETWORK_INVALID_SEGMENT",
+    316: "HLS_SEGMENT_PARSING",
+    321: "DASH_NETWORK",
+    322: "DASH_NO_INIT",
+    331: "SMOOTH_NETWORK",
+    332: "SMOOTH_NO_MEDIA_DATA",
+    411: "HLS_MANIFEST_MASTER",
+    412: "HLS_MANIFEST_PLAYLIST",
+    421: "DASH_MANIFEST_NO_PERIODS",
+    422: "DASH_MANIFEST_NO_MIMETYPE",
+    423: "DASH_INVALID_SEGMENT_INFO",
+    431: "SMOOTH_MANIFEST",
+    900: "APP (exception outside framework)",
+    901: "BREAK_CLIP_LOADING_ERROR",
+    902: "BREAK_SEEK_INTERCEPTOR_ERROR",
+    903: "IMAGE_ERROR",
+    904: "LOAD_INTERRUPTED",
+    905: "LOAD_FAILED",
+    906: "MEDIA_ERROR_MESSAGE",
+    909: "GENERIC",
+  };
+  if (table[n]) return table[n];
+  const head3 = parseInt(String(Math.floor(n)).replace(/\D/g, "").slice(0, 3), 10);
+  if (Number.isFinite(head3) && table[head3]) {
+    return table[head3] + " (suffix " + n + " — may embed HTTP subcode)";
+  }
+  return "Cast/MPL code — see developers.google.com/cast/docs/web_receiver/error_codes";
+}
+
+/**
  * @param {unknown} event CAF player ERROR event
  */
 function formatPlayerErrorEvent(event) {
   if (!event) return "ERROR (null event)";
   const e = /** @type {Record<string, unknown>} */ (event);
   const bits = [];
-  if (e.detailedErrorCode != null) bits.push("detailedErrorCode=" + e.detailedErrorCode);
+  if (e.detailedErrorCode != null) {
+    const c = e.detailedErrorCode;
+    const desc = describeDetailedErrorCode(c);
+    bits.push("detailedErrorCode=" + c + (desc ? " → " + desc : ""));
+  }
   if (e.reason != null && String(e.reason).trim()) bits.push("reason=" + String(e.reason).trim());
   if (e.error) bits.push("error=" + formatAnyError(e.error));
   if (e.type) bits.push("type=" + String(e.type));
@@ -289,6 +345,103 @@ async function resolveStream(url, headers, contentTypeHint) {
   }
 }
 
+const STUB_MEDIA_URL = "about:blank";
+
+/** @type {unknown} */
+let preetMpegtsInstance = null;
+
+function destroyPreetMpegts() {
+  if (!preetMpegtsInstance) return;
+  try {
+    if (typeof mpegts !== "undefined" && mpegts.Events) {
+      preetMpegtsInstance.off(mpegts.Events.ERROR);
+    }
+  } catch (_e) {}
+  try {
+    preetMpegtsInstance.pause();
+  } catch (_e2) {}
+  try {
+    preetMpegtsInstance.unload();
+  } catch (_e3) {}
+  try {
+    preetMpegtsInstance.detachMediaElement();
+  } catch (_e4) {}
+  try {
+    preetMpegtsInstance.destroy();
+  } catch (_e5) {}
+  preetMpegtsInstance = null;
+}
+
+/**
+ * @param {string} mime
+ * @param {string} url
+ */
+function isMpeg2TransportStreamPlayback(mime, url) {
+  const m = String(mime || "").toLowerCase();
+  if (m.includes("mp2t") || m.includes("mpegts")) return true;
+  const u = String(url || "").toLowerCase();
+  if (u.includes("extension=ts") || u.includes("ext=ts")) return true;
+  if (u.includes("video_type=") && u.includes("octet-stream")) return true;
+  return false;
+}
+
+/**
+ * @param {string} playbackUrl
+ * @param {Record<string, string>} headers
+ */
+function tryStartPreetMpegts(playbackUrl, headers) {
+  const videoEl = document.getElementById("castVideo");
+  if (!videoEl) {
+    logError("mpegts: missing #castVideo element in page");
+    return;
+  }
+  if (typeof mpegts === "undefined" || !mpegts.isSupported()) {
+    logError("mpegts.js not loaded or MSE unsupported on this device");
+    return;
+  }
+  destroyPreetMpegts();
+  const hdr = headers && typeof headers === "object" ? headers : {};
+  log("mpegts.js: bind to #castVideo, url=" + playbackUrl);
+  try {
+    preetMpegtsInstance = mpegts.createPlayer(
+      {
+        type: "mpegts",
+        isLive: true,
+        url: playbackUrl,
+        headers: hdr,
+        hasAudio: true,
+        hasVideo: true,
+      },
+      {
+        enableWorker: false,
+        enableStashBuffer: true,
+        stashInitialSize: 2048 * 1024,
+        liveBufferLatencyChasing: true,
+        liveBufferLatencyMaxLatency: 5,
+        liveBufferLatencyMinRemain: 0.8,
+        liveSync: true,
+        liveSyncMaxLatency: 5,
+        liveSyncTargetLatency: 2.5,
+        autoCleanupSourceBuffer: true,
+        fixAudioTimestampGap: true,
+      }
+    );
+    preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
+      logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
+    });
+    preetMpegtsInstance.attachMediaElement(videoEl);
+    preetMpegtsInstance.load();
+    const pr = preetMpegtsInstance.play();
+    if (pr && typeof pr.catch === "function") {
+      pr.catch(function (err) {
+        logError("mpegts.play() rejected: " + formatAnyError(err));
+      });
+    }
+  } catch (e) {
+    logError("mpegts.createPlayer failed: " + formatAnyError(e));
+  }
+}
+
 /**
  * Inject headers into all CAF manifest/segment/license requests
  */
@@ -326,6 +479,8 @@ playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
  */
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, async (loadRequestData) => {
   try {
+    destroyPreetMpegts();
+
     const media = loadRequestData.media;
     const originalUrl = (media && (media.contentUrl || media.contentId)) || "";
 
@@ -356,9 +511,6 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 
     const resolved = await resolveStream(urlToResolve, headers, probeHint);
 
-    media.contentId = resolved.finalUrl;
-    media.contentUrl = resolved.finalUrl;
-
     if (!mimeType) {
       mimeType = resolved.mimeType;
     }
@@ -368,6 +520,41 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
     if (!mimeType) {
       mimeType = "application/x-mpegURL";
     }
+    if (mimeType === "application/x-mpegURL" && detectMimeTypeFromUrl(resolved.finalUrl) === "video/mp2t") {
+      mimeType = "video/mp2t";
+    }
+
+    const useMpegtsPath =
+      isMpeg2TransportStreamPlayback(mimeType, resolved.finalUrl) &&
+      typeof mpegts !== "undefined" &&
+      mpegts.isSupported();
+
+    if (useMpegtsPath) {
+      const out = Object.assign({}, loadRequestData);
+      out.media = Object.assign({}, media);
+      out.media.contentId = resolved.finalUrl;
+      out.media.contentUrl = STUB_MEDIA_URL;
+      out.media.contentType = "video/mp4";
+      out.media.streamType = cast.framework.messages.StreamType.LIVE;
+      log(
+        "LOAD: MPEG-TS → mpegts.js + #castVideo (CAF native cannot play video/mp2t; avoids MPL 104/905 on raw TS)"
+      );
+      setTimeout(function () {
+        tryStartPreetMpegts(resolved.finalUrl, headers);
+      }, 0);
+      return out;
+    }
+
+    if (isMpeg2TransportStreamPlayback(mimeType, resolved.finalUrl)) {
+      if (typeof mpegts === "undefined") {
+        logWarn("MPEG-TS: mpegts.js not loaded — CAF will likely return detailedErrorCode 104");
+      } else if (!mpegts.isSupported()) {
+        logWarn("MPEG-TS: mpegts.isSupported() is false — CAF will likely return 104");
+      }
+    }
+
+    media.contentId = resolved.finalUrl;
+    media.contentUrl = resolved.finalUrl;
     media.contentType = mimeType;
 
     log("LOAD applied finalUrl + contentType: " + resolved.finalUrl + " | " + mimeType);
@@ -420,6 +607,18 @@ playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () 
     }
   });
 })();
+
+try {
+  const videoEl = document.getElementById("castVideo");
+  if (videoEl && typeof playerManager.setMediaElement === "function") {
+    playerManager.setMediaElement(videoEl);
+    log("PlayerManager.setMediaElement(#castVideo) OK");
+  } else {
+    logWarn("setMediaElement skipped (no #castVideo or API missing)");
+  }
+} catch (e) {
+  logError("setMediaElement failed: " + formatAnyError(e));
+}
 
 context.start({
   disableIdleTimeout: true,

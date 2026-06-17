@@ -11,11 +11,27 @@
             overflow: hidden;
         }
 
+        /* CAF requires <cast-media-player> in the page; playback video is bound via setMediaElement(#castVideo). */
         cast-media-player {
+            position: fixed;
+            inset: 0;
             width: 100%;
             height: 100%;
+            visibility: hidden;
+            pointer-events: none;
+            z-index: -1;
             --progress-color: #ff0000;
             --splash-image: none;
+        }
+
+        #castVideo {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 0;
+            background: #000;
         }
 
         /* Log overlay: selectable, scrollable (D-pad / wheel / touch). Must allow pointer-events for selection. */
@@ -66,8 +82,10 @@
 </head>
 <body>
     <cast-media-player></cast-media-player>
+    <video id="castVideo" playsinline crossorigin="anonymous"></video>
     <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
-    <!-- Scripts after #debug so receiver.js log() can attach to the overlay immediately. -->
+    <!-- mpegts.js: MSE transmux for MPEG-TS (fixes CAF detailedErrorCode 104 MEDIA_SRC_NOT_SUPPORTED on raw TS). -->
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <script src="receiver.js"></script>
 </body>
