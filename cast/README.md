@@ -20,11 +20,17 @@ The receiver starts CAF with **`useShakaForHls: true`** so the **native HLS path
 
 We keep a plain **`<video id="castVideo">`** for those custom players; `<cast-media-player>` stays present for CAF but is not the primary surface for every format.
 
+## On-screen UI (TV)
+
+- **Channel name** — top bar (`#castChannelTitle`), filled from LOAD `customData.channelName` or media metadata title.
+- **Watermark** — “Preet Live Streaming Player” (subtle, lower third).
+- **Loader** — full-screen overlay from LOAD until `#castVideo` fires `playing` / `canplaythrough`, or on errors (see `setReceiverLoaderVisible` in `receiver.js`).
+
 ## Source layout
 
 | File | Role |
 |------|------|
-| `index.html` | Styles, debug log, CDN libs, CAF SDK, **`receiver.js`** |
+| `index.html` | Styles, **loader / channel title / watermark**, debug log, CDN libs, CAF SDK, **`receiver.js`** |
 | `receiver.js` | All receiver logic — **edit this file** for behavior changes |
 | `test-browser.html` | Optional local HLS/native smoke test (not used by Cast) |
 
@@ -47,5 +53,6 @@ Same contract as the app (`schemaVersion`, `candidateUrls`, `auth`, `token`, `pr
 
 ## Notes
 
+- **Android sender volume:** With a Cast session connected, the right-edge swipe uses `CastManager.setVolume` (`RemoteMediaClient.setStreamVolume` + `CastSession.setVolume`) so the receiver’s playback level updates, not only the phone’s `STREAM_MUSIC` volume.
 - `window.__preetCastReceiverBooted` may be set when the script finishes; HTML can use it to surface load failures if wired.
 - **STREAM_VOLUME_CHANGED** may be missing on some CAF builds; volume interceptors still target `#castVideo` where applicable.

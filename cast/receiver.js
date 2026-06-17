@@ -190,6 +190,66 @@ function syncReceiverLogPanelFromSources(customData, reason) {
   console.log("[receiver] log panel " + (receiverLogToDomEnabled ? "ON" : "OFF") + (reason ? " — " + reason : ""));
 }
 
+/* ---------- Cast receiver UI: loader, channel bar, watermark (HTML), auto-hide loader ---------- */
+
+function setReceiverLoaderVisible(visible) {
+  const el = document.getElementById("castLoader");
+  if (!el) return;
+  el.classList.toggle("receiver-loader-hidden", !visible);
+  el.setAttribute("aria-hidden", visible ? "false" : "true");
+  el.setAttribute("aria-busy", visible ? "true" : "false");
+}
+
+function setReceiverChannelTitle(text) {
+  const el = document.getElementById("castChannelTitle");
+  if (!el) return;
+  const t = text && String(text).trim() ? String(text).trim() : "Preet Player";
+  el.textContent = t;
+}
+
+function readCastMediaMetadataTitle(metadata) {
+  if (!metadata) return "";
+  try {
+    const MD = cast.framework.messages.MediaMetadata;
+    if (typeof metadata.getString === "function" && MD && MD.KEY_TITLE != null) {
+      const t = metadata.getString(MD.KEY_TITLE);
+      if (t && String(t).trim()) return String(t).trim();
+    }
+  } catch (_e) {}
+  return "";
+}
+
+function extractChannelLabelFromLoadRequest(loadRequestData) {
+  if (!loadRequestData || typeof loadRequestData !== "object") return "Preet Player";
+  const lr = /** @type {Record<string, unknown>} */ (loadRequestData);
+  const cd = lr.customData;
+  if (cd && typeof cd === "object") {
+    const cn = String(/** @type {Record<string, unknown>} */ (cd).channelName || "").trim();
+    if (cn) return cn;
+  }
+  const media = lr.media;
+  if (media && typeof media === "object") {
+    const mo = /** @type {Record<string, unknown>} */ (media);
+    const meta = readCastMediaMetadataTitle(mo.metadata);
+    if (meta) return meta;
+  }
+  return "Preet Player";
+}
+
+function wireReceiverLoaderAutoDismissOnce() {
+  const v = document.getElementById("castVideo");
+  if (!v || v.dataset.preetLoaderDismiss) return;
+  v.dataset.preetLoaderDismiss = "1";
+  function hide() {
+    setReceiverLoaderVisible(false);
+  }
+  v.addEventListener("playing", hide);
+  v.addEventListener("canplaythrough", hide);
+  v.addEventListener("error", hide);
+}
+
+wireReceiverLoaderAutoDismissOnce();
+
 /**
  * Append one line to #debug (DOM text nodes — selectable, no innerHTML).
  * @param {string} line
@@ -801,10 +861,12 @@ function tryStartPreetMpegts(playbackUrl, headers) {
   const videoEl = document.getElementById("castVideo");
   if (!videoEl) {
     logError("mpegts: missing #castVideo element in page");
+    setReceiverLoaderVisible(false);
     return;
   }
   if (typeof mpegts === "undefined" || !mpegts.isSupported()) {
     logError("mpegts.js not loaded or MSE unsupported on this device");
+    setReceiverLoaderVisible(false);
     return;
   }
   destroyAllCustomPlayers();
@@ -836,6 +898,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     );
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
+      setReceiverLoaderVisible(false);
     });
     if (mpegts.Events && mpegts.Events.LOADING_COMPLETE) {
       preetMpegtsInstance.on(mpegts.Events.LOADING_COMPLETE, function () {
@@ -872,6 +935,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     });
   } catch (e) {
     logError("mpegts.createPlayer failed: " + formatAnyError(e));
+    setReceiverLoaderVisible(false);
   }
 }
 
@@ -883,10 +947,12 @@ function tryStartPreetHls(playbackUrl, headers) {
   const videoEl = document.getElementById("castVideo");
   if (!videoEl) {
     logError("Hls.js: missing #castVideo");
+    setReceiverLoaderVisible(false);
     return;
   }
   if (typeof Hls === "undefined" || !Hls.isSupported()) {
     logError("Hls.js not loaded or not supported");
+    setReceiverLoaderVisible(false);
     return;
   }
   destroyAllCustomPlayers();
@@ -907,6 +973,7 @@ function tryStartPreetHls(playbackUrl, headers) {
     preetHlsInstance.on(Hls.Events.ERROR, function (_ev, data) {
       if (data && data.fatal) {
         logError("Hls fatal: " + stringifyForLog(data.type) + " " + stringifyForLog(data.details));
+        setReceiverLoaderVisible(false);
       }
     });
     preetHlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -930,6 +997,7 @@ function tryStartPreetHls(playbackUrl, headers) {
     });
   } catch (e) {
     logError("Hls.js setup failed: " + formatAnyError(e));
+    setReceiverLoaderVisible(false);
   }
 }
 
@@ -941,10 +1009,12 @@ function tryStartPreetDash(playbackUrl, headers) {
   const videoEl = document.getElementById("castVideo");
   if (!videoEl) {
     logError("dash.js: missing #castVideo");
+    setReceiverLoaderVisible(false);
     return;
   }
   if (typeof dashjs === "undefined") {
     logError("dash.js not loaded");
+    setReceiverLoaderVisible(false);
     return;
   }
   destroyAllCustomPlayers();
@@ -973,6 +1043,7 @@ function tryStartPreetDash(playbackUrl, headers) {
     } catch (_e) {}
     preetDashInstance.on(dashjs.MediaPlayer.events.ERROR, function (err) {
       logError("dashjs ERROR: " + formatAnyError(err));
+      setReceiverLoaderVisible(false);
     });
     preetDashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
       log("dashjs: STREAM_INITIALIZED");
@@ -985,6 +1056,7 @@ function tryStartPreetDash(playbackUrl, headers) {
     preetDashInstance.attachSource(playbackUrl);
   } catch (e) {
     logError("dash.js setup failed: " + formatAnyError(e));
+    setReceiverLoaderVisible(false);
   }
 }
 
@@ -1026,11 +1098,14 @@ playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, async (loadRequestData) => {
   try {
     destroyAllCustomPlayers();
+    setReceiverLoaderVisible(true);
+    setReceiverChannelTitle(extractChannelLabelFromLoadRequest(loadRequestData));
 
     const media = loadRequestData.media;
     const originalUrl = (media && (media.contentUrl || media.contentId)) || "";
 
     if (!media || !originalUrl) {
+      setReceiverLoaderVisible(false);
       logError("LOAD failed: missing media URL (contentUrl and contentId empty)");
       throw new cast.framework.messages.ErrorData(cast.framework.messages.ErrorType.LOAD_FAILED);
     }
@@ -1119,12 +1194,14 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 
     return loadRequestData;
   } catch (e) {
+    setReceiverLoaderVisible(false);
     logError("LOAD interceptor failed: " + formatAnyError(e));
     throw e;
   }
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
+  setReceiverLoaderVisible(false);
   logError("PLAYER ERROR: " + formatPlayerErrorEvent(event));
 });
 
