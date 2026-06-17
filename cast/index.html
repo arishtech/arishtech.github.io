@@ -18,30 +18,55 @@
             --splash-image: none;
         }
 
-        /* Overlay: after <cast-media-player> in DOM + high z-index so logs stay on top of CAF UI. */
+        /* Log overlay: selectable, scrollable (D-pad / wheel / touch). Must allow pointer-events for selection. */
         #debug {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            max-height: 40vh;
-            overflow: auto;
+            max-height: 38vh;
+            overflow-x: hidden;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            touch-action: pan-y;
+            overscroll-behavior: contain;
             box-sizing: border-box;
-            padding: 8px;
-            background: rgba(0, 0, 0, 0.85);
-            color: lime;
-            font-size: clamp(14px, 2.2vmin, 24px);
-            line-height: 1.35;
+            padding: 6px 8px;
+            background: rgba(0, 0, 0, 0.88);
+            color: #7bed9f;
+            font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+            font-size: clamp(9px, 1.05vmin, 11px);
+            line-height: 1.4;
             z-index: 2147483647;
-            pointer-events: none;
+            pointer-events: auto;
+            user-select: text;
+            -webkit-user-select: text;
+            cursor: text;
             overflow-wrap: anywhere;
             word-break: break-word;
+            white-space: pre-wrap;
+            outline: none;
+        }
+
+        #debug .log-row {
+            margin: 0 0 2px 0;
+            white-space: pre-wrap;
+            overflow-wrap: anywhere;
+            word-break: break-word;
+        }
+
+        #debug .log-row-error {
+            color: #ff8787;
+        }
+
+        #debug .log-row-warn {
+            color: #ffe066;
         }
     </style>
 </head>
 <body>
     <cast-media-player></cast-media-player>
-    <div id="debug" aria-hidden="true"></div>
+    <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
     <!-- Scripts after #debug so receiver.js log() can attach to the overlay immediately. -->
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <script src="receiver.js"></script>
