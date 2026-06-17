@@ -78,13 +78,20 @@
         #debug .log-row-warn {
             color: #ffe066;
         }
+
+        /* Hidden when Cast “debug log” is off (see receiver.js syncReceiverLogPanelFromSources). */
+        #debug.receiver-log-hidden {
+            display: none !important;
+        }
     </style>
 </head>
 <body>
     <cast-media-player></cast-media-player>
     <video id="castVideo" playsinline crossorigin="anonymous"></video>
     <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
-    <!-- mpegts.js: MSE transmux for MPEG-TS (fixes CAF detailedErrorCode 104 MEDIA_SRC_NOT_SUPPORTED on raw TS). -->
+    <!-- Hls.js / dash.js / mpegts.js: chosen at runtime from sender customData + URL (see receiver.js choosePlaybackEngine). -->
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <script src="receiver.js"></script>

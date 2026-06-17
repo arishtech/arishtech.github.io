@@ -1,87 +1,51 @@
 # PreetTV Custom Cast Receiver
 
-Google Cast **Custom Web Receiver** (CAF v3) for PreetTV: IPTV-friendly URL repair, multi-candidate fallbacks, Hls.js / dash.js / mpegts.js with CAF native escape hatches, and a Phase 2 `customData` contract aligned with the Android sender.
+Google Cast **Custom Web Receiver** (CAF v3) for PreetTV: IPTV-friendly URL handling, multi-candidate fallbacks, optional **Hls.js**, **dash.js**, and **mpegts.js** stacks (chosen at runtime from sender `customData` plus URL/MIME hints), and a `customData` contract aligned with the Android sender.
 
-## CAF bootstrap (reference: `cast-receiver-main`)
+## What Chromecast loads
 
-The Eyevinn-style minimal receiver (`cast-receiver-main`) starts CAF with **`useShakaForHls: true`** so the **native HLS path uses Shaka** instead of the older default stack ([Shaka migration](https://developers.google.com/cast/docs/web_receiver/shaka_migration)). PreetTV adopts the same flag in `receiver/app.js` while keeping this project’s custom `<video>`, LOAD interceptor, and Hls.js / mpegts fallbacks.
+[`index.html`](index.html) loads, in order:
 
-We do **not** mirror `<cast-media-player>` from that template: this receiver needs a plain `<video id="castVideo">` for custom players and UI. Optional extras there (build-time `CAST_RECEIVER_OPTIONS`, Parcel, Docker) are optional for self-hosted builds only.
+1. **Hls.js** — parses **`.m3u8` / HLS** manifests and feeds MSE (there is no separate “M3U8 library”; M3U8 is the HLS playlist format).
+2. **dash.js** — **DASH / `.mpd`** playback when that engine is selected.
+3. **mpegts.js** — **MPEG-TS** transmux when TS playback is selected.
+4. **CAF v3** (`cast_receiver_framework.js`).
+5. **[`receiver.js`](receiver.js)** — single classic script (no ES module graph on device).
 
-## Source layout (modular) + what Cast actually loads
+If you remove Hls.js or dash.js from `index.html`, the corresponding branches in `receiver.js` will not run (those globals will be missing). **mpegts-only** is enough only if you never route to HLS or DASH in `choosePlaybackEngine`.
 
-Logic lives in **`receiver/*.js`** (ES modules for maintainability). **Chromecast and many static hosts do not reliably load nested ES modules** (404 / MIME / path issues), so **`index.html` loads a single classic script: `receiver.js`**.
+## CAF bootstrap
 
-After you change any file under `receiver/`, regenerate **`receiver.js`** in one of these ways:
+The receiver starts CAF with **`useShakaForHls: true`** so the **native HLS path uses Shaka** instead of the older default stack ([Shaka migration](https://developers.google.com/cast/docs/web_receiver/shaka_migration)). Custom engines (Hls.js / dash.js / mpegts.js) attach to `#castVideo` when the LOAD interceptor selects them.
 
-### Option A — GitHub Actions (no Python on your PC)
+We keep a plain **`<video id="castVideo">`** for those custom players; `<cast-media-player>` stays present for CAF but is not the primary surface for every format.
 
-If this repo is on GitHub, use the workflow **“Bundle Cast receiver”** (`.github/workflows/cast-receiver-bundle.yml`):
+## Source layout
 
-1. Push your edits under `cast-receiver/receiver/*.js` (or change `cast-receiver/tools/bundle_receiver.py`).
-2. Actions runs on GitHub’s servers, runs the bundler, and **commits an updated `cast-receiver/receiver.js`** when it differs.
-3. GitHub Pages serves the new bundle on the next site build.
+| File | Role |
+|------|------|
+| `index.html` | Styles, debug log, CDN libs, CAF SDK, **`receiver.js`** |
+| `receiver.js` | All receiver logic — **edit this file** for behavior changes |
+| `test-browser.html` | Optional local HLS/native smoke test (not used by Cast) |
 
-You can also open **Actions → Bundle Cast receiver → Run workflow** to rebuild without changing sources.
-
-**Repo setting:** *Settings → Actions → General → Workflow permissions* → **Read and write** so the workflow can push (some orgs restrict this).
-
-### Option B — Local Python
-
-From the **repository root**:
-
-```bash
-python cast-receiver/tools/bundle_receiver.py
-```
-
-Or from `cast-receiver/`:
-
-```bash
-python tools/bundle_receiver.py
-```
-
-That overwrites **`receiver.js`** next to `index.html`. **Deploy or commit both** `index.html` and `receiver.js` for GitHub Pages.
-
-| Module | Role |
-|--------|------|
-| `receiver/app.js` | Cast vs browser test mode, `context.start()`, pipeline |
-| `receiver/state.js` | Session state (candidates, players, flags) |
-| `receiver/constants.js` | Timeouts, UA list, stub URL |
-| `receiver/util.js` | `asObject`, serialization, flags |
-| `receiver/logger.js` | `window.__preettvDebug`, verbose from sender / `?debug=` |
-| `receiver/dom.js` | Status, loader, volume bridge, safe CAF listeners |
-| `receiver/contract.js` | `normalizeContract(customData)` |
-| `receiver/url.js` | URL repair, candidates, strategy |
-| `receiver/network.js` | `PlaybackConfig`, proxy, token rewrite, mpegts fetch shim |
-| `receiver/players.js` | Hls.js / dash.js / mpegts, stub loads, CAF native fallbacks |
-| `receiver/pipeline.js` | CAF `LOAD` / `ERROR`, watchdog, candidate advance |
-
-Legacy reference: `receiver.legacy.full.js`.
-
-## Files
-
-- `index.html` — CAF + libs + UI + **`receiver.js`** (bundled)
-- `receiver.js` — **generated**; do not hand-edit (use `tools/bundle_receiver.py`)
-- `receiver/*.js` — module sources
-- `tools/bundle_receiver.py` — concat/strip `import`/`export` into one IIFE
-
-## Debugging on the TV
-
-- A **status line** is always shown at the bottom (loading, errors, “Playing …”). If you see a **“Receiver failed to run…”** message, `receiver.js` did not execute (missing on server, parse error, or blocked).
-- Tap **Logs** for the bottom dock. Cast debug from the app does not open the dock by default. Optional: **`?dock=1`** on the receiver URL.
-- Verbose `network.policy.applied` needs `?debug=1` or sender debug flags.
+There is **no** Python bundler or `receiver/*.js` module tree in this repo; deploy **`index.html` + `receiver.js`** together.
 
 ## Phase 2 `customData`
 
-Same contract as before (`schemaVersion`, `candidateUrls`, `auth`, `token`, `proxy`, `networkPolicy`, `playback`, `streamBootstrap`, etc.). See `BACKEND_PROXY_REFERENCE.md`.
+Same contract as the app (`schemaVersion`, `candidateUrls`, `auth`, `token`, `proxy`, `networkPolicy`, `playback`, `streamBootstrap`, etc.). See `BACKEND_PROXY_REFERENCE.md` at repo root if present.
 
 ## Deploy (including GitHub Pages)
 
-1. Ensure **`cast-receiver/receiver.js`** is current (Option A or B above). For **github.io**, use **Option A** after each change to `receiver/*.js`, or commit an already-generated `receiver.js` from any machine that can run the script once.
+1. Commit **`cast-receiver/index.html`** and **`cast-receiver/receiver.js`** after edits.
 2. Cast SDK Console → Custom Receiver → URL = your hosted `index.html`.
-3. Confirm `https://<user>.github.io/.../receiver.js` returns **200** and is served as JavaScript.
+3. Confirm `https://<host>/.../receiver.js` returns **200** as JavaScript.
+
+## Debugging on the TV
+
+- The **on-screen log** (`#debug`) follows the app **Cast debug** switch (Settings): when off, the sender omits `customData.debug` / `castDebugEnabled` and the panel stays hidden (lines still go to the **browser console**).
+- **Receiver URL only:** `?log=1`, `?receiverLog=1`, `?castDebug=1`, or `?dock=1` forces the panel on; `=0` / `false` / `off` forces it off (overrides sender for that session).
 
 ## Notes
 
-- `window.__preetCastReceiverBooted` is set when the bundled script finishes; the HTML uses it to surface load failures.
-- **STREAM_VOLUME_CHANGED** may be missing on some CAF builds; **`SET_VOLUME`** interceptor still applies.
+- `window.__preetCastReceiverBooted` may be set when the script finishes; HTML can use it to surface load failures if wired.
+- **STREAM_VOLUME_CHANGED** may be missing on some CAF builds; volume interceptors still target `#castVideo` where applicable.
