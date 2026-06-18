@@ -125,6 +125,34 @@
             display: none !important;
         }
 
+        /* Mid-cast interstitial: sender asks viewer to use phone for ad (see receiver.js custom messages). */
+        #castContinuePhoneOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 18;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            padding: 28px 22px;
+            box-sizing: border-box;
+            text-align: center;
+            background: rgba(0, 0, 0, 0.82);
+            pointer-events: none;
+        }
+
+        #castContinuePhoneText {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            font-size: clamp(18px, 3.2vmin, 30px);
+            font-weight: 700;
+            line-height: 1.35;
+            color: #fff;
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.95);
+            max-width: 92vw;
+            overflow-wrap: anywhere;
+        }
+
         /* Log overlay: selectable, scrollable (D-pad / wheel / touch). Must allow pointer-events for selection. */
         #debug {
             position: fixed;
@@ -188,6 +216,9 @@
     <div id="castLoader" class="cast-loader receiver-loader-hidden" aria-hidden="true" aria-busy="false" role="status" aria-live="polite">
         <div class="cast-loader-spinner" aria-hidden="true"></div>
         <div class="cast-loader-label">Loading…</div>
+    </div>
+    <div id="castContinuePhoneOverlay" aria-hidden="true" role="status" aria-live="polite">
+        <div id="castContinuePhoneText">Please continue on your phone</div>
     </div>
     <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
     <!-- Hls.js / dash.js / mpegts.js: chosen at runtime from sender customData + URL (see receiver.js choosePlaybackEngine). -->

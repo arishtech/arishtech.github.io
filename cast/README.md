@@ -24,17 +24,13 @@ We keep a plain **`<video id="castVideo">`** for those custom players; `<cast-me
 
 - **Branding header** (top): **title** “Preet Live Streaming Player” (`#castBrandTitle`, bold in `index.html`) and **subtitle** current channel (`#castChannelSubtitle`), filled from LOAD `customData.channelName` or media metadata title (`setReceiverChannelSubtitle` in `receiver.js`). To put the **channel** as the larger line instead, swap the order of those two `<div>`s in `index.html` and move the static string onto the element you want as the product name.
 - **Loader** — full-screen overlay from LOAD until `#castVideo` fires `playing` / `canplaythrough`, or on errors (see `setReceiverLoaderVisible` in `receiver.js`).
+- **Continue on phone** — full-screen `#castContinuePhoneOverlay` toggled by the Android sender on namespace `urn:x-cast:com.arishtech.preetplayer` with JSON `{ "type": "continueOnPhoneOverlay", "visible": true|false, "message": "…" }` (see `CastManager.setContinueOnPhoneOverlayVisible` and `wirePreetCustomReceiverMessages` in `receiver.js`).
 
-## Buffering (live stability)
+## Buffering / caching
 
-The receiver uses **larger forward buffers** than typical defaults to reduce stalls and frame drops on Chromecast (at the cost of more delay behind the live edge):
+The receiver relies on **CAF + Shaka defaults** for native HLS/DASH (no custom `shakaConfig` merge). **mpegts.js**, **Hls.js**, and **dash.js** use their stock-style tuning: very large buffers on Chromecast often **hurt** performance (memory pressure, aggressive `SourceBuffer` eviction, and worse throughput), so avoid huge `maxBufferLength` / stash sizes unless you measure a clear win on your streams.
 
-- **CAF / Shaka** (native HLS/DASH when Shaka/MPL is used): `PlaybackConfig.shakaConfig.streaming` — `bufferingGoal`, `rebufferingGoal`, `bufferBehind` (see `PREET_SHAKA_STREAMING_BUFFER` in `receiver.js`). Also `autoResumeDuration` / `autoPauseDuration` hints for non-Shaka paths.
-- **mpegts.js**: larger `stashInitialSize` and relaxed `liveBufferLatency*` / `liveSync*` (see `PREET_MPEGTS_BUFFER_CONFIG`).
-- **Hls.js**: `maxBufferLength` / `maxMaxBufferLength` / timeouts (see `PREET_HLS_BUFFER_CONFIG`).
-- **dash.js**: `updateSettings` streaming targets (see `PREET_DASH_STREAMING_SETTINGS`).
-
-Tune those constants in **`receiver.js`** if you need even more buffer or lower latency.
+If you need to tune one path, edit the inline options in **`tryStartPreetMpegts`**, **`tryStartPreetHls`**, or **`tryStartPreetDash`** in `receiver.js`, or merge a small `playbackConfig.shakaConfig` in `setMediaPlaybackInfoHandler` (see Cast `PlaybackConfig` docs).
 
 ## Source layout
 
