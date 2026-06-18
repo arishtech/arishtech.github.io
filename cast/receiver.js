@@ -1258,6 +1258,51 @@ try {
 
 (function wirePreetCustomReceiverMessages() {
   const PREET_MSG_NS = "urn:x-cast:com.arishtech.preetplayer";
+  let overlayPausedPlayback = false;
+  let overlayWasPlayingBeforePause = false;
+
+  function getCastVideoElement() {
+    const el = document.getElementById("castVideo");
+    return el instanceof HTMLVideoElement ? el : null;
+  }
+
+  function pausePlaybackForOverlay() {
+    const video = getCastVideoElement();
+    if (!video) return;
+    overlayWasPlayingBeforePause = !video.paused && !video.ended;
+    if (overlayWasPlayingBeforePause) {
+      try {
+        video.pause();
+        overlayPausedPlayback = true;
+        log("Overlay requested: paused receiver playback");
+      } catch (e) {
+        logWarn("Overlay pause failed: " + formatAnyError(e));
+      }
+    }
+  }
+
+  function resumePlaybackAfterOverlay() {
+    const video = getCastVideoElement();
+    if (!video) {
+      overlayPausedPlayback = false;
+      overlayWasPlayingBeforePause = false;
+      return;
+    }
+    if (overlayPausedPlayback && overlayWasPlayingBeforePause && video.paused && !video.ended) {
+      try {
+        const p = video.play();
+        if (p && typeof p.catch === "function") {
+          p.catch((e) => logWarn("Overlay resume play() rejected: " + formatAnyError(e)));
+        }
+        log("Overlay dismissed: resumed receiver playback");
+      } catch (e) {
+        logWarn("Overlay resume failed: " + formatAnyError(e));
+      }
+    }
+    overlayPausedPlayback = false;
+    overlayWasPlayingBeforePause = false;
+  }
+
   try {
     context.addCustomMessageListener(PREET_MSG_NS, (event) => {
       let data = event && event.data != null ? event.data : null;
@@ -1282,6 +1327,11 @@ try {
       if (overlay) {
         overlay.style.display = vis ? "flex" : "none";
         overlay.setAttribute("aria-hidden", vis ? "false" : "true");
+      }
+      if (vis) {
+        pausePlaybackForOverlay();
+      } else {
+        resumePlaybackAfterOverlay();
       }
     });
     log("Custom message listener OK (" + PREET_MSG_NS + ")");
