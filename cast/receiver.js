@@ -237,6 +237,34 @@ function extractChannelLabelFromLoadRequest(loadRequestData) {
   return "Preet Player";
 }
 
+var CAST_FAILED_DETAIL_MAX = 220;
+
+function hideCastingFailedOverlay() {
+  const o = document.getElementById("castFailedOverlay");
+  if (!o) return;
+  o.style.display = "none";
+  o.setAttribute("aria-hidden", "true");
+}
+
+/**
+ * @param {string} [detail] Shown under the title (truncated for TV).
+ */
+function showCastingFailedMessage(detail) {
+  const o = document.getElementById("castFailedOverlay");
+  const detailEl = document.getElementById("castFailedDetail");
+  if (!o) return;
+  var d = detail && String(detail).trim() ? String(detail).trim() : "";
+  if (d.length > CAST_FAILED_DETAIL_MAX) {
+    d = d.slice(0, CAST_FAILED_DETAIL_MAX) + "…";
+  }
+  if (detailEl) {
+    detailEl.textContent = d || "This stream could not be played on Chromecast. Try another format or continue on your phone.";
+  }
+  setReceiverLoaderVisible(false);
+  o.style.display = "flex";
+  o.setAttribute("aria-hidden", "false");
+}
+
 function wireReceiverLoaderAutoDismissOnce() {
   const v = document.getElementById("castVideo");
   if (!v || v.dataset.preetLoaderDismiss) return;
@@ -246,7 +274,18 @@ function wireReceiverLoaderAutoDismissOnce() {
   }
   v.addEventListener("playing", hide);
   v.addEventListener("canplaythrough", hide);
-  v.addEventListener("error", hide);
+  v.addEventListener("error", function () {
+    hide();
+    try {
+      var err = v.error;
+      var bits = [];
+      if (err && err.code != null) bits.push("code " + err.code);
+      if (err && err.message) bits.push(String(err.message));
+      showCastingFailedMessage(bits.length ? bits.join(" — ") : "The video element reported a playback error.");
+    } catch (_e2) {
+      showCastingFailedMessage("Video playback error.");
+    }
+  });
 }
 
 wireReceiverLoaderAutoDismissOnce();
@@ -863,11 +902,13 @@ function tryStartPreetMpegts(playbackUrl, headers) {
   if (!videoEl) {
     logError("mpegts: missing #castVideo element in page");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("Receiver page is missing the video element.");
     return;
   }
   if (typeof mpegts === "undefined" || !mpegts.isSupported()) {
     logError("mpegts.js not loaded or MSE unsupported on this device");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("MPEG-TS playback is not supported on this Chromecast.");
     return;
   }
   destroyAllCustomPlayers();
@@ -900,6 +941,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
       setReceiverLoaderVisible(false);
+      showCastingFailedMessage("MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail));
     });
     if (mpegts.Events && mpegts.Events.LOADING_COMPLETE) {
       preetMpegtsInstance.on(mpegts.Events.LOADING_COMPLETE, function () {
@@ -930,6 +972,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
           pr.catch(function (err) {
             if (isPlayInterruptedError(err)) return;
             logError("mpegts.play() rejected: " + formatAnyError(err));
+            showCastingFailedMessage(formatAnyError(err));
           });
         }
       });
@@ -937,6 +980,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
   } catch (e) {
     logError("mpegts.createPlayer failed: " + formatAnyError(e));
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage(formatAnyError(e));
   }
 }
 
@@ -949,11 +993,13 @@ function tryStartPreetHls(playbackUrl, headers) {
   if (!videoEl) {
     logError("Hls.js: missing #castVideo");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("Receiver page is missing the video element.");
     return;
   }
   if (typeof Hls === "undefined" || !Hls.isSupported()) {
     logError("Hls.js not loaded or not supported");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("HLS.js playback is not supported on this Chromecast.");
     return;
   }
   destroyAllCustomPlayers();
@@ -975,6 +1021,7 @@ function tryStartPreetHls(playbackUrl, headers) {
       if (data && data.fatal) {
         logError("Hls fatal: " + stringifyForLog(data.type) + " " + stringifyForLog(data.details));
         setReceiverLoaderVisible(false);
+        showCastingFailedMessage("HLS: " + stringifyForLog(data.type) + " — " + stringifyForLog(data.details));
       }
     });
     preetHlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
@@ -992,6 +1039,7 @@ function tryStartPreetHls(playbackUrl, headers) {
           pr.catch(function (err) {
             if (isPlayInterruptedError(err)) return;
             logError("Hls video.play: " + formatAnyError(err));
+            showCastingFailedMessage(formatAnyError(err));
           });
         }
       });
@@ -999,6 +1047,7 @@ function tryStartPreetHls(playbackUrl, headers) {
   } catch (e) {
     logError("Hls.js setup failed: " + formatAnyError(e));
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage(formatAnyError(e));
   }
 }
 
@@ -1011,11 +1060,13 @@ function tryStartPreetDash(playbackUrl, headers) {
   if (!videoEl) {
     logError("dash.js: missing #castVideo");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("Receiver page is missing the video element.");
     return;
   }
   if (typeof dashjs === "undefined") {
     logError("dash.js not loaded");
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage("DASH playback library failed to load.");
     return;
   }
   destroyAllCustomPlayers();
@@ -1045,6 +1096,7 @@ function tryStartPreetDash(playbackUrl, headers) {
     preetDashInstance.on(dashjs.MediaPlayer.events.ERROR, function (err) {
       logError("dashjs ERROR: " + formatAnyError(err));
       setReceiverLoaderVisible(false);
+      showCastingFailedMessage("DASH: " + formatAnyError(err));
     });
     preetDashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
       log("dashjs: STREAM_INITIALIZED");
@@ -1058,6 +1110,7 @@ function tryStartPreetDash(playbackUrl, headers) {
   } catch (e) {
     logError("dash.js setup failed: " + formatAnyError(e));
     setReceiverLoaderVisible(false);
+    showCastingFailedMessage(formatAnyError(e));
   }
 }
 
@@ -1098,6 +1151,7 @@ playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
  */
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, async (loadRequestData) => {
   try {
+    hideCastingFailedOverlay();
     destroyAllCustomPlayers();
     setReceiverLoaderVisible(true);
     setReceiverChannelSubtitle(extractChannelLabelFromLoadRequest(loadRequestData));
@@ -1108,6 +1162,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
     if (!media || !originalUrl) {
       setReceiverLoaderVisible(false);
       logError("LOAD failed: missing media URL (contentUrl and contentId empty)");
+      showCastingFailedMessage("No stream URL was sent to the TV.");
       throw new cast.framework.messages.ErrorData(cast.framework.messages.ErrorType.LOAD_FAILED);
     }
 
@@ -1197,6 +1252,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
   } catch (e) {
     setReceiverLoaderVisible(false);
     logError("LOAD interceptor failed: " + formatAnyError(e));
+    showCastingFailedMessage(formatAnyError(e));
     throw e;
   }
 });
@@ -1204,6 +1260,7 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
   setReceiverLoaderVisible(false);
   logError("PLAYER ERROR: " + formatPlayerErrorEvent(event));
+  showCastingFailedMessage(formatPlayerErrorEvent(event));
 });
 
 playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () => {
@@ -1220,6 +1277,7 @@ playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () 
     log(line);
     if (idle === 4) {
       logWarn("MEDIA_STATUS: idleReason=4 (ERROR) — playback failed");
+      showCastingFailedMessage("Playback stopped with an error on the receiver.");
     }
   } catch (_e) {
     log("MEDIA_STATUS (update)");
@@ -1237,6 +1295,7 @@ playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () 
     try {
       playerManager.addEventListener(type, (ev) => {
         logError(String(label) + ": " + formatPlayerErrorEvent(ev));
+        showCastingFailedMessage(String(label) + ": " + formatPlayerErrorEvent(ev));
       });
     } catch (_e) {
       /* older CAF builds may omit some event types */
@@ -1254,6 +1313,7 @@ try {
   }
 } catch (e) {
   logError("setMediaElement failed: " + formatAnyError(e));
+  showCastingFailedMessage("Could not attach the video element: " + formatAnyError(e));
 }
 
 (function wirePreetCustomReceiverMessages() {

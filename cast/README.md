@@ -24,6 +24,7 @@ We keep a plain **`<video id="castVideo">`** for those custom players; `<cast-me
 
 - **Branding header** (top): **title** “Preet Live Streaming Player” (`#castBrandTitle`, bold in `index.html`) and **subtitle** current channel (`#castChannelSubtitle`), filled from LOAD `customData.channelName` or media metadata title (`setReceiverChannelSubtitle` in `receiver.js`). To put the **channel** as the larger line instead, swap the order of those two `<div>`s in `index.html` and move the static string onto the element you want as the product name.
 - **Loader** — full-screen overlay from LOAD until `#castVideo` fires `playing` / `canplaythrough`, or on errors (see `setReceiverLoaderVisible` in `receiver.js`).
+- **Casting failed** — `#castFailedOverlay` (title + detail) when LOAD fails, CAF `ERROR`, idle error, custom player fatal errors, or `#castVideo` `error` (`showCastingFailedMessage` / `hideCastingFailedOverlay` in `receiver.js`). Hidden again on the next successful LOAD.
 - **Continue on phone** — full-screen `#castContinuePhoneOverlay` toggled by the Android sender on namespace `urn:x-cast:com.arishtech.preetplayer` with JSON `{ "type": "continueOnPhoneOverlay", "visible": true|false, "message": "…" }` (see `CastManager.setContinueOnPhoneOverlayVisible` and `wirePreetCustomReceiverMessages` in `receiver.js`).
 
 ## Buffering / caching

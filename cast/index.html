@@ -153,6 +153,44 @@
             overflow-wrap: anywhere;
         }
 
+        /* When the stream cannot be played (receiver.js). */
+        #castFailedOverlay {
+            position: fixed;
+            inset: 0;
+            z-index: 16;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            padding: 32px 24px;
+            box-sizing: border-box;
+            text-align: center;
+            background: rgba(10, 0, 0, 0.88);
+            pointer-events: none;
+        }
+
+        #castFailedTitle {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            font-size: clamp(22px, 4vmin, 36px);
+            font-weight: 800;
+            line-height: 1.2;
+            color: #ff6b6b;
+            text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95);
+            max-width: 92vw;
+        }
+
+        #castFailedDetail {
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            font-size: clamp(14px, 2.2vmin, 20px);
+            font-weight: 600;
+            line-height: 1.4;
+            color: #f1f3f5;
+            text-shadow: 0 1px 8px rgba(0, 0, 0, 0.9);
+            max-width: 92vw;
+            overflow-wrap: anywhere;
+        }
+
         /* Log overlay: selectable, scrollable (D-pad / wheel / touch). Must allow pointer-events for selection. */
         #debug {
             position: fixed;
@@ -216,6 +254,10 @@
     <div id="castLoader" class="cast-loader receiver-loader-hidden" aria-hidden="true" aria-busy="false" role="status" aria-live="polite">
         <div class="cast-loader-spinner" aria-hidden="true"></div>
         <div class="cast-loader-label">Loading…</div>
+    </div>
+    <div id="castFailedOverlay" aria-hidden="true" role="alert" aria-live="assertive" style="display: none;">
+        <div id="castFailedTitle">Casting failed</div>
+        <div id="castFailedDetail"></div>
     </div>
     <div id="castContinuePhoneOverlay" aria-hidden="true" role="status" aria-live="polite">
         <div id="castContinuePhoneText">Please continue on your phone</div>
