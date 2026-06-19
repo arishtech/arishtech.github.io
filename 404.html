@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script>
+        // 1. Get the requested URL (e.g., domain.com/My-PaGe)
+        var currentUrl = window.location.href;
+        var lowerCaseUrl = currentUrl.toLowerCase();
+
+        // 2. If the user used any uppercase letters, redirect them to the lowercase version
+        if (currentUrl !== lowerCaseUrl) {
+            window.location.replace(lowerCaseUrl);
+        }
+    </script>
+</head>
+<body>
+    <p>Redirecting to correct page...</p>
+</body>
+</html>
