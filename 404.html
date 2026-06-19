@@ -1,18 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <title>Redirecting...</title>
     <script>
-        // 1. Get the requested URL (e.g., domain.com/My-PaGe)
-        var currentUrl = window.location.href;
-        var lowerCaseUrl = currentUrl.toLowerCase();
+        (function() {
+            // 1. Get the requested URL
+            var currentUrl = window.location.href;
 
-        // 2. If the user used any uppercase letters, redirect them to the lowercase version
-        if (currentUrl !== lowerCaseUrl) {
-            window.location.replace(lowerCaseUrl);
-        }
+            // 2. Fix the specific "PreetPlayer" folder capitalization issue
+            // This catches /Preetplayer/, /preetplayer/, /PREETPLAYER/, etc.
+            var fixedUrl = currentUrl.replace(/\/preetplayer\//i, '/PreetPlayer/');
+
+            // 3. If a match was found and replaced, redirect immediately
+            if (currentUrl !== fixedUrl) {
+                window.location.replace(fixedUrl);
+                return; // Stop execution
+            }
+
+            // 4. OPTIONAL GLOBAL FALLBACK:
+            // If the issue wasn't 'PreetPlayer' but the user used uppercase elsewhere,
+            // you can uncomment the lines below to force everything else to lowercase.
+            /*
+            var lowerCaseUrl = currentUrl.toLowerCase();
+            if (currentUrl !== lowerCaseUrl) {
+                window.location.replace(lowerCaseUrl);
+            }
+            */
+        })();
     </script>
 </head>
 <body>
-    <p>Redirecting to correct page...</p>
+    <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+        <h2>Redirecting you to the correct page...</h2>
+        <p>If you are not redirected automatically, <a id="redirect-link" href="#">click here</a>.</p>
+    </div>
+    <script>
+        // Fallback clickable link just in case the automatic redirect is blocked
+        var currentUrl = window.location.href;
+        var fixedUrl = currentUrl.replace(/\/preetplayer\//i, '/PreetPlayer/');
+        document.getElementById('redirect-link').href = fixedUrl;
+    </script>
 </body>
 </html>
