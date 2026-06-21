@@ -988,7 +988,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
       setReceiverLoaderVisible(false);
-      scheduleCastingFailedMessage("MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail));
+      scheduleCastingFailedMessage("Please wait or try again. MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail));
     });
     if (mpegts.Events && mpegts.Events.LOADING_COMPLETE) {
       preetMpegtsInstance.on(mpegts.Events.LOADING_COMPLETE, function () {
