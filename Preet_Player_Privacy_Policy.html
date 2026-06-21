@@ -8,46 +8,56 @@
 </head>
 <body>
   <h1>Privacy Policy - Preet TV</h1>
-  <p>Last updated: 2026-02-10</p>
+  <p>Last updated: 2026-06-19</p>
   <h2>Overview</h2>
-  <p>Preet Live Stream Player ("we", "us") provides an application that plays live streams from user-provided M3U playlist URLs. This Privacy Policy explains what information we collect, why we collect it, how we use it, and your choices.</p>
+  <p>Preet Live Stream Player ("we", "us") provides an application that plays live streams from user-provided M3U playlist URLs. This Privacy Policy explains what information we collect, why we collect it, how we use it, and your choices. It applies to the Android and iOS versions of the Application unless a section states otherwise.</p>
 
   <h2>Data we collect</h2>
   <ul>
-    <li><strong>Advertising Identifier (Advertising ID)</strong>: <em>May be collected by third-party advertising networks (for example, Google AdMob)</em> when ads are displayed in the Application.</li>
-    <li><strong>Device & app metadata</strong> (device model, OS version, app version): Collected for diagnostics and crash reporting.</li>
-    <li><strong>Network information</strong> (connectivity status, IP): Collected to enable streaming and handle network errors.</li>
-    <li><strong>User-supplied M3U playlist URLs</strong>: Stored locally on the device (SharedPreferences) to load playlist.</li>
-    <li><strong>Diagnostics</strong>: Crash reports and performance logs may be collected for debugging and improvement.</li>
+    <li><strong>Advertising Identifier (Advertising ID / IDFA)</strong>: <em>May be collected by third-party advertising networks (for example, Google AdMob)</em> when ads are displayed in the Application, subject to platform settings and consent (including Apple App Tracking Transparency on iOS where applicable).</li>
+    <li><strong>Device &amp; app metadata</strong> (device model, OS version, app version): Collected for diagnostics, analytics, and crash reporting.</li>
+    <li><strong>Network information</strong> (connectivity status, IP): Collected to enable streaming, handle network errors, and (where processed by analytics or ad services) for fraud prevention and service delivery.</li>
+    <li><strong>User-supplied M3U playlist URLs</strong>: Stored locally on your device to load your playlist.</li>
+    <li><strong>Diagnostics &amp; usage analytics</strong>: Crash reports, performance data, and in-app usage events may be collected for debugging, product improvement, and understanding feature usage.</li>
+    <li><strong>Google Firebase (Analytics)</strong>: The Application uses <strong>Google Analytics for Firebase</strong> (Firebase Analytics), provided by Google. It may collect pseudonymous identifiers (such as an app instance ID), in-app events (for example, screens or actions you take in the app), and device/app information. This processing occurs on Google&apos;s infrastructure. On <strong>Android</strong>, Firebase Analytics is included in the standard (mobile) app build; other product variants may omit it. On <strong>iOS</strong>, Firebase Analytics is included when the app is built with the required configuration file; collection may be adjusted based on your consent choices where the app implements them.</li>
   </ul>
 
   <h2>How we use data</h2>
   <ul>
     <li>Load and play streams from the playlist URL you provide.</li>
+    <li>Measure how the Application is used, prioritize improvements, and understand stability issues.</li>
     <li>Troubleshoot crashes and improve app stability.</li>
   </ul>
 
   <h2>Third parties</h2>
   <p>The Application may use third-party advertising networks (for example, Google AdMob) to deliver ads. These advertising networks may collect information such as your Advertising ID, device identifiers, IP address, and information about ad interactions. They may combine this information with data collected from other apps and services to provide personalized ads.</p>
-  <p>Diagnostic or analytics SDKs (if included) may also receive device/app metadata; check the library documentation for details.</p>
+  <p><strong>Google Firebase.</strong> We use Firebase services (including Firebase Analytics / Google Analytics for Firebase) operated by Google. Google processes data as described in Google&apos;s and Firebase&apos;s documentation, including:</p>
+  <ul>
+    <li><a href="https://firebase.google.com/support/privacy">Firebase Privacy and Security information</a></li>
+    <li><a href="https://policies.google.com/privacy">Google Privacy Policy</a></li>
+    <li><a href="https://policies.google.com/terms">Google Terms of Service</a></li>
+  </ul>
+  <p>Other diagnostic or analytics components may also receive device or app metadata; see the relevant library documentation for details.</p>
   <p>Ads are requested and shown only when streaming content is available and playing. If a stream fails to start, the Application will not load or show ads for that session.</p>
-  <p>For information about how Google collects and processes data for advertising, and how to control ad personalization, see Google's Privacy &amp; Terms and Ads Settings:</p>
+  <p>For information about how Google collects and processes data for advertising, and how to control ad personalization, see Google&apos;s Privacy &amp; Terms and Ads Settings:</p>
   <ul>
     <li><a href="https://policies.google.com/technologies/ads">Google Ads Policies</a></li>
     <li><a href="https://support.google.com/ads/answer/2662922">Opt out of personalized ads (Google)</a></li>
   </ul>
 
   <h2>Storage and retention</h2>
-  <p>Your playlist URL is stored locally on the device until you remove or replace it. Diagnostics are retained only as needed by the analytics/crash SDKs.</p>
+  <p>Your playlist URL is stored locally on the device until you remove or replace it. Analytics, advertising, and diagnostic data are retained according to Google&apos;s and other third parties&apos; retention practices as described in their policies.</p>
 
   <h2>Your choices</h2>
   <ul>
     <li>You can remove or replace stored playlist URLs in the app settings.</li>
-    <li>You can revoke location permissions in system settings.</li>
+    <li>On <strong>iOS</strong>, you can control tracking-related prompts through Apple&apos;s App Tracking Transparency and privacy settings; the Application may also offer advertising consent or privacy options where required (for example, Google&apos;s User Messaging Platform).</li>
+    <li>On <strong>Android</strong>, you can reset or limit the advertising ID and ad personalization in Google Settings, and review permissions in system settings.</li>
+    <li>You can revoke optional permissions (such as location, if ever requested) in system settings.</li>
   </ul>
 
   <h2>Security</h2>
-  <p>We use standard Android storage and network APIs. We recommend using HTTPS playlist URLs; the app will prefer secure connections.</p>
+  <p>We use platform-standard local storage and network APIs on Android and iOS. We recommend using HTTPS playlist URLs; the app will prefer secure connections.</p>
 
   <h2>Contact</h2>
   <p>For privacy questions or data requests, contact: &lt;preetplayer@arishtech.com&gt;.</p>
