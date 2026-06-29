@@ -570,6 +570,35 @@ function shouldAttemptHlsJs(url) {
 }
 
 /**
+ * Raw MPEG-TS cannot play in CAF/Shaka or <video> — mpegts.js is mandatory.
+ * @param {unknown} customData
+ * @param {string} url
+ * @param {string} mimeHint
+ */
+function isTsPlaybackRequired(customData, url, mimeHint) {
+  const m = String(mimeHint || "").toLowerCase();
+  const cd = asObject(customData);
+  const playback = asObject(cd.playback);
+  const bootstrap = asObject(cd.streamBootstrap);
+  const prefer = String(bootstrap.preferReceiverEngine || "auto").trim().toLowerCase();
+  const u = String(url || "");
+  return (
+    prefer === "mpegts" ||
+    prefer === "caf-ts" ||
+    isTsCandidate(u) ||
+    m.includes("mp2t") ||
+    m.includes("mpegts") ||
+    isTruthyFlag(playback.phonePlayingAsTs)
+  );
+}
+
+/** @param {PreetCastSession|null} session */
+function sessionRequiresMpegts(session) {
+  if (!session) return false;
+  return isTsPlaybackRequired(session.customData, session.currentUrl, session.resolvedMime);
+}
+
+/**
  * Pick playback stack from PreetTV-Android customData + URL + MIME (no fixed default to HLS).
  * @param {unknown} customData
  * @param {string} url
@@ -596,8 +625,10 @@ function choosePlaybackEngine(customData, url, mimeHint) {
     return { engine: "caf", reason: "preferReceiverEngine=hlsjs but Hls.js not loaded — CAF+Shaka" };
   }
   if (prefer === "mpegts" || prefer === "caf-ts") {
-    if (typeof mpegts !== "undefined" && mpegts.isSupported()) return { engine: "mpegts", reason: "streamBootstrap.preferReceiverEngine=" + prefer + " → mpegts.js" };
-    return { engine: "caf", reason: "preferReceiverEngine=" + prefer + " but mpegts.js unavailable" };
+    if (typeof mpegts !== "undefined" && mpegts.isSupported()) {
+      return { engine: "mpegts", reason: "streamBootstrap.preferReceiverEngine=" + prefer + " → mpegts.js" };
+    }
+    return { engine: "mpegts", reason: "TS required (prefer=" + prefer + ") — CAF cannot play raw TS" };
   }
 
   if (prefer !== "auto" && prefer) {
@@ -617,8 +648,10 @@ function choosePlaybackEngine(customData, url, mimeHint) {
 
   const tsMime = m.includes("mp2t") || m.includes("mpegts");
   if (phTs || isTsCandidate(u) || tsMime) {
-    if (typeof mpegts !== "undefined" && mpegts.isSupported()) return { engine: "mpegts", reason: "TS / video/mp2t or phonePlayingAsTs" };
-    return { engine: "caf", reason: "TS path needed but mpegts.js unavailable" };
+    if (typeof mpegts !== "undefined" && mpegts.isSupported()) {
+      return { engine: "mpegts", reason: "TS / video/mp2t or phonePlayingAsTs" };
+    }
+    return { engine: "mpegts", reason: "TS / video/mp2t — CAF cannot play raw TS" };
   }
 
   if (phHls && isHlsCandidate(u)) {
@@ -872,7 +905,29 @@ function loadExternalScriptOnce(key, src) {
     s.async = true;
     s.src = src;
     s.onload = function () {
-      resolve();
+      var keyName = key;
+      var tries = 0;
+      function waitForGlobal() {
+        var ready =
+          keyName === "mpegts"
+            ? typeof mpegts !== "undefined"
+            : keyName === "hlsjs"
+              ? typeof Hls !== "undefined"
+              : keyName === "dashjs"
+                ? typeof dashjs !== "undefined"
+                : true;
+        if (ready) {
+          resolve();
+          return;
+        }
+        tries++;
+        if (tries > 30) {
+          reject(new Error("Script loaded but global missing: " + keyName));
+          return;
+        }
+        setTimeout(waitForGlobal, 50);
+      }
+      waitForGlobal();
     };
     s.onerror = function () {
       reject(new Error("Failed to load " + src));
@@ -900,6 +955,24 @@ function ensurePlayerLibrary(engine) {
   return Promise.resolve();
 }
 
+/** @param {number} [maxAttempts] */
+async function ensureMpegtsLibraryReady(maxAttempts) {
+  const attempts = maxAttempts != null ? maxAttempts : 3;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      await ensurePlayerLibrary("mpegts");
+    } catch (e) {
+      logWarn("mpegts.js load attempt " + (i + 1) + "/" + attempts + ": " + formatAnyError(e));
+      delete preetLibLoadPromises.mpegts;
+    }
+    if (typeof mpegts !== "undefined" && mpegts.isSupported()) return true;
+    await new Promise(function (r) {
+      setTimeout(r, 300 * (i + 1));
+    });
+  }
+  return typeof mpegts !== "undefined" && mpegts.isSupported();
+}
+
 /**
  * @param {unknown} customData
  * @param {string} url
@@ -915,10 +988,16 @@ function choosePlaybackEngineWithOverride(customData, url, mimeHint, forceEngine
     if ((fe === "hlsjs" || fe === "hls") && typeof Hls !== "undefined" && Hls.isSupported()) {
       return { engine: "hlsjs", reason: "self-heal override=" + fe };
     }
-    if ((fe === "mpegts" || fe === "caf-ts") && typeof mpegts !== "undefined" && mpegts.isSupported()) {
+    if ((fe === "mpegts" || fe === "caf-ts")) {
       return { engine: "mpegts", reason: "self-heal override=" + fe };
     }
-    if (fe === "caf") return { engine: "caf", reason: "self-heal override=caf" };
+    if (fe === "caf" && !isTsPlaybackRequired(customData, url, mimeHint)) {
+      return { engine: "caf", reason: "self-heal override=caf" };
+    }
+    if (fe === "caf") {
+      logWarn("Ignoring CAF override for TS stream — using mpegts.js");
+      return { engine: "mpegts", reason: "TS stream — CAF override blocked" };
+    }
     logWarn("Forced engine " + fe + " unavailable — using auto rules");
   }
   return choosePlaybackEngine(customData, url, mimeHint);
@@ -937,12 +1016,15 @@ function buildEngineFallbackChain(primaryEngine, url, mimeHint, customData) {
   if (pe === "hlsjs") chain.push("caf");
   else if (pe === "mpegts") {
     if (shouldAttemptHlsJs(url) || isHlsCandidate(url)) chain.push("hlsjs");
-    chain.push("caf");
   } else if (pe === "dashjs") chain.push("caf");
   else if (pe === "caf") {
-    if (shouldAttemptHlsJs(url) || isHlsCandidate(url) || isLikelyLiveStream(url)) chain.push("hlsjs");
-    if (isDashCandidate(url)) chain.push("dashjs");
-    if (isTsCandidate(url) || String(mimeHint || "").includes("mp2t")) chain.push("mpegts");
+    if (isTsPlaybackRequired(customData, url, mimeHint)) {
+      chain.push("mpegts");
+    } else {
+      if (shouldAttemptHlsJs(url) || isHlsCandidate(url) || isLikelyLiveStream(url)) chain.push("hlsjs");
+      if (isDashCandidate(url)) chain.push("dashjs");
+      if (isTsCandidate(url)) chain.push("mpegts");
+    }
   }
   return chain.filter(function (e) {
     return e !== pe;
@@ -1033,6 +1115,15 @@ function scheduleCustomPlayerStart(fn) {
  * @param {PreetCastSession} session
  */
 function loadCafNativePlayback(finalUrl, mimeType, session) {
+  if (sessionRequiresMpegts(session)) {
+    logWarn("loadCafNativePlayback blocked: TS streams must use mpegts.js");
+    return false;
+  }
+  const mime = String(mimeType || "").toLowerCase();
+  if (mime.includes("mp2t") || mime.includes("mpegts")) {
+    logWarn("loadCafNativePlayback blocked: contentType=" + mimeType);
+    return false;
+  }
   destroyAllCustomPlayers();
   try {
     const Msg = cast.framework.messages;
@@ -1058,8 +1149,8 @@ function loadCafNativePlayback(finalUrl, mimeType, session) {
   }
 }
 
-/** @param {unknown} customData @param {string} url @param {string} [engineOverride] */
-async function preloadLikelyPlayerLibraries(customData, url, engineOverride) {
+/** @param {unknown} customData @param {string} url @param {string} [engineOverride] @param {string} [mimeHint] */
+async function preloadLikelyPlayerLibraries(customData, url, engineOverride, mimeHint) {
   const cd = asObject(customData);
   const bootstrap = asObject(cd.streamBootstrap);
   const prefer = String(bootstrap.preferReceiverEngine || "auto").trim().toLowerCase();
@@ -1074,7 +1165,7 @@ async function preloadLikelyPlayerLibraries(customData, url, engineOverride) {
   ) {
     tasks.push(ensurePlayerLibrary("hlsjs"));
   }
-  if (prefer === "mpegts" || prefer === "caf-ts" || isTsCandidate(u)) {
+  if (isTsPlaybackRequired(customData, u, mimeHint || "")) {
     tasks.push(ensurePlayerLibrary("mpegts"));
   }
   if (prefer === "dashjs" || prefer === "dash" || isDashCandidate(u)) {
@@ -1142,7 +1233,16 @@ async function startPlaybackPipeline(options) {
   }
   session.resolvedMime = mimeType;
 
-  await preloadLikelyPlayerLibraries(customData, resolved.finalUrl, opts.engineOverride || "");
+  await preloadLikelyPlayerLibraries(customData, resolved.finalUrl, opts.engineOverride || "", mimeType);
+
+  if (isTsPlaybackRequired(customData, resolved.finalUrl, mimeType)) {
+    const mpegtsReady = await ensureMpegtsLibraryReady(3);
+    if (!mpegtsReady) {
+      logError("mpegts.js required for TS stream but is not available on this receiver");
+      return { ok: false, reason: "mpegts-unavailable" };
+    }
+  }
+  if (gen !== session.loadGeneration) return { ok: false, reason: "superseded" };
 
   let decision = choosePlaybackEngineWithOverride(
     customData,
@@ -1150,11 +1250,11 @@ async function startPlaybackPipeline(options) {
     mimeType,
     opts.engineOverride || ""
   );
+  if (isTsPlaybackRequired(customData, resolved.finalUrl, mimeType)) {
+    decision = { engine: "mpegts", reason: decision.engine === "mpegts" ? decision.reason : "TS stream — mpegts.js" };
+  }
   if (decision.engine === "hlsjs" && (typeof Hls === "undefined" || !Hls.isSupported())) {
     decision = { engine: "caf", reason: "Hls.js unavailable after load" };
-  }
-  if (decision.engine === "mpegts" && (typeof mpegts === "undefined" || !mpegts.isSupported())) {
-    decision = { engine: "caf", reason: "mpegts.js unavailable after load" };
   }
   if (decision.engine === "dashjs" && typeof dashjs === "undefined") {
     decision = { engine: "caf", reason: "dash.js unavailable after load" };
@@ -1242,6 +1342,10 @@ function softRetryCurrentEngine() {
     return true;
   }
   if (engine === "caf") {
+    if (sessionRequiresMpegts(session)) {
+      logWarn("Skipping CAF soft-retry — TS stream requires mpegts.js");
+      return false;
+    }
     const ok = loadCafNativePlayback(url, session.resolvedMime || "video/mp4", session);
     if (ok) startStallWatchdog();
     return ok;
@@ -1270,6 +1374,10 @@ function preetAttemptSelfHeal(source, detail) {
 
   function finishHeal() {
     if (preetCastSession === session) session.selfHealInFlight = false;
+  }
+
+  if (session.engine === "caf" && sessionRequiresMpegts(session)) {
+    session.softRetryCount = PREET_SOFT_RETRY_MAX;
   }
 
   if (session.softRetryCount < PREET_SOFT_RETRY_MAX) {
@@ -1982,6 +2090,19 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 playerManager.addEventListener(cast.framework.events.EventType.ERROR, (event) => {
   setReceiverLoaderVisible(false);
   logError("PLAYER ERROR: " + formatPlayerErrorEvent(event));
+  try {
+    const e = /** @type {Record<string, unknown>} */ (event || {});
+    const code = e.detailedErrorCode != null ? Number(e.detailedErrorCode) : NaN;
+    const session = preetCastSession;
+    if (session && sessionRequiresMpegts(session) && (code === 104 || code === 905)) {
+      if (session.engine !== "mpegts" && session.enginesTried.indexOf("mpegts") < 0) {
+        logWarn("CAF error " + code + " on TS stream — switching to mpegts.js");
+        cancelPendingCastingFailedMessage();
+        startPlaybackPipeline({ engineOverride: "mpegts", resetEngines: false });
+        return;
+      }
+    }
+  } catch (_errHandler) {}
   scheduleCastingFailedMessage(formatPlayerErrorEvent(event));
 });
 

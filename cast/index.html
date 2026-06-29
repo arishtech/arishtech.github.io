@@ -263,7 +263,8 @@
         <div id="castContinuePhoneText">Please continue on your phone</div>
     </div>
     <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
-    <!-- Player libs load on demand when a stream needs them (see ensurePlayerLibrary in receiver.js). -->
+    <!-- mpegts.js is required for IPTV TS (video/mp2t); CAF cannot play raw TS. Hls/dash load on demand. -->
+    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <script src="receiver.js"></script>
 </body>
