@@ -433,8 +433,62 @@ function isVueottStyleUrl(url) {
   return u.includes("vueott") || u.includes("/play/live.php") || u.includes("/live.php");
 }
 
+/** Warmed vueott CDN path `.../live/play/<token>/<id>` on a numeric host. */
+function isLikelyIptvMpegTsEdgeUrl(url) {
+  const u = String(url || "").toLowerCase();
+  if (!u.startsWith("http://") && !u.startsWith("https://")) return false;
+  if (u.includes(".m3u8") || u.includes("format=m3u8") || u.includes("extension=m3u8")) return false;
+  return u.includes("/live/play/");
+}
+
 /**
- * Headers matched to the URL being fetched (Referer/Origin host + vueott browser UA + cookie).
+ * @param {string} url
+ * @returns {string|null}
+ */
+function buildHttpReferrerForUrl(url) {
+  try {
+    const parsed = new URL(String(url || "").trim());
+    if (!parsed.protocol || !parsed.host) return null;
+    const path = parsed.pathname || "";
+    let refPath = "/";
+    const idx = path.toLowerCase().indexOf("live.php");
+    if (idx >= 0) {
+      const prefix = path.substring(0, idx);
+      refPath = prefix.endsWith("/") ? prefix : prefix + "/";
+      if (!refPath) refPath = "/";
+    }
+    const port = parsed.port ? ":" + parsed.port : "";
+    return parsed.protocol + "//" + parsed.host + port + refPath;
+  } catch (_e) {
+    return null;
+  }
+}
+
+/**
+ * Portal `live.php` URL from sender customData (for CDN edge Referer / cookie).
+ * @param {unknown} customData
+ */
+function extractPortalStreamUrl(customData) {
+  const cd = asObject(customData);
+  const explicit = String(cd.portalStreamUrl || "").trim();
+  if (explicit) return explicit;
+  const bootstrap = asObject(cd.streamBootstrap);
+  const phonePrimary = String(bootstrap.phonePrimaryUrl || "").trim();
+  if (phonePrimary && isIptvPortalRedirectUrl(phonePrimary)) return phonePrimary;
+  const streamUrl = String(cd.streamUrl || "").trim();
+  if (streamUrl && isIptvPortalRedirectUrl(streamUrl)) return streamUrl;
+  const arr = cd.candidateUrls;
+  if (Array.isArray(arr)) {
+    for (let i = 0; i < arr.length; i++) {
+      const c = String(arr[i] || "").trim();
+      if (c && isIptvPortalRedirectUrl(c)) return c;
+    }
+  }
+  return phonePrimary || streamUrl || "";
+}
+
+/**
+ * Headers matched to the URL being fetched (portal Referer for CDN edge + cookie).
  * @param {string} playbackUrl
  * @param {unknown} customData
  */
@@ -445,20 +499,28 @@ function buildHeadersForPlaybackUrl(playbackUrl, customData) {
   if (compatCookie && !hdr.Cookie && !hdr.cookie) {
     hdr.Cookie = compatCookie;
   }
-  const u = String(playbackUrl || "").trim();
-  const lower = u.toLowerCase();
-  if (isVueottStyleUrl(u) || lower.includes("klaratv.com")) {
+  const portal = extractPortalStreamUrl(customData);
+  const edge = isLikelyIptvMpegTsEdgeUrl(playbackUrl);
+  const refererSource =
+    edge && portal && isIptvPortalRedirectUrl(portal) ? portal : playbackUrl;
+  const uaSource = edge && portal ? portal : playbackUrl;
+
+  if (isVueottStyleUrl(uaSource) || isVueottStyleUrl(playbackUrl) || edge || String(uaSource).toLowerCase().includes("klaratv.com")) {
     const ua = String(hdr["User-Agent"] || "");
     if (!ua || ua.toLowerCase().indexOf("vlc") >= 0 || ua.toLowerCase().indexOf("preet") >= 0) {
       hdr["User-Agent"] = PREET_BROWSER_UA;
     }
   }
-  try {
-    const parsed = new URL(u);
-    const origin = parsed.protocol + "//" + parsed.host;
-    hdr.Referer = origin + "/";
-    hdr.Origin = origin;
-  } catch (_e) {}
+
+  const ref = buildHttpReferrerForUrl(refererSource);
+  if (ref) {
+    hdr.Referer = ref;
+    try {
+      const p = new URL(ref);
+      hdr.Origin = p.protocol + "//" + p.host;
+    } catch (_e) {}
+  }
+
   if (!hdr.Accept) hdr.Accept = "*/*";
   if (!hdr["Accept-Encoding"]) hdr["Accept-Encoding"] = "identity";
   hdr.Connection = "keep-alive";
@@ -1160,6 +1222,7 @@ function initPreetCastSession(loadRequestData, customData, candidateUrls, startI
     selfHealInFlight: false,
     playbackFailedFinalized: false,
     mpegtsRedirectRetried: false,
+    mpegtsHeaderRetry: false,
     loadGeneration: 0,
     currentUrl: "",
     resolvedMime: "",
@@ -1261,6 +1324,7 @@ async function startPlaybackPipeline(options) {
   const gen = session.loadGeneration;
   session.selfHealInFlight = false;
   session.mpegtsRedirectRetried = false;
+  session.mpegtsHeaderRetry = false;
 
   const idx = typeof opts.candidateIndex === "number" ? opts.candidateIndex : session.candidateIndex;
   if (idx < 0 || idx >= session.candidateUrls.length) return { ok: false, reason: "no-candidates" };
@@ -1761,11 +1825,17 @@ function tryStartPreetMpegts(playbackUrl, headers) {
   destroyAllCustomPlayers();
   if (preetCastSession) preetCastSession.mpegtsInlineRecover = 0;
   const hdr = buildHeadersForPlaybackUrl(playbackUrl, preetCastSession ? preetCastSession.customData : {});
+  let refererHost = "";
+  try {
+    if (hdr.Referer) refererHost = new URL(hdr.Referer).host;
+  } catch (_e) {}
   log(
     "mpegts.js: bind to #castVideo, url=" +
       playbackUrl +
       " | header keys: " +
-      (Object.keys(hdr).join(", ") || "(none)")
+      (Object.keys(hdr).join(", ") || "(none)") +
+      (hdr.Cookie ? " (Cookie present)" : " (no Cookie)") +
+      (refererHost ? " refererHost=" + refererHost : "")
   );
   try {
     preetMpegtsInstance = mpegts.createPlayer(
@@ -1797,6 +1867,13 @@ function tryStartPreetMpegts(playbackUrl, headers) {
       const isHttpStatus =
         detailStr.indexOf("HttpStatusCodeInvalid") >= 0 || detailStr.indexOf("StatusCode") >= 0;
 
+      if (isHttpStatus && preetCastSession && !preetCastSession.mpegtsHeaderRetry) {
+        preetCastSession.mpegtsHeaderRetry = true;
+        logWarn("mpegts.js: HTTP status error — retry with portal Referer/Cookie");
+        tryStartPreetMpegts(playbackUrl, preetCastSession.customData);
+        return;
+      }
+
       if (
         isHttpStatus &&
         preetCastSession &&
@@ -1809,7 +1886,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
           .then(function (resolved) {
             if (resolved.finalUrl && resolved.finalUrl !== playbackUrl) {
               log("mpegts.js: portal resolved → " + resolved.finalUrl);
-              tryStartPreetMpegts(resolved.finalUrl, hdr);
+              tryStartPreetMpegts(resolved.finalUrl, preetCastSession.customData);
               return;
             }
             setReceiverLoaderVisible(false);
