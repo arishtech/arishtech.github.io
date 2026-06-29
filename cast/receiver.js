@@ -1266,6 +1266,7 @@ async function startPlaybackPipeline(options) {
   if (idx < 0 || idx >= session.candidateUrls.length) return { ok: false, reason: "no-candidates" };
 
   session.candidateIndex = idx;
+  const customData = session.customData;
   let url = session.candidateUrls[idx];
   url = preferResolvedEdgeUrlForPortal(url, customData);
   session.currentUrl = url;
@@ -1286,7 +1287,6 @@ async function startPlaybackPipeline(options) {
 
   const loadRequestData = session.loadRequestData;
   const media = loadRequestData.media || {};
-  const customData = session.customData;
 
   let mimeType = session.mimeHint || media.contentType || "";
   const sr = asObject(customData.streamRequest);
