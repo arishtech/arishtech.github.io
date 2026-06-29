@@ -5,6 +5,8 @@
 
 const context = cast.framework.CastReceiverContext.getInstance();
 const playerManager = context.getPlayerManager();
+/** Custom namespace (sender ↔ receiver); also used for playbackFailed notifications. */
+const PREET_MSG_NS = "urn:x-cast:com.arishtech.preetplayer";
 
 /** @param {unknown} value */
 function stringifyForLog(value) {
@@ -295,7 +297,7 @@ function scheduleCastingFailedMessage(detail) {
   }
   castFailedUiTimer = setTimeout(function () {
     castFailedUiTimer = null;
-    applyCastingFailedOverlayNow(d);
+    preetAttemptSelfHeal("failure-debounce", d);
   }, CAST_FAILED_DEBOUNCE_MS);
 }
 
@@ -317,7 +319,7 @@ function wireReceiverLoaderAutoDismissOnce() {
   }
   function onPlaybackProgress() {
     hideLoaderOnly();
-    clearCastingFailureUi();
+    markPlaybackProgress();
   }
   v.addEventListener("playing", onPlaybackProgress);
   v.addEventListener("canplaythrough", onPlaybackProgress);
@@ -735,6 +737,619 @@ async function resolveStream(url, headers, contentTypeHint) {
   }
 }
 
+/* ---------- Self-heal, candidate URLs, engine fallback, optimizations ---------- */
+
+var PREET_STALL_MS = 18000;
+var PREET_SOFT_RETRY_MAX = 2;
+var PREET_SOFT_RETRY_DELAYS = [1000, 3000];
+var PREET_RESOLVE_CACHE_TTL_MS = 120000;
+
+var PREET_PLAYER_LIB_URLS = {
+  hlsjs: "https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js",
+  dashjs: "https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js",
+  mpegts: "https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js",
+};
+
+/** @type {Map<string, {finalUrl: string, mimeType: string|null, ts: number}>} */
+var preetResolveCache = new Map();
+/** @type {Record<string, Promise<void>>} */
+var preetLibLoadPromises = {};
+/** @type {ReturnType<typeof setTimeout>|null} */
+var preetStallTimer = null;
+
+/**
+ * @typedef {Object} PreetCastSession
+ * @property {object} loadRequestData
+ * @property {object} customData
+ * @property {string[]} candidateUrls
+ * @property {number} candidateIndex
+ * @property {Record<string, string>} headers
+ * @property {string} mimeHint
+ * @property {string} engine
+ * @property {string} primaryEngine
+ * @property {string[]} enginesTried
+ * @property {number} softRetryCount
+ * @property {boolean} playbackProgressSeen
+ * @property {boolean} selfHealInFlight
+ * @property {number} loadGeneration
+ * @property {string} currentUrl
+ * @property {string} resolvedMime
+ */
+
+/** @type {PreetCastSession|null} */
+var preetCastSession = null;
+
+/** @param {unknown} customData @param {string} primaryUrl */
+function extractCandidateUrls(customData, primaryUrl) {
+  const urls = [];
+  const seen = new Set();
+  function add(u) {
+    const s = String(u || "").trim();
+    if (!s || seen.has(s)) return;
+    seen.add(s);
+    urls.push(s);
+  }
+  add(primaryUrl);
+  const cd = asObject(customData);
+  const arr = cd.candidateUrls;
+  if (Array.isArray(arr)) {
+    arr.forEach(add);
+  } else if (arr && typeof arr === "object" && arr.length != null) {
+    for (let i = 0; i < arr.length; i++) add(arr[i]);
+  }
+  add(cd.streamUrl);
+  add(cd.phoneResolvedUrl);
+  const sr = asObject(cd.streamRequest);
+  add(sr.url);
+  return urls;
+}
+
+/** @param {unknown} customData @param {string} url @param {string} probeHint */
+function shouldSkipResolveStream(customData, url, probeHint) {
+  const cd = asObject(customData);
+  const sr = asObject(cd.streamRequest);
+  const senderResolved = String(sr.url || cd.phoneResolvedUrl || "").trim();
+  if (!senderResolved || senderResolved !== String(url).trim()) return false;
+  if (shouldSkipHttpBodyProbe(url, probeHint)) return true;
+  const ct = String(sr.contentType || probeHint || "").trim().toLowerCase();
+  if (ct && ct !== "application/octet-stream" && ct !== "video/*") return true;
+  return false;
+}
+
+/**
+ * @param {string} url
+ * @param {Record<string, string>} headers
+ * @param {string} contentTypeHint
+ * @param {unknown} customData
+ */
+async function resolveStreamCached(url, headers, contentTypeHint, customData) {
+  if (shouldSkipResolveStream(customData, url, contentTypeHint)) {
+    log("resolveStream: skip probe (sender-resolved URL + trusted MIME)");
+    return {
+      finalUrl: url,
+      mimeType: detectMimeTypeFromHeader(contentTypeHint) || detectMimeTypeFromUrl(url),
+    };
+  }
+  const cacheKey = url + "|" + Object.keys(headers).sort().join(",");
+  const cached = preetResolveCache.get(cacheKey);
+  if (cached && Date.now() - cached.ts < PREET_RESOLVE_CACHE_TTL_MS) {
+    log("resolveStream: cache hit for " + (url.length > 80 ? url.slice(0, 80) + "…" : url));
+    return { finalUrl: cached.finalUrl, mimeType: cached.mimeType };
+  }
+  const result = await resolveStream(url, headers, contentTypeHint);
+  preetResolveCache.set(cacheKey, {
+    finalUrl: result.finalUrl,
+    mimeType: result.mimeType,
+    ts: Date.now(),
+  });
+  return result;
+}
+
+/** @param {string} url */
+function preconnectToStreamUrl(url) {
+  try {
+    const u = new URL(url);
+    if (!u.protocol.startsWith("http")) return;
+    const link = document.createElement("link");
+    link.rel = "preconnect";
+    link.href = u.origin;
+    link.crossOrigin = "anonymous";
+    document.head.appendChild(link);
+  } catch (_e) {}
+}
+
+/** @param {string} key @param {string} src */
+function loadExternalScriptOnce(key, src) {
+  if (preetLibLoadPromises[key]) return preetLibLoadPromises[key];
+  preetLibLoadPromises[key] = new Promise(function (resolve, reject) {
+    const domId = "preet-lib-" + key;
+    if (document.getElementById(domId)) {
+      resolve();
+      return;
+    }
+    const s = document.createElement("script");
+    s.id = domId;
+    s.async = true;
+    s.src = src;
+    s.onload = function () {
+      resolve();
+    };
+    s.onerror = function () {
+      reject(new Error("Failed to load " + src));
+    };
+    document.head.appendChild(s);
+  });
+  return preetLibLoadPromises[key];
+}
+
+/** @param {string} engine */
+function ensurePlayerLibrary(engine) {
+  const e = String(engine || "").toLowerCase();
+  if (e === "hlsjs" || e === "hls") {
+    if (typeof Hls !== "undefined") return Promise.resolve();
+    return loadExternalScriptOnce("hlsjs", PREET_PLAYER_LIB_URLS.hlsjs);
+  }
+  if (e === "dashjs" || e === "dash") {
+    if (typeof dashjs !== "undefined") return Promise.resolve();
+    return loadExternalScriptOnce("dashjs", PREET_PLAYER_LIB_URLS.dashjs);
+  }
+  if (e === "mpegts" || e === "caf-ts") {
+    if (typeof mpegts !== "undefined") return Promise.resolve();
+    return loadExternalScriptOnce("mpegts", PREET_PLAYER_LIB_URLS.mpegts);
+  }
+  return Promise.resolve();
+}
+
+/**
+ * @param {unknown} customData
+ * @param {string} url
+ * @param {string} mimeHint
+ * @param {string} [forceEngine]
+ */
+function choosePlaybackEngineWithOverride(customData, url, mimeHint, forceEngine) {
+  const fe = forceEngine ? String(forceEngine).trim().toLowerCase() : "";
+  if (fe) {
+    if ((fe === "dashjs" || fe === "dash") && typeof dashjs !== "undefined") {
+      return { engine: "dashjs", reason: "self-heal override=" + fe };
+    }
+    if ((fe === "hlsjs" || fe === "hls") && typeof Hls !== "undefined" && Hls.isSupported()) {
+      return { engine: "hlsjs", reason: "self-heal override=" + fe };
+    }
+    if ((fe === "mpegts" || fe === "caf-ts") && typeof mpegts !== "undefined" && mpegts.isSupported()) {
+      return { engine: "mpegts", reason: "self-heal override=" + fe };
+    }
+    if (fe === "caf") return { engine: "caf", reason: "self-heal override=caf" };
+    logWarn("Forced engine " + fe + " unavailable — using auto rules");
+  }
+  return choosePlaybackEngine(customData, url, mimeHint);
+}
+
+/**
+ * @param {string} primaryEngine
+ * @param {string} url
+ * @param {string} mimeHint
+ * @param {unknown} customData
+ */
+function buildEngineFallbackChain(primaryEngine, url, mimeHint, customData) {
+  const pe = String(primaryEngine || "caf").toLowerCase();
+  /** @type {string[]} */
+  const chain = [];
+  if (pe === "hlsjs") chain.push("caf");
+  else if (pe === "mpegts") {
+    if (shouldAttemptHlsJs(url) || isHlsCandidate(url)) chain.push("hlsjs");
+    chain.push("caf");
+  } else if (pe === "dashjs") chain.push("caf");
+  else if (pe === "caf") {
+    if (shouldAttemptHlsJs(url) || isHlsCandidate(url) || isLikelyLiveStream(url)) chain.push("hlsjs");
+    if (isDashCandidate(url)) chain.push("dashjs");
+    if (isTsCandidate(url) || String(mimeHint || "").includes("mp2t")) chain.push("mpegts");
+  }
+  return chain.filter(function (e) {
+    return e !== pe;
+  });
+}
+
+function getNextEngineFallback() {
+  const session = preetCastSession;
+  if (!session) return null;
+  const chain = buildEngineFallbackChain(
+    session.primaryEngine || session.engine,
+    session.currentUrl,
+    session.resolvedMime,
+    session.customData
+  );
+  for (let i = 0; i < chain.length; i++) {
+    if (session.enginesTried.indexOf(chain[i]) < 0) return chain[i];
+  }
+  return null;
+}
+
+function cancelStallWatchdog() {
+  if (preetStallTimer != null) {
+    clearTimeout(preetStallTimer);
+    preetStallTimer = null;
+  }
+}
+
+function startStallWatchdog() {
+  cancelStallWatchdog();
+  preetStallTimer = setTimeout(function () {
+    preetStallTimer = null;
+    const session = preetCastSession;
+    if (!session || session.playbackProgressSeen) return;
+    logWarn("Stall watchdog: no playback progress in " + PREET_STALL_MS + "ms");
+    preetAttemptSelfHeal("stall-watchdog", "Stream is taking too long to start.");
+  }, PREET_STALL_MS);
+}
+
+function markPlaybackProgress() {
+  if (preetCastSession) {
+    preetCastSession.playbackProgressSeen = true;
+    preetCastSession.softRetryCount = 0;
+  }
+  cancelStallWatchdog();
+  clearCastingFailureUi();
+}
+
+/**
+ * @param {object} loadRequestData
+ * @param {object} customData
+ * @param {string[]} candidateUrls
+ * @param {number} startIndex
+ */
+function initPreetCastSession(loadRequestData, customData, candidateUrls, startIndex) {
+  preetCastSession = {
+    loadRequestData: loadRequestData,
+    customData: customData,
+    candidateUrls: candidateUrls,
+    candidateIndex: startIndex,
+    headers: extractPlaybackHeaders(customData),
+    mimeHint: "",
+    engine: "",
+    primaryEngine: "",
+    enginesTried: [],
+    softRetryCount: 0,
+    playbackProgressSeen: false,
+    selfHealInFlight: false,
+    loadGeneration: 0,
+    currentUrl: "",
+    resolvedMime: "",
+    mpegtsInlineRecover: 0,
+    hlsInlineRecover: 0,
+    dashInlineRecover: 0,
+  };
+}
+
+/** @param {function(): void} fn */
+function scheduleCustomPlayerStart(fn) {
+  requestAnimationFrame(function () {
+    requestAnimationFrame(fn);
+  });
+}
+
+/**
+ * @param {string} finalUrl
+ * @param {string} mimeType
+ * @param {PreetCastSession} session
+ */
+function loadCafNativePlayback(finalUrl, mimeType, session) {
+  destroyAllCustomPlayers();
+  try {
+    const Msg = cast.framework.messages;
+    const ld = session.loadRequestData;
+    const loadReq = new Msg.LoadRequestData();
+    loadReq.customData = ld.customData;
+    loadReq.autoplay = true;
+    loadReq.currentTime = 0;
+    const media = new Msg.MediaInformation();
+    const baseMedia = ld.media && typeof ld.media === "object" ? ld.media : {};
+    media.contentId = finalUrl;
+    media.contentUrl = finalUrl;
+    media.contentType = mimeType;
+    media.streamType = Msg.StreamType.LIVE;
+    if (baseMedia.metadata) media.metadata = baseMedia.metadata;
+    loadReq.media = media;
+    playerManager.load(loadReq);
+    log("CAF playerManager.load (self-heal): " + finalUrl + " | " + mimeType);
+    return true;
+  } catch (e) {
+    logError("CAF playerManager.load failed: " + formatAnyError(e));
+    return false;
+  }
+}
+
+/** @param {unknown} customData @param {string} url @param {string} [engineOverride] */
+async function preloadLikelyPlayerLibraries(customData, url, engineOverride) {
+  const cd = asObject(customData);
+  const bootstrap = asObject(cd.streamBootstrap);
+  const prefer = String(bootstrap.preferReceiverEngine || "auto").trim().toLowerCase();
+  const u = String(url || "");
+  const tasks = [];
+  if (
+    prefer === "hlsjs" ||
+    prefer === "hls" ||
+    isHlsCandidate(u) ||
+    shouldAttemptHlsJs(u) ||
+    isLikelyLiveStream(u)
+  ) {
+    tasks.push(ensurePlayerLibrary("hlsjs"));
+  }
+  if (prefer === "mpegts" || prefer === "caf-ts" || isTsCandidate(u)) {
+    tasks.push(ensurePlayerLibrary("mpegts"));
+  }
+  if (prefer === "dashjs" || prefer === "dash" || isDashCandidate(u)) {
+    tasks.push(ensurePlayerLibrary("dashjs"));
+  }
+  if (engineOverride) {
+    tasks.push(ensurePlayerLibrary(engineOverride));
+  }
+  try {
+    await Promise.all(tasks);
+  } catch (e) {
+    logWarn("preloadLikelyPlayerLibraries: " + formatAnyError(e));
+  }
+}
+
+/**
+ * @param {object} [options]
+ * @returns {Promise<{ok: boolean, mode?: string, engine?: string, resolved?: object, mimeType?: string, reason?: string}>}
+ */
+async function startPlaybackPipeline(options) {
+  const opts = options || {};
+  const session = preetCastSession;
+  if (!session) return { ok: false, reason: "no-session" };
+
+  session.loadGeneration++;
+  const gen = session.loadGeneration;
+  session.selfHealInFlight = false;
+
+  const idx = typeof opts.candidateIndex === "number" ? opts.candidateIndex : session.candidateIndex;
+  if (idx < 0 || idx >= session.candidateUrls.length) return { ok: false, reason: "no-candidates" };
+
+  session.candidateIndex = idx;
+  const url = session.candidateUrls[idx];
+  session.currentUrl = url;
+
+  if (opts.resetEngines) {
+    session.enginesTried = [];
+    session.softRetryCount = 0;
+    session.primaryEngine = "";
+  }
+
+  clearCastingFailureUi();
+  destroyAllCustomPlayers();
+  setReceiverLoaderVisible(true);
+  session.playbackProgressSeen = false;
+  cancelStallWatchdog();
+  preconnectToStreamUrl(url);
+
+  const loadRequestData = session.loadRequestData;
+  const media = loadRequestData.media || {};
+  const customData = session.customData;
+
+  let mimeType = session.mimeHint || media.contentType || "";
+  const sr = asObject(customData.streamRequest);
+  if (!mimeType && sr.contentType) mimeType = String(sr.contentType).trim();
+  const probeHint = mimeType || "";
+
+  const resolved = await resolveStreamCached(url, session.headers, probeHint, customData);
+  if (gen !== session.loadGeneration) return { ok: false, reason: "superseded" };
+
+  if (!mimeType) mimeType = resolved.mimeType || "";
+  if (!mimeType) mimeType = detectMimeTypeFromUrl(resolved.finalUrl) || "";
+  if (mimeType === "application/x-mpegURL" && detectMimeTypeFromUrl(resolved.finalUrl) === "video/mp2t") {
+    mimeType = "video/mp2t";
+  }
+  session.resolvedMime = mimeType;
+
+  await preloadLikelyPlayerLibraries(customData, resolved.finalUrl, opts.engineOverride || "");
+
+  let decision = choosePlaybackEngineWithOverride(
+    customData,
+    resolved.finalUrl,
+    mimeType,
+    opts.engineOverride || ""
+  );
+  if (decision.engine === "hlsjs" && (typeof Hls === "undefined" || !Hls.isSupported())) {
+    decision = { engine: "caf", reason: "Hls.js unavailable after load" };
+  }
+  if (decision.engine === "mpegts" && (typeof mpegts === "undefined" || !mpegts.isSupported())) {
+    decision = { engine: "caf", reason: "mpegts.js unavailable after load" };
+  }
+  if (decision.engine === "dashjs" && typeof dashjs === "undefined") {
+    decision = { engine: "caf", reason: "dash.js unavailable after load" };
+  }
+
+  const engine = decision.engine;
+  if (!session.primaryEngine || opts.resetEngines) session.primaryEngine = engine;
+  session.engine = engine;
+  if (session.enginesTried.indexOf(engine) < 0) session.enginesTried.push(engine);
+
+  log(
+    "Pipeline candidate " +
+      (idx + 1) +
+      "/" +
+      session.candidateUrls.length +
+      " engine=" +
+      engine +
+      " (" +
+      decision.reason +
+      ")"
+  );
+  log("Pipeline URL: " + resolved.finalUrl);
+
+  if (engine === "mpegts") {
+    scheduleCustomPlayerStart(function () {
+      tryStartPreetMpegts(resolved.finalUrl, session.headers);
+    });
+    startStallWatchdog();
+    return { ok: true, mode: "custom", engine: "mpegts", resolved: resolved, mimeType: mimeType };
+  }
+  if (engine === "hlsjs") {
+    scheduleCustomPlayerStart(function () {
+      tryStartPreetHls(resolved.finalUrl, session.headers);
+    });
+    startStallWatchdog();
+    return { ok: true, mode: "custom", engine: "hlsjs", resolved: resolved, mimeType: mimeType };
+  }
+  if (engine === "dashjs") {
+    scheduleCustomPlayerStart(function () {
+      tryStartPreetDash(resolved.finalUrl, session.headers);
+    });
+    startStallWatchdog();
+    return { ok: true, mode: "custom", engine: "dashjs", resolved: resolved, mimeType: mimeType };
+  }
+
+  if (opts.fromLoadInterceptor) {
+    startStallWatchdog();
+    return { ok: true, mode: "caf-interceptor", engine: "caf", resolved: resolved, mimeType: mimeType };
+  }
+
+  const cafMime = mimeType || detectMimeTypeFromUrl(resolved.finalUrl) || "video/mp4";
+  const ok = loadCafNativePlayback(resolved.finalUrl, cafMime, session);
+  startStallWatchdog();
+  return { ok: ok, mode: "caf-load", engine: "caf", resolved: resolved, mimeType: cafMime };
+}
+
+function softRetryCurrentEngine() {
+  const session = preetCastSession;
+  if (!session) return false;
+  const engine = session.engine;
+  const url = session.currentUrl;
+  const headers = session.headers;
+
+  clearCastingFailureUi();
+  setReceiverLoaderVisible(true);
+  session.playbackProgressSeen = false;
+  cancelStallWatchdog();
+
+  if (engine === "hlsjs") {
+    destroyPreetHls();
+    tryStartPreetHls(url, headers);
+    startStallWatchdog();
+    return true;
+  }
+  if (engine === "mpegts") {
+    destroyPreetMpegts();
+    tryStartPreetMpegts(url, headers);
+    startStallWatchdog();
+    return true;
+  }
+  if (engine === "dashjs") {
+    destroyPreetDash();
+    tryStartPreetDash(url, headers);
+    startStallWatchdog();
+    return true;
+  }
+  if (engine === "caf") {
+    const ok = loadCafNativePlayback(url, session.resolvedMime || "video/mp4", session);
+    if (ok) startStallWatchdog();
+    return ok;
+  }
+  return false;
+}
+
+/**
+ * @param {string} source
+ * @param {string} [detail]
+ */
+function preetAttemptSelfHeal(source, detail) {
+  const session = preetCastSession;
+  if (!session) {
+    applyCastingFailedOverlayNow(detail);
+    return;
+  }
+  if (session.playbackProgressSeen) {
+    log("Self-heal skipped: playback already progressing (" + source + ")");
+    return;
+  }
+  if (session.selfHealInFlight) return;
+
+  session.selfHealInFlight = true;
+  logWarn("Self-heal (" + source + "): " + (detail || "(no detail)"));
+
+  function finishHeal() {
+    if (preetCastSession === session) session.selfHealInFlight = false;
+  }
+
+  if (session.softRetryCount < PREET_SOFT_RETRY_MAX) {
+    session.softRetryCount++;
+    const delay = PREET_SOFT_RETRY_DELAYS[Math.min(session.softRetryCount - 1, PREET_SOFT_RETRY_DELAYS.length - 1)];
+    log("Self-heal soft retry " + session.softRetryCount + "/" + PREET_SOFT_RETRY_MAX + " engine=" + session.engine);
+    setTimeout(function () {
+      if (!preetCastSession || preetCastSession !== session) return;
+      if (session.playbackProgressSeen) {
+        finishHeal();
+        return;
+      }
+      if (softRetryCurrentEngine()) {
+        finishHeal();
+        return;
+      }
+      finishHeal();
+      preetAttemptSelfHeal(source + "/soft-failed", detail);
+    }, delay);
+    return;
+  }
+
+  const nextEngine = getNextEngineFallback();
+  if (nextEngine) {
+    log("Self-heal engine fallback → " + nextEngine);
+    session.softRetryCount = 0;
+    startPlaybackPipeline({ engineOverride: nextEngine, resetEngines: false }).then(function (result) {
+      finishHeal();
+      if (!result.ok && preetCastSession === session && !session.playbackProgressSeen) {
+        preetAttemptSelfHeal(source + "/engine-failed", detail);
+      }
+    });
+    return;
+  }
+
+  const nextIdx = session.candidateIndex + 1;
+  if (nextIdx < session.candidateUrls.length) {
+    log("Self-heal next candidate " + (nextIdx + 1) + "/" + session.candidateUrls.length);
+    session.softRetryCount = 0;
+    startPlaybackPipeline({ candidateIndex: nextIdx, resetEngines: true }).then(function (result) {
+      finishHeal();
+      if (!result.ok && preetCastSession === session && !session.playbackProgressSeen) {
+        preetAttemptSelfHeal(source + "/candidate-failed", detail);
+      }
+    });
+    return;
+  }
+
+  finishHeal();
+  preetFinalizePlaybackFailure(detail);
+}
+
+/** @param {string} [detail] */
+function preetFinalizePlaybackFailure(detail) {
+  applyCastingFailedOverlayNow(detail);
+  broadcastPlaybackFailedToSender(detail, true);
+}
+
+/**
+ * @param {string} [detail]
+ * @param {boolean} exhausted
+ */
+function broadcastPlaybackFailedToSender(detail, exhausted) {
+  try {
+    const session = preetCastSession;
+    const payload = {
+      type: "playbackFailed",
+      exhausted: exhausted === true,
+      candidateIndex: session ? session.candidateIndex : -1,
+      candidateCount: session ? session.candidateUrls.length : 0,
+      detail: detail ? String(detail).slice(0, CAST_FAILED_DETAIL_MAX) : "",
+      engine: session ? session.engine : "",
+    };
+    context.sendCustomMessage(PREET_MSG_NS, payload);
+    log("Sent playbackFailed to sender (exhausted=" + (exhausted === true) + ")");
+  } catch (e) {
+    logWarn("broadcastPlaybackFailed: " + formatAnyError(e));
+  }
+}
+
 const STUB_MEDIA_URL = "about:blank";
 
 /** @type {unknown} */
@@ -960,6 +1575,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
   }
   destroyAllCustomPlayers();
   const hdr = headers && typeof headers === "object" ? headers : {};
+  if (preetCastSession) preetCastSession.mpegtsInlineRecover = 0;
   log("mpegts.js: bind to #castVideo, url=" + playbackUrl);
   try {
     preetMpegtsInstance = mpegts.createPlayer(
@@ -987,13 +1603,30 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     );
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
+      if (preetMpegtsInstance && preetCastSession && preetCastSession.mpegtsInlineRecover < 2) {
+        preetCastSession.mpegtsInlineRecover++;
+        logWarn("mpegts.js: inline reload attempt " + preetCastSession.mpegtsInlineRecover);
+        try {
+          preetMpegtsInstance.unload();
+          preetMpegtsInstance.load();
+          const pr = preetMpegtsInstance.play && preetMpegtsInstance.play();
+          if (pr && typeof pr.catch === "function") {
+            pr.catch(function (err) {
+              if (isPlayInterruptedError(err)) return;
+            });
+          }
+          return;
+        } catch (e) {
+          logWarn("mpegts inline reload failed: " + formatAnyError(e));
+        }
+      }
       setReceiverLoaderVisible(false);
-      scheduleCastingFailedMessage("Please wait or try again. MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail));
+      scheduleCastingFailedMessage("MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail));
     });
     if (mpegts.Events && mpegts.Events.LOADING_COMPLETE) {
       preetMpegtsInstance.on(mpegts.Events.LOADING_COMPLETE, function () {
         log("mpegts: LOADING_COMPLETE");
-        clearCastingFailureUi();
+        markPlaybackProgress();
         preetBroadcastMediaStatus(true);
         try {
           requestAnimationFrame(function () {
@@ -1052,11 +1685,15 @@ function tryStartPreetHls(playbackUrl, headers) {
   }
   destroyAllCustomPlayers();
   const hdr = headers && typeof headers === "object" ? headers : {};
+  if (preetCastSession) preetCastSession.hlsInlineRecover = 0;
   log("Hls.js: attachMedia #castVideo, url=" + playbackUrl);
   try {
     preetHlsInstance = new Hls({
       enableWorker: false,
       lowLatencyMode: false,
+      fragLoadingMaxRetry: 4,
+      manifestLoadingMaxRetry: 3,
+      levelLoadingMaxRetry: 3,
       xhrSetup: function (xhr) {
         Object.keys(hdr).forEach(function (k) {
           try {
@@ -1068,13 +1705,30 @@ function tryStartPreetHls(playbackUrl, headers) {
     preetHlsInstance.on(Hls.Events.ERROR, function (_ev, data) {
       if (data && data.fatal) {
         logError("Hls fatal: " + stringifyForLog(data.type) + " " + stringifyForLog(data.details));
+        if (preetHlsInstance && preetCastSession && preetCastSession.hlsInlineRecover < 2) {
+          preetCastSession.hlsInlineRecover++;
+          try {
+            if (data.type === Hls.ErrorTypes.NETWORK_ERROR) {
+              logWarn("Hls.js: startLoad() recover attempt " + preetCastSession.hlsInlineRecover);
+              preetHlsInstance.startLoad();
+              return;
+            }
+            if (data.type === Hls.ErrorTypes.MEDIA_ERROR) {
+              logWarn("Hls.js: recoverMediaError() attempt " + preetCastSession.hlsInlineRecover);
+              preetHlsInstance.recoverMediaError();
+              return;
+            }
+          } catch (e) {
+            logWarn("Hls.js inline recover failed: " + formatAnyError(e));
+          }
+        }
         setReceiverLoaderVisible(false);
         scheduleCastingFailedMessage("HLS: " + stringifyForLog(data.type) + " — " + stringifyForLog(data.details));
       }
     });
     preetHlsInstance.on(Hls.Events.MANIFEST_PARSED, function () {
       log("Hls.js: MANIFEST_PARSED");
-      clearCastingFailureUi();
+      markPlaybackProgress();
       preetBroadcastMediaStatus(true);
     });
     preetHlsInstance.attachMedia(videoEl);
@@ -1120,6 +1774,7 @@ function tryStartPreetDash(playbackUrl, headers) {
   }
   destroyAllCustomPlayers();
   const hdr = headers && typeof headers === "object" ? headers : {};
+  if (preetCastSession) preetCastSession.dashInlineRecover = 0;
   log("dash.js: attachView #castVideo, url=" + playbackUrl);
   try {
     preetDashInstance = dashjs.MediaPlayer().create();
@@ -1144,12 +1799,24 @@ function tryStartPreetDash(playbackUrl, headers) {
     } catch (_e) {}
     preetDashInstance.on(dashjs.MediaPlayer.events.ERROR, function (err) {
       logError("dashjs ERROR: " + formatAnyError(err));
+      if (preetDashInstance && preetCastSession && preetCastSession.dashInlineRecover < 2) {
+        preetCastSession.dashInlineRecover++;
+        logWarn("dash.js: inline reset attempt " + preetCastSession.dashInlineRecover);
+        try {
+          preetDashInstance.reset();
+          preetDashInstance.attachView(videoEl);
+          preetDashInstance.attachSource(playbackUrl);
+          return;
+        } catch (e) {
+          logWarn("dash.js inline reset failed: " + formatAnyError(e));
+        }
+      }
       setReceiverLoaderVisible(false);
       scheduleCastingFailedMessage("DASH: " + formatAnyError(err));
     });
     preetDashInstance.on(dashjs.MediaPlayer.events.STREAM_INITIALIZED, function () {
       log("dashjs: STREAM_INITIALIZED");
-      clearCastingFailureUi();
+      markPlaybackProgress();
       preetBroadcastMediaStatus(true);
       try {
         if (typeof preetDashInstance.play === "function") preetDashInstance.play();
@@ -1189,6 +1856,23 @@ playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
       apply(request);
     };
 
+    try {
+      if (!playbackConfig.shakaConfig) playbackConfig.shakaConfig = {};
+      const sc = playbackConfig.shakaConfig;
+      if (!sc.streaming) sc.streaming = {};
+      if (!sc.streaming.retryParameters) {
+        sc.streaming.retryParameters = {
+          maxAttempts: 4,
+          baseDelay: 1000,
+          backoffFactor: 2,
+          fuzzFactor: 0.5,
+          timeout: 30000,
+        };
+      }
+      if (sc.streaming.rebufferingGoal == null) sc.streaming.rebufferingGoal = 2;
+      if (sc.streaming.bufferingGoal == null) sc.streaming.bufferingGoal = 10;
+    } catch (_shakaCfg) {}
+
     return playbackConfig;
   } catch (e) {
     logError("setMediaPlaybackInfoHandler failed: " + formatAnyError(e));
@@ -1202,6 +1886,7 @@ playerManager.setMediaPlaybackInfoHandler((loadRequestData, playbackConfig) => {
 playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, async (loadRequestData) => {
   try {
     clearCastingFailureUi();
+    cancelStallWatchdog();
     destroyAllCustomPlayers();
     setReceiverLoaderVisible(true);
     setReceiverChannelSubtitle(extractChannelLabelFromLoadRequest(loadRequestData));
@@ -1218,7 +1903,6 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 
     const customData = loadRequestData.customData || {};
     syncReceiverLogPanelFromSources(customData, "LOAD");
-    const headers = extractPlaybackHeaders(customData);
     const sr = customData.streamRequest && typeof customData.streamRequest === "object" ? customData.streamRequest : null;
     const senderResolved = sr && sr.url ? String(sr.url).trim() : "";
     const urlToResolve = senderResolved || originalUrl;
@@ -1227,82 +1911,70 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
     if (!mimeType && sr && sr.contentType) {
       mimeType = String(sr.contentType).trim();
     }
-    const probeHint = mimeType || (sr && sr.contentType ? String(sr.contentType) : "") || "";
+
+    const candidateUrls = extractCandidateUrls(customData, urlToResolve);
+    let startIndex = 0;
+    const cdIdx = parseInt(String(customData.candidateIndex != null ? customData.candidateIndex : "0"), 10);
+    if (Number.isFinite(cdIdx) && cdIdx >= 0 && cdIdx < candidateUrls.length) startIndex = cdIdx;
 
     log("--------------------------------");
     log("LOAD contentUrl/contentId: " + originalUrl);
     if (senderResolved && senderResolved !== originalUrl) {
       log("streamRequest.url (sender): " + senderResolved);
     }
+    log("Candidates: " + candidateUrls.length + " (start index " + startIndex + ")");
     log("customData.sender: " + (customData.sender || "(none)"));
     log("--------------------------------");
 
-    const resolved = await resolveStream(urlToResolve, headers, probeHint);
+    initPreetCastSession(loadRequestData, customData, candidateUrls, startIndex);
+    if (preetCastSession) preetCastSession.mimeHint = mimeType || "";
 
-    if (!mimeType) {
-      mimeType = resolved.mimeType;
-    }
-    if (!mimeType) {
-      mimeType = detectMimeTypeFromUrl(resolved.finalUrl);
-    }
-    if (mimeType === "application/x-mpegURL" && detectMimeTypeFromUrl(resolved.finalUrl) === "video/mp2t") {
-      mimeType = "video/mp2t";
-    }
-
-    const decision = choosePlaybackEngine(customData, resolved.finalUrl, mimeType || "");
-    log("LOAD strategy=" + decision.engine + " (" + decision.reason + ")");
-
-    function buildStubOut(contentTypeStub) {
+    function buildStubOut(contentTypeStub, resolvedUrl) {
       const out = Object.assign({}, loadRequestData);
       out.media = Object.assign({}, media);
-      out.media.contentId = resolved.finalUrl;
+      out.media.contentId = resolvedUrl;
       out.media.contentUrl = STUB_MEDIA_URL;
       out.media.contentType = contentTypeStub || "video/mp4";
       out.media.streamType = cast.framework.messages.StreamType.LIVE;
       return out;
     }
 
-    if (decision.engine === "mpegts") {
-      const out = buildStubOut("video/mp4");
-      setTimeout(function () {
-        tryStartPreetMpegts(resolved.finalUrl, headers);
-      }, 100);
-      return out;
-    }
-    if (decision.engine === "hlsjs") {
-      const out = buildStubOut("video/mp4");
-      setTimeout(function () {
-        tryStartPreetHls(resolved.finalUrl, headers);
-      }, 100);
-      return out;
-    }
-    if (decision.engine === "dashjs") {
-      const out = buildStubOut("application/dash+xml");
-      setTimeout(function () {
-        tryStartPreetDash(resolved.finalUrl, headers);
-      }, 100);
-      return out;
+    const result = await startPlaybackPipeline({ fromLoadInterceptor: true, resetEngines: true });
+    if (!result.ok) {
+      logError("LOAD pipeline failed: " + (result.reason || "unknown") + " — self-heal scheduled");
+      preetAttemptSelfHeal("load-pipeline", "Could not start playback on the receiver.");
+      return buildStubOut("video/mp4", urlToResolve);
     }
 
-    let cafMime = mimeType;
-    if (!cafMime || cafMime === "application/octet-stream" || cafMime === "video/*") {
-      cafMime = detectMimeTypeFromUrl(resolved.finalUrl) || inferMimeFromSenderHints(customData, resolved.finalUrl);
+    const resolved = result.resolved || { finalUrl: urlToResolve };
+    const finalUrl = resolved.finalUrl || urlToResolve;
+
+    if (result.mode === "caf-interceptor" || result.engine === "caf") {
+      let cafMime = result.mimeType || mimeType;
+      if (!cafMime || cafMime === "application/octet-stream" || cafMime === "video/*") {
+        cafMime = detectMimeTypeFromUrl(finalUrl) || inferMimeFromSenderHints(customData, finalUrl);
+      }
+      if (!cafMime) cafMime = "video/mp4";
+
+      media.contentId = finalUrl;
+      media.contentUrl = finalUrl;
+      media.contentType = cafMime;
+      log("LOAD CAF-native: " + finalUrl + " | contentType=" + cafMime);
+      return loadRequestData;
     }
-    if (!cafMime) {
-      cafMime = "video/mp4";
-    }
 
-    media.contentId = resolved.finalUrl;
-    media.contentUrl = resolved.finalUrl;
-    media.contentType = cafMime;
-
-    log("LOAD CAF-native: " + resolved.finalUrl + " | contentType=" + cafMime);
-
-    return loadRequestData;
+    const stubMime = result.engine === "dashjs" ? "application/dash+xml" : "video/mp4";
+    log("LOAD custom stub (" + result.engine + "): " + finalUrl);
+    return buildStubOut(stubMime, finalUrl);
   } catch (e) {
+    if (e && e.type === cast.framework.messages.ErrorType.LOAD_FAILED) throw e;
     setReceiverLoaderVisible(false);
     logError("LOAD interceptor failed: " + formatAnyError(e));
-    showCastingFailedMessageImmediate(formatAnyError(e));
+    if (preetCastSession) {
+      preetAttemptSelfHeal("load-interceptor", formatAnyError(e));
+    } else {
+      showCastingFailedMessageImmediate(formatAnyError(e));
+    }
     throw e;
   }
 });
@@ -1329,6 +2001,10 @@ playerManager.addEventListener(cast.framework.events.EventType.MEDIA_STATUS, () 
       logWarn("MEDIA_STATUS: idleReason=4 (ERROR) — playback failed");
       scheduleCastingFailedMessage("Playback stopped with an error on the receiver.");
     }
+    try {
+      const psNum = typeof ps === "number" ? ps : parseInt(String(ps), 10);
+      if (psNum === 2) markPlaybackProgress();
+    } catch (_ps) {}
   } catch (_e) {
     log("MEDIA_STATUS (update)");
   }
@@ -1367,7 +2043,6 @@ try {
 }
 
 (function wirePreetCustomReceiverMessages() {
-  const PREET_MSG_NS = "urn:x-cast:com.arishtech.preetplayer";
   let overlayPausedPlayback = false;
   let overlayWasPlayingBeforePause = false;
 

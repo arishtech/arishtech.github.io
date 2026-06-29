@@ -263,10 +263,7 @@
         <div id="castContinuePhoneText">Please continue on your phone</div>
     </div>
     <div id="debug" class="log-viewer" tabindex="0" role="log" aria-label="Receiver debug log"></div>
-    <!-- Hls.js / dash.js / mpegts.js: chosen at runtime from sender customData + URL (see receiver.js choosePlaybackEngine). -->
-    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.7/dist/hls.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/dashjs@4.7.4/dist/dash.all.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/mpegts.js@1.7.3/dist/mpegts.min.js"></script>
+    <!-- Player libs load on demand when a stream needs them (see ensurePlayerLibrary in receiver.js). -->
     <script src="//www.gstatic.com/cast/sdk/libs/caf_receiver/v3/cast_receiver_framework.js"></script>
     <script src="receiver.js"></script>
 </body>
