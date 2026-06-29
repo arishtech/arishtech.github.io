@@ -419,6 +419,69 @@ function extractPlaybackHeaders(customData) {
   return out;
 }
 
+var PREET_BROWSER_UA =
+  "Mozilla/5.0 (Linux; Android 10) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36";
+
+/** IPTV portal URLs (vueott live.php, etc.) 302 to a CDN edge — must not skip redirect probe. */
+function isIptvPortalRedirectUrl(url) {
+  const u = String(url || "").toLowerCase();
+  return u.includes("live.php") || u.includes("vueott") || u.includes("klaratv.com");
+}
+
+function isVueottStyleUrl(url) {
+  const u = String(url || "").toLowerCase();
+  return u.includes("vueott") || u.includes("/play/live.php") || u.includes("/live.php");
+}
+
+/**
+ * Headers matched to the URL being fetched (Referer/Origin host + vueott browser UA + cookie).
+ * @param {string} playbackUrl
+ * @param {unknown} customData
+ */
+function buildHeadersForPlaybackUrl(playbackUrl, customData) {
+  const hdr = Object.assign({}, extractPlaybackHeaders(customData));
+  const cd = asObject(customData);
+  const compatCookie = String(cd.compatCookie || "").trim();
+  if (compatCookie && !hdr.Cookie && !hdr.cookie) {
+    hdr.Cookie = compatCookie;
+  }
+  const u = String(playbackUrl || "").trim();
+  const lower = u.toLowerCase();
+  if (isVueottStyleUrl(u) || lower.includes("klaratv.com")) {
+    const ua = String(hdr["User-Agent"] || "");
+    if (!ua || ua.toLowerCase().indexOf("vlc") >= 0 || ua.toLowerCase().indexOf("preet") >= 0) {
+      hdr["User-Agent"] = PREET_BROWSER_UA;
+    }
+  }
+  try {
+    const parsed = new URL(u);
+    const origin = parsed.protocol + "//" + parsed.host;
+    hdr.Referer = origin + "/";
+    hdr.Origin = origin;
+  } catch (_e) {}
+  if (!hdr.Accept) hdr.Accept = "*/*";
+  if (!hdr["Accept-Encoding"]) hdr["Accept-Encoding"] = "identity";
+  hdr.Connection = "keep-alive";
+  return hdr;
+}
+
+/**
+ * vueott / live.php: phone often plays CDN edge while cast candidates still list the portal URL.
+ * @param {string} candidateUrl
+ * @param {unknown} customData
+ */
+function preferResolvedEdgeUrlForPortal(candidateUrl, customData) {
+  if (!isVueottStyleUrl(candidateUrl)) return candidateUrl;
+  const cd = asObject(customData);
+  const sr = asObject(cd.streamRequest);
+  const phoneResolved = String(cd.phoneResolvedUrl || sr.url || "").trim();
+  if (phoneResolved && !isVueottStyleUrl(phoneResolved) && phoneResolved !== candidateUrl) {
+    log("vueott: using phone-resolved edge URL (not portal live.php)");
+    return phoneResolved;
+  }
+  return candidateUrl;
+}
+
 /**
  * Detect mime type from URL
  */
@@ -691,6 +754,7 @@ function inferMimeFromSenderHints(customData, url) {
 function shouldSkipHttpBodyProbe(url, contentTypeHint) {
   const u = String(url || "").toLowerCase();
   const ct = String(contentTypeHint || "").toLowerCase();
+  if (isIptvPortalRedirectUrl(url)) return false;
   if (isHlsCandidate(u) || isDashCandidate(u)) return false;
   if (ct.includes("mpegurl") || ct.includes("dash+xml")) return false;
   if (ct.includes("mp2t") || ct.includes("mpegts") || ct.includes("octet-stream")) return true;
@@ -839,6 +903,7 @@ function extractCandidateUrls(customData, primaryUrl) {
 
 /** @param {unknown} customData @param {string} url @param {string} probeHint */
 function shouldSkipResolveStream(customData, url, probeHint) {
+  if (isIptvPortalRedirectUrl(url)) return false;
   const cd = asObject(customData);
   const sr = asObject(cd.streamRequest);
   const senderResolved = String(sr.url || cd.phoneResolvedUrl || "").trim();
@@ -1058,7 +1123,7 @@ function startStallWatchdog() {
   preetStallTimer = setTimeout(function () {
     preetStallTimer = null;
     const session = preetCastSession;
-    if (!session || session.playbackProgressSeen) return;
+    if (!session || session.playbackProgressSeen || session.playbackFailedFinalized) return;
     logWarn("Stall watchdog: no playback progress in " + PREET_STALL_MS + "ms");
     preetAttemptSelfHeal("stall-watchdog", "Stream is taking too long to start.");
   }, PREET_STALL_MS);
@@ -1093,6 +1158,8 @@ function initPreetCastSession(loadRequestData, customData, candidateUrls, startI
     softRetryCount: 0,
     playbackProgressSeen: false,
     selfHealInFlight: false,
+    playbackFailedFinalized: false,
+    mpegtsRedirectRetried: false,
     loadGeneration: 0,
     currentUrl: "",
     resolvedMime: "",
@@ -1193,13 +1260,16 @@ async function startPlaybackPipeline(options) {
   session.loadGeneration++;
   const gen = session.loadGeneration;
   session.selfHealInFlight = false;
+  session.mpegtsRedirectRetried = false;
 
   const idx = typeof opts.candidateIndex === "number" ? opts.candidateIndex : session.candidateIndex;
   if (idx < 0 || idx >= session.candidateUrls.length) return { ok: false, reason: "no-candidates" };
 
   session.candidateIndex = idx;
-  const url = session.candidateUrls[idx];
+  let url = session.candidateUrls[idx];
+  url = preferResolvedEdgeUrlForPortal(url, customData);
   session.currentUrl = url;
+  session.headers = buildHeadersForPlaybackUrl(url, customData);
 
   if (opts.resetEngines) {
     session.enginesTried = [];
@@ -1316,7 +1386,8 @@ function softRetryCurrentEngine() {
   if (!session) return false;
   const engine = session.engine;
   const url = session.currentUrl;
-  const headers = session.headers;
+  const headers = buildHeadersForPlaybackUrl(url, session.customData);
+  session.headers = headers;
 
   clearCastingFailureUi();
   setReceiverLoaderVisible(true);
@@ -1365,6 +1436,10 @@ function preetAttemptSelfHeal(source, detail) {
   }
   if (session.playbackProgressSeen) {
     log("Self-heal skipped: playback already progressing (" + source + ")");
+    return;
+  }
+  if (session.playbackFailedFinalized) {
+    log("Self-heal skipped: playback already finalized (" + source + ")");
     return;
   }
   if (session.selfHealInFlight) return;
@@ -1432,6 +1507,8 @@ function preetAttemptSelfHeal(source, detail) {
 
 /** @param {string} [detail] */
 function preetFinalizePlaybackFailure(detail) {
+  if (preetCastSession) preetCastSession.playbackFailedFinalized = true;
+  cancelStallWatchdog();
   applyCastingFailedOverlayNow(detail);
   broadcastPlaybackFailedToSender(detail, true);
 }
@@ -1682,9 +1759,14 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     return;
   }
   destroyAllCustomPlayers();
-  const hdr = headers && typeof headers === "object" ? headers : {};
   if (preetCastSession) preetCastSession.mpegtsInlineRecover = 0;
-  log("mpegts.js: bind to #castVideo, url=" + playbackUrl);
+  const hdr = buildHeadersForPlaybackUrl(playbackUrl, preetCastSession ? preetCastSession.customData : {});
+  log(
+    "mpegts.js: bind to #castVideo, url=" +
+      playbackUrl +
+      " | header keys: " +
+      (Object.keys(hdr).join(", ") || "(none)")
+  );
   try {
     preetMpegtsInstance = mpegts.createPlayer(
       {
@@ -1711,7 +1793,41 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     );
     preetMpegtsInstance.on(mpegts.Events.ERROR, function (etype, detail) {
       logError("mpegts.Events.ERROR type=" + stringifyForLog(etype) + " detail=" + stringifyForLog(detail));
-      if (preetMpegtsInstance && preetCastSession && preetCastSession.mpegtsInlineRecover < 2) {
+      const detailStr = stringifyForLog(detail);
+      const isHttpStatus =
+        detailStr.indexOf("HttpStatusCodeInvalid") >= 0 || detailStr.indexOf("StatusCode") >= 0;
+
+      if (
+        isHttpStatus &&
+        preetCastSession &&
+        !preetCastSession.mpegtsRedirectRetried &&
+        isIptvPortalRedirectUrl(playbackUrl)
+      ) {
+        preetCastSession.mpegtsRedirectRetried = true;
+        logWarn("mpegts.js: HTTP status error on portal — resolving redirect with headers");
+        resolveStream(playbackUrl, hdr, "video/mp2t")
+          .then(function (resolved) {
+            if (resolved.finalUrl && resolved.finalUrl !== playbackUrl) {
+              log("mpegts.js: portal resolved → " + resolved.finalUrl);
+              tryStartPreetMpegts(resolved.finalUrl, hdr);
+              return;
+            }
+            setReceiverLoaderVisible(false);
+            scheduleCastingFailedMessage(
+              "MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail)
+            );
+          })
+          .catch(function (e) {
+            logError("mpegts portal resolve failed: " + formatAnyError(e));
+            setReceiverLoaderVisible(false);
+            scheduleCastingFailedMessage(
+              "MPEG-TS: " + stringifyForLog(etype) + " — " + stringifyForLog(detail)
+            );
+          });
+        return;
+      }
+
+      if (!isHttpStatus && preetMpegtsInstance && preetCastSession && preetCastSession.mpegtsInlineRecover < 2) {
         preetCastSession.mpegtsInlineRecover++;
         logWarn("mpegts.js: inline reload attempt " + preetCastSession.mpegtsInlineRecover);
         try {
