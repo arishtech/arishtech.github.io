@@ -276,3 +276,27 @@ rubiconproject.com, 17062, RESELLER, 0bfd66d529a55807
 triplelift.com, 95054, RESELLER, 6c33edb13117fd86
 unity.com, 6073725, DIRECT
 unity3d.com, 6073725, DIRECT
+themediagrid.com, FALINO, RESELLER, 9fac4a4a87c2a44f
+triplelift.com, 14798, RESELLER, 6c33edb13117fd86
+adform.com, 3400, RESELLER, 9f5210a2f0999e32
+pubmatic.com, 163117, RESELLER, 5d62403b186f2ace
+pubmatic.com, 165329, RESELLER, 5d62403b186f2ace
+odeeo.io, 118848844, RESELLER, 36cfd73091d5c3fc
+smartadserver.com, 4972, RESELLER, 060d053dcf45cbf3
+rubiconproject.com, 27538, RESELLER, 0bfd66d529a55807
+pubmatic.com, 166335, RESELLER, 5d62403b186f2ace
+pubmatic.com, 165854, RESELLER, 5d62403b186f2ace
+video.unrulymedia.com, 703273072, RESELLER
+onlinemediasolutions.com, 23120, RESELLER, b3868b187e4b6402
+bluexad.ai, 1996418805747683328, RESELLER
+smartadserver.com, 4525, RESELLER, 060d053dcf45cbf3
+rubiconproject.com, 24084, RESELLER, 0bfd66d529a55807
+e-planning.net, 6a7f877127485fdb, RESELLER, c1ba615865ed87b2
+video.unrulymedia.com, 905340553, RESELLER
+openx.com, 563905670, RESELLER, 6a698e2ec38604c6
+pubnative.net, 1017792, RESELLER, d641df8625486a7b
+media.net, 8CU675N41, RESELLER
+brightcom.com, 23120, RESELLER
+insticator.com, cadff748-965f-4393-a76e-a8f902512bad, RESELLER, b3511ffcafb23a32
+ogury.com, 065d4ff5-a269-44be-9634-9d4d7af2dfc3, RESELLER
+video.unrulymedia.com, 290726769, RESELLER
