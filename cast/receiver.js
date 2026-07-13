@@ -505,7 +505,14 @@ function buildHeadersForPlaybackUrl(playbackUrl, customData) {
     edge && portal && isIptvPortalRedirectUrl(portal) ? portal : playbackUrl;
   const uaSource = edge && portal ? portal : playbackUrl;
 
-  if (isVueottStyleUrl(uaSource) || isVueottStyleUrl(playbackUrl) || edge || String(uaSource).toLowerCase().includes("klaratv.com")) {
+  if (
+    isVueottStyleUrl(uaSource) ||
+    isVueottStyleUrl(playbackUrl) ||
+    isIptvPortalRedirectUrl(playbackUrl) ||
+    isIptvPortalRedirectUrl(uaSource) ||
+    edge ||
+    String(uaSource).toLowerCase().includes("klaratv.com")
+  ) {
     const ua = String(hdr["User-Agent"] || "");
     if (!ua || ua.toLowerCase().indexOf("vlc") >= 0 || ua.toLowerCase().indexOf("preet") >= 0) {
       hdr["User-Agent"] = PREET_BROWSER_UA;
@@ -533,15 +540,138 @@ function buildHeadersForPlaybackUrl(playbackUrl, customData) {
  * @param {unknown} customData
  */
 function preferResolvedEdgeUrlForPortal(candidateUrl, customData) {
-  if (!isVueottStyleUrl(candidateUrl)) return candidateUrl;
+  if (!isIptvPortalRedirectUrl(candidateUrl)) return candidateUrl;
   const cd = asObject(customData);
   const sr = asObject(cd.streamRequest);
   const phoneResolved = String(cd.phoneResolvedUrl || sr.url || "").trim();
-  if (phoneResolved && !isVueottStyleUrl(phoneResolved) && phoneResolved !== candidateUrl) {
-    log("vueott: using phone-resolved edge URL (not portal live.php)");
+  if (
+    phoneResolved &&
+    !isIptvPortalRedirectUrl(phoneResolved) &&
+    phoneResolved !== candidateUrl
+  ) {
+    log("portal: using phone-resolved edge URL (not portal live.php)");
     return phoneResolved;
   }
   return candidateUrl;
+}
+
+/** @param {string} cookieHeader */
+function parseCookieHeaderToJar(cookieHeader) {
+  /** @type {Record<string, string>} */
+  const jar = {};
+  String(cookieHeader || "")
+    .split(";")
+    .forEach(function (part) {
+      const p = part.trim();
+      if (!p) return;
+      const eq = p.indexOf("=");
+      if (eq <= 0) return;
+      const name = p.substring(0, eq).trim();
+      const value = p.substring(eq + 1).trim();
+      if (name) jar[name] = value;
+    });
+  return jar;
+}
+
+/** @param {Record<string, string>} jar */
+function serializeCookieJar(jar) {
+  return Object.keys(jar)
+    .map(function (k) {
+      return k + "=" + jar[k];
+    })
+    .join("; ");
+}
+
+/**
+ * @param {Record<string, string>} jar
+ * @param {Response} response
+ */
+function mergeSetCookieIntoJar(jar, response) {
+  try {
+    /** @type {string[]} */
+    var parts = [];
+    if (response.headers && typeof response.headers.getSetCookie === "function") {
+      parts = response.headers.getSetCookie();
+    } else {
+      const single = response.headers.get("set-cookie") || response.headers.get("Set-Cookie");
+      if (single) parts = [single];
+    }
+    parts.forEach(function (line) {
+      const seg = String(line || "").split(";")[0];
+      const eq = seg.indexOf("=");
+      if (eq <= 0) return;
+      const name = seg.substring(0, eq).trim();
+      const value = seg.substring(eq + 1).trim();
+      if (name) jar[name] = value;
+    });
+  } catch (_e) {}
+}
+
+/**
+ * Follow IPTV portal redirects (live.php → CDN edge) and collect session cookies before mpegts bind.
+ * Mirrors Android `warmupCompatibilitySession` on the receiver when the sender has no cookie yet.
+ * @param {string} url
+ * @param {Record<string, string>} headers
+ * @param {unknown} customData
+ */
+async function resolveIptvPortalForCast(url, headers, customData) {
+  const start = String(url || "").trim();
+  if (!start || !isIptvPortalRedirectUrl(start)) {
+    return { finalUrl: start, cookieHeader: String(headers.Cookie || headers.cookie || "").trim() };
+  }
+  const hdr = buildHeadersForPlaybackUrl(start, customData);
+  Object.assign(hdr, headers || {});
+  const jar = parseCookieHeaderToJar(hdr.Cookie || hdr.cookie || "");
+  let current = start;
+  const maxHops = 6;
+  for (let hop = 0; hop < maxHops; hop++) {
+    try {
+      const reqHeaders = Object.assign({}, hdr, {
+        Accept: hdr.Accept || "*/*",
+        "Accept-Encoding": "identity",
+        Range: hop === 0 ? "bytes=0-0" : undefined,
+      });
+      if (!reqHeaders.Range) delete reqHeaders.Range;
+      const resp = await fetch(current, {
+        method: "GET",
+        redirect: "manual",
+        headers: reqHeaders,
+      });
+      mergeSetCookieIntoJar(jar, resp);
+      if (resp.status >= 300 && resp.status < 400) {
+        const loc = resp.headers.get("Location") || resp.headers.get("location");
+        if (loc) {
+          current = new URL(loc, current).href;
+          log("Portal redirect hop " + (hop + 1) + " → " + current);
+          continue;
+        }
+      }
+      try {
+        if (resp.body) await resp.body.cancel();
+      } catch (_c) {}
+      const cookieHeader = serializeCookieJar(jar);
+      if (cookieHeader && !hdr.Cookie) {
+        log("Portal resolve: collected Cookie (" + cookieHeader.length + " chars)");
+      }
+      return { finalUrl: current, cookieHeader: cookieHeader };
+    } catch (e) {
+      logWarn("Portal resolve failed (hop " + (hop + 1) + "): " + formatAnyError(e));
+      break;
+    }
+  }
+  return { finalUrl: current, cookieHeader: serializeCookieJar(jar) };
+}
+
+/** @param {Record<string, string>} headers @param {{finalUrl: string, cookieHeader?: string}} resolved */
+function applyPortalResolveToSession(headers, resolved, customData) {
+  if (resolved.cookieHeader) {
+    headers.Cookie = resolved.cookieHeader;
+    const cd = asObject(customData);
+    if (!String(cd.compatCookie || "").trim()) {
+      cd.compatCookie = resolved.cookieHeader;
+    }
+  }
+  return buildHeadersForPlaybackUrl(resolved.finalUrl, customData);
 }
 
 /**
@@ -1227,6 +1357,7 @@ function initPreetCastSession(loadRequestData, customData, candidateUrls, startI
     currentUrl: "",
     resolvedMime: "",
     mpegtsInlineRecover: 0,
+    mpegtsLiveReconnectCount: 0,
     hlsInlineRecover: 0,
     dashInlineRecover: 0,
   };
@@ -1336,6 +1467,17 @@ async function startPlaybackPipeline(options) {
   session.currentUrl = url;
   session.headers = buildHeadersForPlaybackUrl(url, customData);
 
+  if (isIptvPortalRedirectUrl(url) && isTsPlaybackRequired(customData, url, session.mimeHint || "")) {
+    const portalResolved = await resolveIptvPortalForCast(url, session.headers, customData);
+    if (gen !== session.loadGeneration) return { ok: false, reason: "superseded" };
+    if (portalResolved.finalUrl && portalResolved.finalUrl !== url) {
+      log("Portal pre-resolve: " + url + " → " + portalResolved.finalUrl);
+      url = portalResolved.finalUrl;
+      session.currentUrl = url;
+    }
+    session.headers = applyPortalResolveToSession(session.headers, portalResolved, customData);
+  }
+
   if (opts.resetEngines) {
     session.enginesTried = [];
     session.softRetryCount = 0;
@@ -1370,7 +1512,7 @@ async function startPlaybackPipeline(options) {
   await preloadLikelyPlayerLibraries(customData, resolved.finalUrl, opts.engineOverride || "", mimeType);
 
   if (isTsPlaybackRequired(customData, resolved.finalUrl, mimeType)) {
-    const mpegtsReady = await ensureMpegtsLibraryReady(3);
+    const mpegtsReady = await ensureMpegtsLibraryReady(5);
     if (!mpegtsReady) {
       logError("mpegts.js required for TS stream but is not available on this receiver");
       return { ok: false, reason: "mpegts-unavailable" };
@@ -1850,13 +1992,13 @@ function tryStartPreetMpegts(playbackUrl, headers) {
       {
         enableWorker: false,
         enableStashBuffer: true,
-        stashInitialSize: 2048 * 1024,
-        liveBufferLatencyChasing: true,
-        liveBufferLatencyMaxLatency: 5,
-        liveBufferLatencyMinRemain: 0.8,
-        liveSync: true,
-        liveSyncMaxLatency: 5,
-        liveSyncTargetLatency: 2.5,
+        stashInitialSize: 3840 * 1024,
+        liveBufferLatencyChasing: false,
+        liveBufferLatencyMaxLatency: 8,
+        liveBufferLatencyMinRemain: 1.2,
+        liveSync: false,
+        liveSyncMaxLatency: 8,
+        liveSyncTargetLatency: 4,
         autoCleanupSourceBuffer: true,
         fixAudioTimestampGap: true,
       }
@@ -1927,6 +2069,41 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     if (mpegts.Events && mpegts.Events.LOADING_COMPLETE) {
       preetMpegtsInstance.on(mpegts.Events.LOADING_COMPLETE, function () {
         log("mpegts: LOADING_COMPLETE");
+        const sess = preetCastSession;
+        if (
+          sess &&
+          !sess.playbackFailedFinalized &&
+          sess.mpegtsLiveReconnectCount < 6 &&
+          (isIptvPortalRedirectUrl(playbackUrl) || isLikelyIptvMpegTsEdgeUrl(playbackUrl))
+        ) {
+          sess.mpegtsLiveReconnectCount++;
+          logWarn(
+            "mpegts: live HTTP stream ended — reconnect " +
+              sess.mpegtsLiveReconnectCount +
+              "/6"
+          );
+          scheduleCustomPlayerStart(function () {
+            if (!preetCastSession || preetCastSession.playbackFailedFinalized) return;
+            const baseUrl = preetCastSession.currentUrl || playbackUrl;
+            const portal = extractPortalStreamUrl(preetCastSession.customData);
+            const resolveFrom =
+              isIptvPortalRedirectUrl(portal) && !isLikelyIptvMpegTsEdgeUrl(baseUrl) ? portal : baseUrl;
+            resolveIptvPortalForCast(resolveFrom, preetCastSession.headers, preetCastSession.customData)
+              .then(function (resolved) {
+                if (!preetCastSession || preetCastSession.playbackFailedFinalized) return;
+                const nextUrl = resolved.finalUrl || baseUrl;
+                preetCastSession.currentUrl = nextUrl;
+                const hdr = applyPortalResolveToSession(preetCastSession.headers, resolved, preetCastSession.customData);
+                preetCastSession.headers = hdr;
+                tryStartPreetMpegts(nextUrl, hdr);
+              })
+              .catch(function (e) {
+                logWarn("mpegts live reconnect resolve failed: " + formatAnyError(e));
+                tryStartPreetMpegts(baseUrl, preetCastSession.headers);
+              });
+          });
+          return;
+        }
         markPlaybackProgress();
         preetBroadcastMediaStatus(true);
         try {
@@ -1941,6 +2118,8 @@ function tryStartPreetMpegts(playbackUrl, headers) {
     if (mpegts.Events && mpegts.Events.METADATA_ARRIVED) {
       preetMpegtsInstance.on(mpegts.Events.METADATA_ARRIVED, function () {
         log("mpegts: METADATA_ARRIVED (first decodable timing)");
+        if (preetCastSession) preetCastSession.mpegtsLiveReconnectCount = 0;
+        markPlaybackProgress();
       });
     }
     preetMpegtsInstance.attachMediaElement(videoEl);
