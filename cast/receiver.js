@@ -130,6 +130,15 @@ function timeStamp() {
 
 /** When false, log() still writes to console but skips #debug (Cast “debug log” switch off). */
 let receiverLogToDomEnabled = false;
+/** When true, mirror receiver log lines to the phone via custom Cast messages (Settings → Cast debug). */
+let receiverLogToSenderEnabled = false;
+/** @type {ReturnType<typeof setTimeout>|null} */
+let receiverLogSenderFlushTimer = null;
+/** @type {Array<{level: string, line: string}>} */
+let receiverLogSenderQueue = [];
+let receiverLogSenderLastFlushAt = 0;
+const RECEIVER_LOG_SENDER_FLUSH_MS = 120;
+const RECEIVER_LOG_SENDER_MAX_LINE = 480;
 
 /**
  * URL overrides: ?log=1 & ?receiverLog=0 & ?castDebug=1 & ?dock=1 (same semantics as legacy ?dock=).
@@ -184,6 +193,7 @@ function syncReceiverLogPanelFromSources(customData, reason) {
   else if (urlPref === false) want = false;
   else want = senderWantsReceiverLogPanel(customData);
   receiverLogToDomEnabled = !!want;
+  receiverLogToSenderEnabled = !!want;
   const el = document.getElementById("debug");
   if (el) {
     el.classList.toggle("receiver-log-hidden", !receiverLogToDomEnabled);
@@ -370,6 +380,7 @@ function log(msg, level) {
     console.log(line);
   }
   appendLogLine(line, lv);
+  enqueueReceiverLogForSender(line, lv);
 }
 
 function logError(msg) {
@@ -378,6 +389,42 @@ function logError(msg) {
 
 function logWarn(msg) {
   log(msg, "warn");
+}
+
+/** @param {string} line @param {"info"|"error"|"warn"} level */
+function enqueueReceiverLogForSender(line, level) {
+  if (!receiverLogToSenderEnabled) return;
+  const lv = level || "info";
+  if (lv !== "error" && lv !== "warn") {
+    const now = Date.now();
+    if (now - receiverLogSenderLastFlushAt < RECEIVER_LOG_SENDER_FLUSH_MS && receiverLogSenderQueue.length >= 8) {
+      return;
+    }
+  }
+  receiverLogSenderQueue.push({
+    level: lv,
+    line: String(line).slice(0, RECEIVER_LOG_SENDER_MAX_LINE),
+  });
+  if (receiverLogSenderFlushTimer != null) return;
+  receiverLogSenderFlushTimer = setTimeout(function () {
+    receiverLogSenderFlushTimer = null;
+    flushReceiverLogQueueToSender();
+  }, lv === "info" ? RECEIVER_LOG_SENDER_FLUSH_MS : 40);
+}
+
+function flushReceiverLogQueueToSender() {
+  if (!receiverLogToSenderEnabled || !receiverLogSenderQueue.length) return;
+  const batch = receiverLogSenderQueue.splice(0, 6);
+  receiverLogSenderLastFlushAt = Date.now();
+  try {
+    context.sendCustomMessage(PREET_MSG_NS, {
+      type: "receiverLog",
+      lines: batch,
+      ts: Date.now(),
+    });
+  } catch (e) {
+    console.warn("[receiver] receiverLog send failed: " + formatAnyError(e));
+  }
 }
 
 syncReceiverLogPanelFromSources(null, "startup (URL only; LOAD applies sender switch)");
@@ -534,6 +581,52 @@ function buildHeadersForPlaybackUrl(playbackUrl, customData) {
   return hdr;
 }
 
+/** @param {unknown} customData @param {Record<string, string>} [headers] */
+function hasCompatSessionCookie(customData, headers) {
+  const cd = asObject(customData);
+  if (String(cd.compatCookie || "").trim()) return true;
+  const hdr = headers || extractPlaybackHeaders(customData);
+  return !!(String(hdr.Cookie || hdr.cookie || "").trim());
+}
+
+/**
+ * CDN edge `/live/play/` URLs require the portal session cookie — never play edge bare.
+ * @param {string} portalStart
+ * @param {{finalUrl: string, cookieHeader?: string}} resolved
+ * @param {unknown} customData
+ */
+function guardPortalResolveResult(portalStart, resolved, customData) {
+  const cookie =
+    String(resolved.cookieHeader || "").trim() || String(asObject(customData).compatCookie || "").trim();
+  const finalUrl = String(resolved.finalUrl || portalStart).trim() || portalStart;
+  if (
+    isLikelyIptvMpegTsEdgeUrl(finalUrl) &&
+    !cookie &&
+    isIptvPortalRedirectUrl(portalStart)
+  ) {
+    logWarn("Portal resolve: CDN edge without Cookie — keeping portal live.php");
+    return { finalUrl: portalStart, cookieHeader: "" };
+  }
+  return { finalUrl: finalUrl, cookieHeader: cookie };
+}
+
+/**
+ * Prefer portal when the candidate is a cookie-less CDN edge (vueott panels).
+ * @param {string} candidateUrl
+ * @param {unknown} customData
+ */
+function preferPortalWhenEdgeNeedsCookie(candidateUrl, customData) {
+  const url = String(candidateUrl || "").trim();
+  if (!isLikelyIptvMpegTsEdgeUrl(url)) return url;
+  if (hasCompatSessionCookie(customData)) return url;
+  const portal = extractPortalStreamUrl(customData);
+  if (portal && isIptvPortalRedirectUrl(portal) && portal !== url) {
+    logWarn("Pipeline: edge URL without Cookie — using portal live.php");
+    return portal;
+  }
+  return url;
+}
+
 /**
  * vueott / live.php: phone often plays CDN edge while cast candidates still list the portal URL.
  * @param {string} candidateUrl
@@ -549,6 +642,10 @@ function preferResolvedEdgeUrlForPortal(candidateUrl, customData) {
     !isIptvPortalRedirectUrl(phoneResolved) &&
     phoneResolved !== candidateUrl
   ) {
+    if (isLikelyIptvMpegTsEdgeUrl(phoneResolved) && !hasCompatSessionCookie(customData)) {
+      logWarn("portal: phone edge URL skipped (no session Cookie) — keeping live.php");
+      return candidateUrl;
+    }
     log("portal: using phone-resolved edge URL (not portal live.php)");
     return phoneResolved;
   }
@@ -653,13 +750,17 @@ async function resolveIptvPortalForCast(url, headers, customData) {
       if (cookieHeader && !hdr.Cookie) {
         log("Portal resolve: collected Cookie (" + cookieHeader.length + " chars)");
       }
-      return { finalUrl: current, cookieHeader: cookieHeader };
+      return guardPortalResolveResult(start, { finalUrl: current, cookieHeader: cookieHeader }, customData);
     } catch (e) {
       logWarn("Portal resolve failed (hop " + (hop + 1) + "): " + formatAnyError(e));
       break;
     }
   }
-  return { finalUrl: current, cookieHeader: serializeCookieJar(jar) };
+  return guardPortalResolveResult(
+    start,
+    { finalUrl: current, cookieHeader: serializeCookieJar(jar) },
+    customData
+  );
 }
 
 /** @param {Record<string, string>} headers @param {{finalUrl: string, cookieHeader?: string}} resolved */
@@ -1353,6 +1454,7 @@ function initPreetCastSession(loadRequestData, customData, candidateUrls, startI
     playbackFailedFinalized: false,
     mpegtsRedirectRetried: false,
     mpegtsHeaderRetry: false,
+    mpegtsPortalFallbackTried: false,
     loadGeneration: 0,
     currentUrl: "",
     resolvedMime: "",
@@ -1456,6 +1558,7 @@ async function startPlaybackPipeline(options) {
   session.selfHealInFlight = false;
   session.mpegtsRedirectRetried = false;
   session.mpegtsHeaderRetry = false;
+  session.mpegtsPortalFallbackTried = false;
 
   const idx = typeof opts.candidateIndex === "number" ? opts.candidateIndex : session.candidateIndex;
   if (idx < 0 || idx >= session.candidateUrls.length) return { ok: false, reason: "no-candidates" };
@@ -1464,6 +1567,7 @@ async function startPlaybackPipeline(options) {
   const customData = session.customData;
   let url = session.candidateUrls[idx];
   url = preferResolvedEdgeUrlForPortal(url, customData);
+  url = preferPortalWhenEdgeNeedsCookie(url, customData);
   session.currentUrl = url;
   session.headers = buildHeadersForPlaybackUrl(url, customData);
 
@@ -2008,6 +2112,24 @@ function tryStartPreetMpegts(playbackUrl, headers) {
       const detailStr = stringifyForLog(detail);
       const isHttpStatus =
         detailStr.indexOf("HttpStatusCodeInvalid") >= 0 || detailStr.indexOf("StatusCode") >= 0;
+      const isNetworkErr =
+        String(etype || "").indexOf("NetworkError") >= 0 || detailStr.indexOf("NetworkError") >= 0;
+
+      const portalUrl = preetCastSession ? extractPortalStreamUrl(preetCastSession.customData) : "";
+      if (
+        preetCastSession &&
+        !preetCastSession.mpegtsPortalFallbackTried &&
+        portalUrl &&
+        isIptvPortalRedirectUrl(portalUrl) &&
+        isLikelyIptvMpegTsEdgeUrl(playbackUrl) &&
+        playbackUrl !== portalUrl &&
+        !hasCompatSessionCookie(preetCastSession.customData, hdr)
+      ) {
+        preetCastSession.mpegtsPortalFallbackTried = true;
+        logWarn("mpegts.js: edge NetworkError without Cookie — falling back to portal live.php");
+        tryStartPreetMpegts(portalUrl, preetCastSession.customData);
+        return;
+      }
 
       if (isHttpStatus && preetCastSession && !preetCastSession.mpegtsHeaderRetry) {
         preetCastSession.mpegtsHeaderRetry = true;
@@ -2024,11 +2146,21 @@ function tryStartPreetMpegts(playbackUrl, headers) {
       ) {
         preetCastSession.mpegtsRedirectRetried = true;
         logWarn("mpegts.js: HTTP status error on portal — resolving redirect with headers");
-        resolveStream(playbackUrl, hdr, "video/mp2t")
+        resolveIptvPortalForCast(playbackUrl, hdr, preetCastSession.customData)
           .then(function (resolved) {
-            if (resolved.finalUrl && resolved.finalUrl !== playbackUrl) {
-              log("mpegts.js: portal resolved → " + resolved.finalUrl);
-              tryStartPreetMpegts(resolved.finalUrl, preetCastSession.customData);
+            if (!preetCastSession) return;
+            const picked = guardPortalResolveResult(playbackUrl, resolved, preetCastSession.customData);
+            if (picked.finalUrl && picked.finalUrl !== playbackUrl) {
+              if (isLikelyIptvMpegTsEdgeUrl(picked.finalUrl) && !picked.cookieHeader) {
+                logWarn("mpegts.js: portal resolve got edge without Cookie — staying on live.php");
+                tryStartPreetMpegts(playbackUrl, preetCastSession.customData);
+                return;
+              }
+              log("mpegts.js: portal resolved → " + picked.finalUrl);
+              const nextHdr = applyPortalResolveToSession(hdr, picked, preetCastSession.customData);
+              preetCastSession.currentUrl = picked.finalUrl;
+              preetCastSession.headers = nextHdr;
+              tryStartPreetMpegts(picked.finalUrl, nextHdr);
               return;
             }
             setReceiverLoaderVisible(false);
@@ -2046,7 +2178,7 @@ function tryStartPreetMpegts(playbackUrl, headers) {
         return;
       }
 
-      if (!isHttpStatus && preetMpegtsInstance && preetCastSession && preetCastSession.mpegtsInlineRecover < 2) {
+      if (!isHttpStatus && !isNetworkErr && preetMpegtsInstance && preetCastSession && preetCastSession.mpegtsInlineRecover < 2) {
         preetCastSession.mpegtsInlineRecover++;
         logWarn("mpegts.js: inline reload attempt " + preetCastSession.mpegtsInlineRecover);
         try {
@@ -2091,9 +2223,11 @@ function tryStartPreetMpegts(playbackUrl, headers) {
             resolveIptvPortalForCast(resolveFrom, preetCastSession.headers, preetCastSession.customData)
               .then(function (resolved) {
                 if (!preetCastSession || preetCastSession.playbackFailedFinalized) return;
-                const nextUrl = resolved.finalUrl || baseUrl;
+                const portalStart = isIptvPortalRedirectUrl(portal) ? portal : resolveFrom;
+                const picked = guardPortalResolveResult(portalStart, resolved, preetCastSession.customData);
+                const nextUrl = picked.finalUrl || baseUrl;
                 preetCastSession.currentUrl = nextUrl;
-                const hdr = applyPortalResolveToSession(preetCastSession.headers, resolved, preetCastSession.customData);
+                const hdr = applyPortalResolveToSession(preetCastSession.headers, picked, preetCastSession.customData);
                 preetCastSession.headers = hdr;
                 tryStartPreetMpegts(nextUrl, hdr);
               })
