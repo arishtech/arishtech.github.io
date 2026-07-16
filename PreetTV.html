@@ -43,14 +43,63 @@
 		const playStoreUrl = "https://play.google.com/store/apps/details?id=com.arishtech.preetplayer";
 		const appStoreUrl = "https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571";
 
-		function performRedirect() {
+    function getPlatformType() {
+      const ua = (
+        navigator.userAgent ||
+        navigator.vendor ||
+        window.opera ||
+        ""
+      ).toLowerCase();
 
-			const ua = (
-				navigator.userAgent ||
-				navigator.vendor ||
-				window.opera ||
-				""
-			).toLowerCase();
+      if (ua.includes("android")) {
+        return "android";
+      }
+
+      if (
+        ua.includes("iphone") ||
+        ua.includes("ipad") ||
+        ua.includes("ipod") ||
+        (ua.includes("macintosh") && navigator.maxTouchPoints > 1)
+      ) {
+        return "ios";
+      }
+
+      return "other";
+    }
+
+    function updateStoreButtonsVisibility() {
+      const playStoreButton = document.getElementById("playStoreBtn");
+      const appStoreButton = document.getElementById("appStoreBtn");
+
+      if (!playStoreButton || !appStoreButton) {
+        return;
+      }
+
+      const platformType = getPlatformType();
+
+      if (platformType === "android") {
+        appStoreButton.style.display = "none";
+        playStoreButton.style.display = "inline-flex";
+        return;
+      }
+
+      if (platformType === "ios") {
+        playStoreButton.style.display = "none";
+        appStoreButton.style.display = "inline-flex";
+        return;
+      }
+
+      playStoreButton.style.display = "inline-flex";
+      appStoreButton.style.display = "inline-flex";
+    }
+
+		function performRedirect() {
+      const ua = (
+        navigator.userAgent ||
+        navigator.vendor ||
+        window.opera ||
+        ""
+      ).toLowerCase();
 
 			let targetUrl = null;
 
@@ -82,6 +131,7 @@
 		}
 
 		//window.addEventListener("load", performRedirect);
+    window.addEventListener("DOMContentLoaded", updateStoreButtonsVisibility);
 
 	})();
 	</script>
@@ -93,9 +143,12 @@
             --card-border: rgba(255, 255, 255, 0.08);
             --accent-blue: #3b82f6;
             --accent-cyan: #06b6d4;
+            --accent-violet: #8b5cf6;
             --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+            --hero-gradient: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0) 45%), radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0) 42%), linear-gradient(180deg, #030712 0%, #020617 100%);
             --text-main: #f9fafb;
-            --text-muted: #9ca3af;
+            --text-muted: #f9fafb;
+            --glow-shadow: 0 20px 50px -25px rgba(59, 130, 246, 0.55);
         }
 
         * {
@@ -106,7 +159,7 @@
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg-color);
+            background: var(--hero-gradient);
             color: var(--text-main);
             line-height: 1.6;
             overflow-x: hidden;
@@ -122,6 +175,20 @@
             width: 800px;
             height: 600px;
             background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 100%);
+            z-index: -1;
+            pointer-events: none;
+            animation: pulseGlow 8s ease-in-out infinite;
+        }
+
+        body::after {
+            content: '';
+            position: absolute;
+            right: -120px;
+            top: 280px;
+            width: 420px;
+            height: 420px;
+            background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0) 68%);
+            filter: blur(12px);
             z-index: -1;
             pointer-events: none;
         }
@@ -147,7 +214,7 @@
 
         header {
             text-align: center;
-            padding: 40px 20px 40px 20px;
+            padding: 22px 20px 20px 20px;
             position: relative;
         }
 
@@ -162,8 +229,28 @@
             font-weight: 600;
             color: #60a5fa;
             letter-spacing: 0.02em;
-            margin-bottom: 35px;
+            margin-bottom: 18px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .quick-highlights {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 0 0 14px;
+        }
+
+        .highlight-chip {
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.35);
+            background: rgba(15, 23, 42, 0.75);
+            color: #cbd5e1;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.02em;
         }
 
         .logo-wrapper {
@@ -212,7 +299,7 @@
             color: var(--text-muted);
             font-size: 1.3rem;
             max-width: 700px;
-            margin: 0 auto 40px auto;
+            margin: 0 auto 20px auto;
             font-weight: 400;
         }
 
@@ -221,12 +308,14 @@
             justify-content: center;
             gap: 20px;
             flex-wrap: wrap;
-            margin-bottom: 50px;
+            margin-bottom: 24px;
         }
 
         .badge-btn {
             display: inline-flex;
             align-items: center;
+            position: relative;
+            overflow: hidden;
             background: rgba(17, 24, 39, 0.8);
             border: 1px solid var(--card-border);
             padding: 14px 28px;
@@ -238,11 +327,26 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
+        .badge-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -140%;
+            width: 120%;
+            height: 100%;
+            background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+            transition: left 0.6s ease;
+        }
+
         .badge-btn:hover {
             transform: translateY(-4px);
             border-color: #3b82f6;
-            box-shadow: 0 12px 30px rgba(59, 130, 246, 0.2);
+            box-shadow: var(--glow-shadow);
             background: rgba(17, 24, 39, 0.95);
+        }
+
+        .badge-btn:hover::before {
+            left: 120%;
         }
 
         .badge-text {
@@ -264,8 +368,32 @@
             letter-spacing: -0.02em;
         }
 
+        .cta-panel {
+            max-width: 720px;
+            margin: 0 auto 18px;
+            padding: 20px 24px;
+            border: 1px solid rgba(59, 130, 246, 0.35);
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(139, 92, 246, 0.12));
+            border-radius: 16px;
+            text-align: center;
+            box-shadow: 0 15px 40px -25px rgba(59, 130, 246, 0.65);
+            backdrop-filter: blur(10px);
+        }
+
+        .cta-panel h3 {
+            font-size: 1.1rem;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+
+        .cta-panel p {
+            color: #dbeafe;
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
         section.features-section {
-            margin-top: 40px;
+            margin-top: 22px;
         }
 
         .section-title {
@@ -326,7 +454,14 @@
         }
 
         .screenshot-section {
-            margin-top: 0px;
+            margin-top: 6px;
+        }
+
+        .screenshot-section h2 {
+            text-align: center;
+            margin-bottom: 16px;
+            font-size: 2rem;
+            letter-spacing: -0.02em;
         }
 
         .screenshot-gallery {
@@ -355,7 +490,7 @@
         .screenshot-item {
             flex: 0 0 auto;
             width: 280px;
-            background: #111827;
+            background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
             border: 4px solid #1f2937;
             border-radius: 24px;
             overflow: hidden;
@@ -366,6 +501,7 @@
         .screenshot-item:hover {
             transform: scale(1.02) translateY(-4px);
             border-color: #3b82f6;
+            box-shadow: var(--glow-shadow);
         }
 
         .screenshot-item img {
@@ -429,11 +565,61 @@
             font-size: 0.9rem;
         }
 
+        @keyframes pulseGlow {
+            0%,
+            100% { opacity: 0.9; transform: translateX(-50%) scale(1); }
+            50% { opacity: 0.6; transform: translateX(-50%) scale(1.08); }
+        }
+
         @media (max-width: 768px) {
+            .container {
+                max-width: 100%;
+                padding: 12px;
+            }
+
+            header {
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+
             header h1 { font-size: 2.4rem; }
             header p.tagline { font-size: 1.1rem; }
             .tech-section { padding: 30px 20px; }
             .top-announcement { font-size: 0.85rem; padding: 6px 16px; }
+            .quick-highlights { margin-top: 0; }
+            .cta-panel { padding: 16px; }
+
+            .badge-container {
+                gap: 12px;
+            }
+
+            .badge-btn {
+                width: min(100%, 420px);
+                justify-content: center;
+            }
+
+            .feature-card {
+                padding: 24px;
+            }
+
+            .screenshot-gallery {
+                margin: 0 -6px;
+                padding: 16px 6px;
+            }
+
+            .screenshot-item {
+                width: min(88vw, 340px);
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            body::before,
+            .badge-btn,
+            .feature-card,
+            .screenshot-item {
+                animation: none;
+                transition: none;
+            }
         }
     </style>
 </head>
@@ -447,17 +633,30 @@
             <div class="logo-wrapper">
                 <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
             </div>
-            <h1>The Ultimate <span>Preet Live Streaming Player</span></h1>
+            <h1>The Ultimate <span>FREE Live TV App</span></h1>
             
             <!-- New Premium Sub-header/Banner -->
             <div class="top-announcement">
-                📺 Watch TV Anytime, Anywhere with over 10,000 global channels
+                📺 Watch TV Anytime, Anywhere with over 10,000 global channels for FREE!
             </div>
 			<p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
-            
+
+            <div class="quick-highlights">
+                <span class="highlight-chip">10,000+ Global Channels</span>
+                <span class="highlight-chip">Zero-Lag Streaming</span>
+                <span class="highlight-chip">No-Login</span>
+                <span class="highlight-chip">No-Registration</span>
+                <span class="highlight-chip">Android + iOS</span>
+            </div>
+
+            <div class="cta-panel">
+                <h3>Download Preet Live Streaming Player</h3>
+                <p>Open your store and start streaming in minutes with smooth playback and powerful playlist support.</p>
+            </div>
+
             <div class="badge-container">
                 <!-- Google Play Badge -->
-                <a href="https://play.google.com/store/apps/details?id=com.arishtech.preetplayer" class="badge-btn">
+                <a id="playStoreBtn" href="https://play.google.com/store/apps/details?id=com.arishtech.preetplayer" class="badge-btn">
                     <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px; margin-right:14px;">
                         <defs>
                             <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00A0E4"/><stop offset="100%" stop-color="#00799E"/></linearGradient>
@@ -477,7 +676,7 @@
                 </a>
 
                 <!-- App Store Badge -->
-                <a href="https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571" class="badge-btn">
+                <a id="appStoreBtn" href="https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571" class="badge-btn">
                     <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="#FFFFFF" style="width:32px; height:32px; margin-right:14px;">
                         <path d="M333.2 32c-17.7 0-37 10.6-48.6 24.5-11.9 14.2-19.8 34.6-17.1 54.8 20.1 0 38.6-11.1 49.7-24.9 11.4-14.1 18.1-33.8 16-54.4z"/>
                         <path d="M381.9 227.3c-.5-51 41.5-75.7 43.4-76.9-23.9-35.1-61.1-39.8-74.4-40.4-31.7-3.2-62 18.7-78.1 18.7-16 0-41.5-18.4-67.9-17.9-34.6.5-66.5 20.2-84.3 51.1-36 62.5-9.2 154.9 25.9 205.5 17.2 24.8 37.6 52.5 64.3 51.5 25.7-1 35.5-16.6 66.6-16.6 30.9 0 40 16.6 66.8 16.1 26.9-1 45-25 62.1-49.9 19.8-28.9 27.9-56.9 28.4-58.4-.6-.3-54.7-21-55.2-82.8z"/>
