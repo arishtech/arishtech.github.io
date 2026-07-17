@@ -393,7 +393,7 @@ function logWarn(msg) {
 
 /** @param {string} line @param {"info"|"error"|"warn"} level */
 function enqueueReceiverLogForSender(line, level) {
-  if (!receiverLogToSenderEnabled) return;
+  if (!isReceiverLogToSenderEnabled()) return;
   const lv = level || "info";
   if (lv !== "error" && lv !== "warn") {
     const now = Date.now();
@@ -413,17 +413,42 @@ function enqueueReceiverLogForSender(line, level) {
 }
 
 function flushReceiverLogQueueToSender() {
-  if (!receiverLogToSenderEnabled || !receiverLogSenderQueue.length) return;
+  if (!isReceiverLogToSenderEnabled()) return;
+  if (!receiverLogSenderQueue.length) return;
   const batch = receiverLogSenderQueue.splice(0, 6);
   receiverLogSenderLastFlushAt = Date.now();
+  sendPreetCustomMessage({
+    type: "receiverLog",
+    lines: batch,
+    ts: Date.now(),
+  });
+}
+
+/** True when TV should mirror logs to the phone (Cast debug in LOAD customData or URL ?log=1). */
+function isReceiverLogToSenderEnabled() {
+  if (receiverLogToSenderEnabled) return true;
+  if (preetCastSession && senderWantsReceiverLogPanel(preetCastSession.customData)) return true;
+  return false;
+}
+
+/**
+ * Broadcast on the Preet custom namespace (CAF v3: namespace, senderId, payload).
+ * @param {Record<string, unknown>} payload
+ */
+function sendPreetCustomMessage(payload) {
   try {
-    context.sendCustomMessage(PREET_MSG_NS, {
-      type: "receiverLog",
-      lines: batch,
-      ts: Date.now(),
-    });
+    if (typeof context.sendCustomMessage !== "function") return;
+    try {
+      context.sendCustomMessage(PREET_MSG_NS, undefined, payload);
+      return;
+    } catch (_threeArg) {}
+    try {
+      context.sendCustomMessage(PREET_MSG_NS, payload);
+    } catch (e) {
+      console.warn("[receiver] sendCustomMessage failed: " + formatAnyError(e));
+    }
   } catch (e) {
-    console.warn("[receiver] receiverLog send failed: " + formatAnyError(e));
+    console.warn("[receiver] sendPreetCustomMessage failed: " + formatAnyError(e));
   }
 }
 
@@ -1838,7 +1863,7 @@ function broadcastPlaybackFailedToSender(detail, exhausted) {
       detail: detail ? String(detail).slice(0, CAST_FAILED_DETAIL_MAX) : "",
       engine: session ? session.engine : "",
     };
-    context.sendCustomMessage(PREET_MSG_NS, payload);
+    sendPreetCustomMessage(payload);
     log("Sent playbackFailed to sender (exhausted=" + (exhausted === true) + ")");
   } catch (e) {
     logWarn("broadcastPlaybackFailed: " + formatAnyError(e));
@@ -2517,6 +2542,9 @@ playerManager.setMessageInterceptor(cast.framework.messages.MessageType.LOAD, as
 
     const customData = loadRequestData.customData || {};
     syncReceiverLogPanelFromSources(customData, "LOAD");
+    if (isReceiverLogToSenderEnabled()) {
+      enqueueReceiverLogForSender("Cast debug: receiver → phone log forwarding active", "info");
+    }
     const sr = customData.streamRequest && typeof customData.streamRequest === "object" ? customData.streamRequest : null;
     const senderResolved = sr && sr.url ? String(sr.url).trim() : "";
     const urlToResolve = senderResolved || originalUrl;
@@ -2752,10 +2780,20 @@ try {
   }
 })();
 
-context.start({
-  disableIdleTimeout: true,
-  useShakaForHls: true,
-});
+(function startPreetCastReceiver() {
+  const options = {
+    disableIdleTimeout: true,
+    useShakaForHls: true,
+  };
+  try {
+    const MsgType = cast.framework.system.MessageType;
+    if (MsgType && MsgType.JSON != null) {
+      options.customNamespaces = {};
+      options.customNamespaces[PREET_MSG_NS] = MsgType.JSON;
+    }
+  } catch (_nsErr) {}
+  context.start(options);
+})();
 
 installPreetRemoteControlBridge();
 
