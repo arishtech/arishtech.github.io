@@ -2,7 +2,7 @@
   "version": 1,
   "updatedAt": "2026-03-26",
   "ads": {
-    "enabled": true,
+    "enabled": false,
     "bannerEnabled": true,
     "appOpenEnabled": true,
     "interstitialEnabled": true,
@@ -12,6 +12,8 @@
     "castRewardedUnlockEnabled": true,
     "castViewingBreakEnabled": true,
     "directFallbackEnabled": false,
+    "unityAdsEnabled": false,
+    "metaAdsEnabled": false,
     "interstitialIntervalMinutes": 6,
     "playerStartRewardedCooldownMinutes": 4,
     "castViewingBreakMinutes": 10,

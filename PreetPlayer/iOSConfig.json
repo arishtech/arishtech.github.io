@@ -12,6 +12,8 @@
     "castRewardedUnlockEnabled": true,
     "castViewingBreakEnabled": true,
     "directFallbackEnabled": false,
+    "unityAdsEnabled": false,
+    "metaAdsEnabled": false,
     "interstitialIntervalMinutes": 6,
     "playerStartRewardedCooldownMinutes": 4,
     "castViewingBreakMinutes": 10,
