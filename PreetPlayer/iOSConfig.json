@@ -23,6 +23,6 @@
     "cacheTtlMinutes": 60
   },
   "m3u": {
-    "popupDefaultUrl": "https://www.arishtech.com/iPlaylist.m3u"
+    "popupDefaultUrl": "https://www.arishtech.com/iPlay.m3u"
   }
 }
