@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updatedAt": "2026-03-26",
+  "ads": {
+    "enabled": false,
+    "bannerEnabled": true,
+    "appOpenEnabled": true,
+    "interstitialEnabled": true,
+    "playerStartRewardedEnabled": true,
+    "m3uRewardedEnabled": true,
+    "channelSwitchRewardedEnabled": true,
+    "castRewardedUnlockEnabled": true,
+    "castViewingBreakEnabled": true,
+    "directFallbackEnabled": false,
+    "interstitialIntervalMinutes": 6,
+    "playerStartRewardedCooldownMinutes": 4,
+    "castViewingBreakMinutes": 10,
+    "newUserGraceHours": 24
+  },
+  "fetch": {
+    "cacheTtlMinutes": 60
+  },
+  "m3u": {
+    "popupDefaultUrl": "https://www.arishtech.com/iPlaylist.m3u"
+  }
+}
