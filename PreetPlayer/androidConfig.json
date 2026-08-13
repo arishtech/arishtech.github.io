@@ -2,7 +2,7 @@
   "version": 1,
   "updatedAt": "2026-03-26",
   "ads": {
-    "enabled": false,
+    "enabled": true,
     "bannerEnabled": true,
     "appOpenEnabled": true,
     "interstitialEnabled": true,
