@@ -1,8 +1,9 @@
 {
   "version": 1,
-  "updatedAt": "2026-03-26",
+  "updatedAt": "2026-08-31",
   "ads": {
     "enabled": false,
+    "googleAdsEnabled": false,
     "bannerEnabled": true,
     "appOpenEnabled": true,
     "interstitialEnabled": true,
@@ -11,7 +12,7 @@
     "channelSwitchRewardedEnabled": true,
     "castRewardedUnlockEnabled": true,
     "castViewingBreakEnabled": true,
-    "directFallbackEnabled": false,
+    "directFallbackEnabled": true,
     "unityAdsEnabled": true,
     "metaAdsEnabled": true,
     "interstitialIntervalMinutes": 6,
