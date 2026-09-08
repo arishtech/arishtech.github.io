@@ -22,5 +22,22 @@
   },
   "fetch": {
     "cacheTtlMinutes": 60
+  },
+  "m3u": {
+    "popupDefaultUrl": "https://www.arishtech.com/iPlaylist.m3u"
+  },
+  "validation": {
+    "m3u": {
+      "requireHttps": false,
+      "allowHttpWithWarning": true,
+      "allowedSchemes": ["https", "http"]
+    },
+    "limits": {
+      "interstitialIntervalMinutes": { "min": 1, "max": 60 },
+      "playerStartRewardedCooldownMinutes": { "min": 0, "max": 120 },
+      "castViewingBreakMinutes": { "min": 1, "max": 120 },
+      "newUserGraceHours": { "min": 0, "max": 168 },
+      "cacheTtlMinutes": { "min": 5, "max": 1440 }
+    }
   }
 }
