@@ -3,7 +3,7 @@
   "updatedAt": "2026-08-31",
   "ads": {
     "enabled": true,
-    "googleAdsEnabled": false,
+    "googleAdsEnabled": true,
     "bannerEnabled": true,
     "appOpenEnabled": true,
     "interstitialEnabled": true,
