@@ -2,8 +2,8 @@
   "version": 1,
   "updatedAt": "2026-08-31",
   "ads": {
-    "enabled": true,
-    "googleAdsEnabled": true,
+    "enabled": false,
+    "googleAdsEnabled": false,
     "bannerEnabled": true,
     "appOpenEnabled": true,
     "interstitialEnabled": true,
