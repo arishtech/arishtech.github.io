@@ -1,13 +1,13 @@
 {
   "version": 1,
-  "updatedAt": "2026-08-31",
+  "updatedAt": "2026-09-22",
   "ads": {
     "enabled": true,
     "googleAdsEnabled": true,
     "bannerEnabled": true,
-    "appOpenEnabled": false,
+    "appOpenEnabled": true,
     "interstitialEnabled": true,
-    "playerStartRewardedEnabled": false,
+    "playerStartRewardedEnabled": true,
     "m3uRewardedEnabled": true,
     "channelSwitchRewardedEnabled": true,
     "castRewardedUnlockEnabled": true,
