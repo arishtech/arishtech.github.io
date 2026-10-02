@@ -8,7 +8,7 @@
     "appOpenEnabled": true,
     "interstitialEnabled": true,
     "playerStartRewardedEnabled": true,
-    "m3uRewardedEnabled": true,
+    "m3uRewardedEnabled": false,
     "channelSwitchRewardedEnabled": true,
     "castRewardedUnlockEnabled": true,
     "castViewingBreakEnabled": true,
