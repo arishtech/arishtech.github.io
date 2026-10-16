@@ -61,13 +61,15 @@ CONFIG_URLS = [
     "https://www.apsattv.com/vizio.m3u",
     "https://www.apsattv.com/distro.m3u",
     "https://www.apsattv.com/inlg.m3u",
-    "https://www.apsattv.com/xiaomi.m3u"
+    "https://www.apsattv.com/xiaomi.m3u",
+    "https://raw.githubusercontent.com/iptv-org/iptv/refs/heads/master/streams/in.m3u"
 ]
 
 SKIP_ITEM_VALIDATION_PLAYLISTS = {
     "http://tata.somee.com/",
     "http://dish.somee.com/",
     "http://airtel.somee.com/",
+    "https://raw.githubusercontent.com/iptv-org/iptv/refs/heads/master/streams/in.m3u"
 }
 
 SOURCE_SUFFIX_PLAYLISTS = set(SKIP_ITEM_VALIDATION_PLAYLISTS)
