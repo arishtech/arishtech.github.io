@@ -92,7 +92,7 @@
       appStoreButton.style.display = "inline-flex";
     }
 
-		function performRedirect() {
+    function performRedirect() {
       const ua = (
         navigator.userAgent ||
         navigator.vendor ||
@@ -129,7 +129,9 @@
 			}
 		}
 
-    window.addEventListener("load", performRedirect);
+    window.addEventListener("load", () => {
+    	setTimeout(performRedirect, 3000);
+    });
     window.addEventListener("DOMContentLoaded", updateStoreButtonsVisibility);
 
 	})();
@@ -647,13 +649,7 @@
                 <span class="highlight-chip">No-Registration</span>
                 <span class="highlight-chip">Android + iOS</span>
             </div>
-
-            <div class="cta-panel">
-                <h3>Download Preet Live Streaming Player</h3>
-                <p>Open your store and start streaming in minutes with smooth playback and powerful playlist support.</p>
-            </div>
-
-            <div class="badge-container">
+	    <div class="badge-container">
                 <!-- Google Play Badge -->
                 <a id="playStoreBtn" href="https://play.google.com/store/apps/details?id=com.arishtech.preetplayer" class="badge-btn">
                     <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px; margin-right:14px;">
@@ -685,6 +681,10 @@
                         <span class="big-txt">App Store</span>
                     </div>
                 </a>
+            </div>
+            <div class="cta-panel">
+                <h3>Download Preet Live Streaming Player</h3>
+                <p>Open your store and start streaming in minutes with smooth playback and powerful playlist support.</p>
             </div>
         </header>
 
