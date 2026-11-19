@@ -31,6 +31,53 @@
   f.parentNode.insertBefore(j, f);
 })(window, document, 'script', 'dataLayer', 'GTM-M3NXF2L5');
 </script>
+<!-- 1. Google Tag (replace AW-XXXXXXXXXX with your Google Ads Tag ID) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18205761983"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'AW-18205761983');
+
+  // 2. Track Outbound Store Clicks & Highlight User's Mobile OS
+  document.addEventListener('DOMContentLoaded', function () {
+    const ua = navigator.userAgent || navigator.vendor || window.opera;
+    const isAndroid = /android/i.test(ua);
+    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
+
+    const playLink = document.querySelector('a[href*="play.google.com/store/apps/details?id=com.arishtech.preetplayer"]');
+    const iosLink = document.querySelector('a[href*="apps.apple.com"][href*="6776121571"]');
+
+    // Visually prioritize the relevant mobile store button
+    if (isAndroid && iosLink) {
+      iosLink.style.opacity = '0.65';
+    } else if (isIOS && playLink && iosLink) {
+      playLink.style.opacity = '0.65';
+      iosLink.parentNode.insertBefore(iosLink, playLink); // Move App Store button first on iOS
+    }
+
+    // Fire Google Ads conversion event on outbound store click
+    function trackStoreClick(storePlatform, destinationUrl) {
+      gtag('event', 'conversion', {
+        'send_to': 'AW-18205761983/YCeJCJ30nrsdEL_Dl-lD', // Replace CONVERSION_LABEL from Step 2
+        'event_category': 'outbound_click',
+        'event_label': storePlatform,
+        'transport_type': 'beacon'
+      });
+    }
+
+    if (playLink) {
+      playLink.addEventListener('click', function () {
+        trackStoreClick('google_play', playLink.href);
+      });
+    }
+    if (iosLink) {
+      iosLink.addEventListener('click', function () {
+        trackStoreClick('app_store', iosLink.href);
+      });
+    }
+  });
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Preet Live Streaming Player - Free Live TV App</title>
@@ -125,12 +172,12 @@
 				// small delay improves compatibility
 				setTimeout(() => {
 					window.location.href = targetUrl;
-				}, 900);
+				}, 300);
 			}
 		}
 
     window.addEventListener("load", () => {
-    	//setTimeout(performRedirect, 3000);
+    	setTimeout(performRedirect, 3000);
     });
     window.addEventListener("DOMContentLoaded", updateStoreButtonsVisibility);
 
@@ -634,16 +681,16 @@
             <div class="logo-wrapper">
                 <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
             </div>
-            <h1>The Ultimate <span>FREE Live TV App</span></h1>
+            <h1>Fast, Zero-Lag <span>IPTV Player App</span></h1>
             
             <!-- New Premium Sub-header/Banner -->
             <div class="top-announcement">
-                📺 Watch TV Anytime, Anywhere with over 10,000 global channels for FREE!
+                📺 Stream your personal playlists and network broadcasts seamlessly on Android & iOS.
             </div>
 			<p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
 
             <div class="quick-highlights">
-                <span class="highlight-chip">10,000+ Global Channels</span>
+                <span class="highlight-chip">Supports M3U8, HLS & Xtream Playlists</span>
                 <span class="highlight-chip">Zero-Lag Streaming</span>
                 <span class="highlight-chip">No-Login</span>
                 <span class="highlight-chip">No-Registration</span>
@@ -784,7 +831,7 @@
         </section>
 
         <footer>
-            <p>&copy; 2026 Arish Technology. Preet Player is an agnostic utility platform designed strictly to play media assets. We explicitly do not provide, lease, or host any digital content streams.</p>
+            <p>&copy; 2026 Arish Technology. Preet Live Streaming Player is an agnostic utility platform designed strictly to play user-provided media assets and does not host or provide content streams.</p>
         </footer>
     </div>
 </body>
