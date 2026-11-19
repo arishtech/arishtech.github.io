@@ -1,838 +1,747 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Google tag (gtag.js) -->
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18205761983"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){ dataLayer.push(arguments); }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Preet Live Streaming Player - Fast HLS & M3U8 Media Player</title>
+  <link rel="canonical" href="https://www.arishtech.com/PreetPlayer.html">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
-  gtag('js', new Date());
+  <!-- Google Tag Manager -->
+  <script>
+  (function(w,d,s,l,i){
+    w[l]=w[l]||[];
+    w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
+    var f=d.getElementsByTagName(s)[0],
+        j=d.createElement(s),
+        dl=l!='dataLayer' ? '&l='+l : '';
+    j.async = true;
+    j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
+    f.parentNode.insertBefore(j, f);
+  })(window, document, 'script', 'dataLayer', 'GTM-M3NXF2L5');
+  </script>
 
-  const GOOGLE_TAG_IDS = [
-    'AW-18205761983',
-    'G-N2G4XC4TP1',
-    'G-H8QDZHSHD9'
-  ];
+  <!-- Single Google tag (gtag.js) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=AW-18205761983"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){ dataLayer.push(arguments); }
+    gtag('js', new Date());
 
-  GOOGLE_TAG_IDS.forEach(id => gtag('config', id));
-</script>
-<!-- Google Tag Manager -->
-<script>
-(function(w,d,s,l,i){
-  w[l]=w[l]||[];
-  w[l].push({'gtm.start': new Date().getTime(), event:'gtm.js'});
-  var f=d.getElementsByTagName(s)[0],
-      j=d.createElement(s),
-      dl=l!='dataLayer' ? '&l='+l : '';
-  j.async = true;
-  j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl;
-  f.parentNode.insertBefore(j, f);
-})(window, document, 'script', 'dataLayer', 'GTM-M3NXF2L5');
-</script>
-<!-- 1. Google Tag (replace AW-XXXXXXXXXX with your Google Ads Tag ID) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=AW-18205761983"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'AW-18205761983');
-
-  // 2. Track Outbound Store Clicks & Highlight User's Mobile OS
-  document.addEventListener('DOMContentLoaded', function () {
-    const ua = navigator.userAgent || navigator.vendor || window.opera;
-    const isAndroid = /android/i.test(ua);
-    const isIOS = /iPad|iPhone|iPod/.test(ua) && !window.MSStream;
-
-    const playLink = document.querySelector('a[href*="play.google.com/store/apps/details?id=com.arishtech.preetplayer"]');
-    const iosLink = document.querySelector('a[href*="apps.apple.com"][href*="6776121571"]');
-
-    // Visually prioritize the relevant mobile store button
-    if (isAndroid && iosLink) {
-      iosLink.style.opacity = '0.65';
-    } else if (isIOS && playLink && iosLink) {
-      playLink.style.opacity = '0.65';
-      iosLink.parentNode.insertBefore(iosLink, playLink); // Move App Store button first on iOS
-    }
-
-    // Fire Google Ads conversion event on outbound store click
-    function trackStoreClick(storePlatform, destinationUrl) {
-      gtag('event', 'conversion', {
-        'send_to': 'AW-18205761983/YCeJCJ30nrsdEL_Dl-lD', // Replace CONVERSION_LABEL from Step 2
-        'event_category': 'outbound_click',
-        'event_label': storePlatform,
-        'transport_type': 'beacon'
-      });
-    }
-
-    if (playLink) {
-      playLink.addEventListener('click', function () {
-        trackStoreClick('google_play', playLink.href);
-      });
-    }
-    if (iosLink) {
-      iosLink.addEventListener('click', function () {
-        trackStoreClick('app_store', iosLink.href);
-      });
-    }
-  });
-</script>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Preet Live Streaming Player - Free Live TV App</title>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <script>
-	(function () {
-
-		const playStoreUrl = "https://play.google.com/store/apps/details?id=com.arishtech.preetplayer";
-		const appStoreUrl = "https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571";
-
-    function getPlatformType() {
-      const ua = (
-        navigator.userAgent ||
-        navigator.vendor ||
-        window.opera ||
-        ""
-      ).toLowerCase();
-
-      if (ua.includes("android")) {
-        return "android";
-      }
-
-      if (
-        ua.includes("iphone") ||
-        ua.includes("ipad") ||
-        ua.includes("ipod") ||
-        (ua.includes("macintosh") && navigator.maxTouchPoints > 1)
-      ) {
-        return "ios";
-      }
-
-      return "other";
-    }
-
-    function updateStoreButtonsVisibility() {
-      const playStoreButton = document.getElementById("playStoreBtn");
-      const appStoreButton = document.getElementById("appStoreBtn");
-
-      if (!playStoreButton || !appStoreButton) {
-        return;
-      }
-
-      const platformType = getPlatformType();
-
-      if (platformType === "android") {
-        appStoreButton.style.display = "none";
-        playStoreButton.style.display = "inline-flex";
-        return;
-      }
-
-      if (platformType === "ios") {
-        playStoreButton.style.display = "none";
-        appStoreButton.style.display = "inline-flex";
-        return;
-      }
-
-      playStoreButton.style.display = "inline-flex";
-      appStoreButton.style.display = "inline-flex";
-    }
-
-    function performRedirect() {
-      const ua = (
-        navigator.userAgent ||
-        navigator.vendor ||
-        window.opera ||
-        ""
-      ).toLowerCase();
-
-			let targetUrl = null;
-
-			if (ua.includes("android")) {
-				targetUrl = playStoreUrl;
-			}
-			else if (
-				ua.includes("iphone") ||
-				ua.includes("ipad") ||
-				ua.includes("ipod") ||
-				(ua.includes("macintosh") && navigator.maxTouchPoints > 1)
-			) {
-				targetUrl = appStoreUrl;
-			}
-
-			if (targetUrl) {
-
-				const notice = document.getElementById("mobileNotice");
-				if (notice) {
-					notice.style.display = "block";
-					notice.innerText = "Redirecting to store...";
-				}
-
-				// small delay improves compatibility
-				setTimeout(() => {
-					window.location.href = targetUrl;
-				}, 300);
-			}
-		}
-
-    window.addEventListener("load", () => {
-    	setTimeout(performRedirect, 3000);
+    ['AW-18205761983', 'G-N2G4XC4TP1', 'G-H8QDZHSHD9'].forEach(function(id) {
+      gtag('config', id);
     });
-    window.addEventListener("DOMContentLoaded", updateStoreButtonsVisibility);
 
-	})();
-	</script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const ua = (navigator.userAgent || navigator.vendor || window.opera || '').toLowerCase();
+      const isAndroid = ua.includes('android');
+      const isIOS = /iphone|ipad|ipod/.test(ua) || (ua.includes('macintosh') && navigator.maxTouchPoints > 1);
 
-    <style>
-        :root {
-            --bg-color: #030712;
-            --card-bg: rgba(30, 41, 59, 0.4);
-            --card-border: rgba(255, 255, 255, 0.08);
-            --accent-blue: #3b82f6;
-            --accent-cyan: #06b6d4;
-            --accent-violet: #8b5cf6;
-            --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
-            --hero-gradient: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0) 45%), radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0) 42%), linear-gradient(180deg, #030712 0%, #020617 100%);
-            --text-main: #f9fafb;
-            --text-muted: #f9fafb;
-            --glow-shadow: 0 20px 50px -25px rgba(59, 130, 246, 0.55);
+      const playBtn = document.getElementById('playStoreBtn');
+      const appStoreBtn = document.getElementById('appStoreBtn');
+
+      // Show relevant mobile store button on phones, both on desktop
+      if (playBtn && appStoreBtn) {
+        if (isAndroid) {
+          appStoreBtn.style.display = 'none';
+          playBtn.style.display = 'inline-flex';
+        } else if (isIOS) {
+          playBtn.style.display = 'none';
+          appStoreBtn.style.display = 'inline-flex';
+        } else {
+          playBtn.style.display = 'inline-flex';
+          appStoreBtn.style.display = 'inline-flex';
         }
+      }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+      // Track outbound store clicks for Google Ads conversion goal
+      function trackStoreClick(storePlatform) {
+        gtag('event', 'conversion', {
+          'send_to': 'AW-18205761983/YCeJCJ30nrsdEL_Dl-lD',
+          'value': 3.0,
+          'currency': 'INR',
+          'event_category': 'outbound_click',
+          'event_label': storePlatform,
+          'transport_type': 'beacon'
+        });
+      }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: var(--hero-gradient);
-            color: var(--text-main);
-            line-height: 1.6;
-            overflow-x: hidden;
-            position: relative;
-        }
+      if (playBtn) {
+        playBtn.addEventListener('click', function () {
+          trackStoreClick('google_play');
+        });
+      }
+      if (appStoreBtn) {
+        appStoreBtn.addEventListener('click', function () {
+          trackStoreClick('app_store');
+        });
+      }
+    });
+  </script>
 
-        body::before {
-            content: '';
-            position: absolute;
-            top: -200px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 800px;
-            height: 600px;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 100%);
-            z-index: -1;
-            pointer-events: none;
-            animation: pulseGlow 8s ease-in-out infinite;
-        }
+  <style>
+    :root {
+      --bg-color: #030712;
+      --card-bg: rgba(30, 41, 59, 0.4);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --accent-blue: #3b82f6;
+      --accent-cyan: #06b6d4;
+      --accent-violet: #8b5cf6;
+      --accent-gradient: linear-gradient(135deg, #3b82f6 0%, #06b6d4 100%);
+      --hero-gradient: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.32) 0%, rgba(59, 130, 246, 0) 45%), radial-gradient(circle at 80% 0%, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0) 42%), linear-gradient(180deg, #030712 0%, #020617 100%);
+      --text-main: #f9fafb;
+      --text-muted: #f9fafb;
+      --glow-shadow: 0 20px 50px -25px rgba(59, 130, 246, 0.55);
+    }
 
-        body::after {
-            content: '';
-            position: absolute;
-            right: -120px;
-            top: 280px;
-            width: 420px;
-            height: 420px;
-            background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0) 68%);
-            filter: blur(12px);
-            z-index: -1;
-            pointer-events: none;
-        }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--hero-gradient);
+      color: var(--text-main);
+      line-height: 1.6;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-        .redirect-notice {
-            display: none;
-            background: linear-gradient(90deg, rgba(59, 130, 246, 0.15), rgba(6, 182, 212, 0.15));
-            border: 1px solid rgba(59, 130, 246, 0.3);
-            padding: 16px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 40px;
-            font-weight: 600;
-            color: #60a5fa;
-            backdrop-filter: blur(8px);
-        }
+    body::before {
+      content: '';
+      position: absolute;
+      top: -200px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 800px;
+      height: 600px;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.15) 0%, rgba(6, 182, 212, 0.05) 50%, transparent 100%);
+      z-index: -1;
+      pointer-events: none;
+      animation: pulseGlow 8s ease-in-out infinite;
+    }
 
-        header {
-            text-align: center;
-            padding: 22px 20px 20px 20px;
-            position: relative;
-        }
+    body::after {
+      content: '';
+      position: absolute;
+      right: -120px;
+      top: 280px;
+      width: 420px;
+      height: 420px;
+      background: radial-gradient(circle, rgba(139, 92, 246, 0.2) 0%, rgba(139, 92, 246, 0) 68%);
+      filter: blur(12px);
+      z-index: -1;
+      pointer-events: none;
+    }
 
-        /* Top Announcement Badge Style */
-        .top-announcement {
-            display: inline-block;
-            background: rgba(59, 130, 246, 0.1);
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            padding: 8px 20px;
-            border-radius: 30px;
-            font-size: 0.95rem;
-            font-weight: 600;
-            color: #60a5fa;
-            letter-spacing: 0.02em;
-            margin-bottom: 18px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-            backdrop-filter: blur(10px);
-        }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
 
-        .quick-highlights {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 0 0 14px;
-        }
+    header {
+      text-align: center;
+      padding: 22px 20px 20px 20px;
+      position: relative;
+    }
 
-        .highlight-chip {
-            padding: 7px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(148, 163, 184, 0.35);
-            background: rgba(15, 23, 42, 0.75);
-            color: #cbd5e1;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
+    .top-announcement {
+      display: inline-block;
+      background: rgba(59, 130, 246, 0.1);
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      padding: 8px 20px;
+      border-radius: 30px;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #60a5fa;
+      letter-spacing: 0.02em;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      backdrop-filter: blur(10px);
+    }
 
-        .logo-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-bottom: 24px;
-        }
+    .quick-highlights {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 0 0 14px;
+    }
 
-        .logo-wrapper::after {
-            content: '';
-            position: absolute;
-            top: -6px; left: -6px; right: -6px; bottom: -6px;
-            background: var(--accent-gradient);
-            border-radius: 32px;
-            z-index: -1;
-            opacity: 0.7;
-            filter: blur(8px);
-        }
+    .highlight-chip {
+      padding: 7px 14px;
+      border-radius: 999px;
+      border: 1px solid rgba(148, 163, 184, 0.35);
+      background: rgba(15, 23, 42, 0.75);
+      color: #cbd5e1;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
 
-        .app-logo {
-            width: 120px;
-            height: 120px;
-            border-radius: 28px;
-            background-color: #111827;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            object-fit: cover;
-            display: block;
-        }
+    .logo-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-bottom: 24px;
+    }
 
-        header h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.2;
-            letter-spacing: -0.04em;
-            margin-bottom: 16px;
-            color: #ffffff;
-        }
+    .logo-wrapper::after {
+      content: '';
+      position: absolute;
+      top: -6px;
+      left: -6px;
+      right: -6px;
+      bottom: -6px;
+      background: var(--accent-gradient);
+      border-radius: 32px;
+      z-index: -1;
+      opacity: 0.7;
+      filter: blur(8px);
+    }
 
-        header h1 span {
-            background: var(--accent-gradient);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
+    .app-logo {
+      width: 120px;
+      height: 120px;
+      border-radius: 28px;
+      background-color: #111827;
+      border: 2px solid rgba(255, 255, 255, 0.1);
+      object-fit: cover;
+      display: block;
+    }
 
-        header p.tagline {
-            color: var(--text-muted);
-            font-size: 1.3rem;
-            max-width: 700px;
-            margin: 0 auto 20px auto;
-            font-weight: 400;
-        }
+    header h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      line-height: 1.2;
+      letter-spacing: -0.04em;
+      margin-bottom: 16px;
+      color: #ffffff;
+    }
 
-        .badge-container {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-        }
+    header h1 span {
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
 
-        .badge-btn {
-            display: inline-flex;
-            align-items: center;
-            position: relative;
-            overflow: hidden;
-            background: rgba(17, 24, 39, 0.8);
-            border: 1px solid var(--card-border);
-            padding: 14px 28px;
-            border-radius: 14px;
-            text-decoration: none;
-            color: #fff;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    header p.tagline {
+      color: var(--text-muted);
+      font-size: 1.3rem;
+      max-width: 700px;
+      margin: 0 auto 20px auto;
+      font-weight: 400;
+    }
 
-        .badge-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -140%;
-            width: 120%;
-            height: 100%;
-            background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
-            transition: left 0.6s ease;
-        }
+    .badge-container {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
 
-        .badge-btn:hover {
-            transform: translateY(-4px);
-            border-color: #3b82f6;
-            box-shadow: var(--glow-shadow);
-            background: rgba(17, 24, 39, 0.95);
-        }
+    .badge-btn {
+      display: inline-flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      background: rgba(17, 24, 39, 0.8);
+      border: 1px solid var(--card-border);
+      padding: 14px 28px;
+      border-radius: 14px;
+      text-decoration: none;
+      color: #fff;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      backdrop-filter: blur(10px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .badge-btn:hover::before {
-            left: 120%;
-        }
+    .badge-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -140%;
+      width: 120%;
+      height: 100%;
+      background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.22) 50%, transparent 70%);
+      transition: left 0.6s ease;
+    }
 
-        .badge-text {
-            text-align: left;
-        }
+    .badge-btn:hover {
+      transform: translateY(-4px);
+      border-color: #3b82f6;
+      box-shadow: var(--glow-shadow);
+      background: rgba(17, 24, 39, 0.95);
+    }
 
-        .badge-text .small-txt {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            display: block;
-            color: #9ca3af;
-            letter-spacing: 0.05em;
-        }
+    .badge-btn:hover::before {
+      left: 120%;
+    }
 
-        .badge-text .big-txt {
-            font-size: 1.2rem;
-            font-weight: 700;
-            display: block;
-            letter-spacing: -0.02em;
-        }
+    .badge-text {
+      text-align: left;
+    }
 
-        .cta-panel {
-            max-width: 720px;
-            margin: 0 auto 18px;
-            padding: 20px 24px;
-            border: 1px solid rgba(59, 130, 246, 0.35);
-            background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(139, 92, 246, 0.12));
-            border-radius: 16px;
-            text-align: center;
-            box-shadow: 0 15px 40px -25px rgba(59, 130, 246, 0.65);
-            backdrop-filter: blur(10px);
-        }
+    .badge-text .small-txt {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      display: block;
+      color: #9ca3af;
+      letter-spacing: 0.05em;
+    }
 
-        .cta-panel h3 {
-            font-size: 1.1rem;
-            margin-bottom: 6px;
-            font-weight: 700;
-        }
+    .badge-text .big-txt {
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: block;
+      letter-spacing: -0.02em;
+    }
 
-        .cta-panel p {
-            color: #dbeafe;
-            font-size: 0.95rem;
-            margin: 0;
-        }
+    .cta-panel {
+      max-width: 720px;
+      margin: 0 auto 18px;
+      padding: 20px 24px;
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.14), rgba(139, 92, 246, 0.12));
+      border-radius: 16px;
+      text-align: center;
+      box-shadow: 0 15px 40px -25px rgba(59, 130, 246, 0.65);
+      backdrop-filter: blur(10px);
+    }
 
-        section.features-section {
-            margin-top: 22px;
-        }
+    .cta-panel h3 {
+      font-size: 1.1rem;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
 
-        .section-title {
-            text-align: center;
-            font-size: 2.2rem;
-            font-weight: 700;
-            margin-bottom: 40px;
-            letter-spacing: -0.03em;
-        }
+    .cta-panel p {
+      color: #dbeafe;
+      font-size: 0.95rem;
+      margin: 0;
+    }
 
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 24px;
-        }
+    section.features-section {
+      margin-top: 22px;
+    }
 
-        .feature-card {
-            background: var(--card-bg);
-            border: 1px solid var(--card-border);
-            padding: 35px;
-            border-radius: 20px;
-            backdrop-filter: blur(12px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    .section-title {
+      text-align: center;
+      font-size: 2.2rem;
+      font-weight: 700;
+      margin-bottom: 40px;
+      letter-spacing: -0.03em;
+    }
 
-        .feature-card:hover {
-            transform: translateY(-6px);
-            border-color: rgba(6, 182, 212, 0.3);
-            background: rgba(30, 41, 59, 0.6);
-            box-shadow: 0 20px 40px -15px rgba(0,0,0,0.5);
-        }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 24px;
+    }
 
-        .feature-icon-wrapper {
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            background: rgba(59, 130, 246, 0.1);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            margin-bottom: 24px;
-            border: 1px solid rgba(59, 130, 246, 0.2);
-            color: #60a5fa;
-        }
+    .feature-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      padding: 35px;
+      border-radius: 20px;
+      backdrop-filter: blur(12px);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        .feature-card h3 {
-            font-size: 1.4rem;
-            margin-bottom: 12px;
-            font-weight: 700;
-            color: #ffffff;
-        }
+    .feature-card:hover {
+      transform: translateY(-6px);
+      border-color: rgba(6, 182, 212, 0.3);
+      background: rgba(30, 41, 59, 0.6);
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+    }
 
-        .feature-card p {
-            color: var(--text-muted);
-            font-size: 1rem;
-            line-height: 1.6;
-        }
+    .feature-icon-wrapper {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      background: rgba(59, 130, 246, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      margin-bottom: 24px;
+      border: 1px solid rgba(59, 130, 246, 0.2);
+      color: #60a5fa;
+    }
 
-        .screenshot-section {
-            margin-top: 6px;
-        }
+    .feature-card h3 {
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      font-weight: 700;
+      color: #ffffff;
+    }
 
-        .screenshot-section h2 {
-            text-align: center;
-            margin-bottom: 16px;
-            font-size: 2rem;
-            letter-spacing: -0.02em;
-        }
+    .feature-card p {
+      color: var(--text-muted);
+      font-size: 1rem;
+      line-height: 1.6;
+    }
 
-        .screenshot-gallery {
-            display: flex;
-            gap: 24px;
-            overflow-x: auto;
-            padding: 20px 0;
-            scroll-behavior: smooth;
-        }
+    .screenshot-section {
+      margin-top: 6px;
+    }
 
-        .screenshot-gallery::-webkit-scrollbar {
-            height: 8px;
-        }
-        .screenshot-gallery::-webkit-scrollbar-track {
-            background: #0b0f19;
-            border-radius: 10px;
-        }
-        .screenshot-gallery::-webkit-scrollbar-thumb {
-            background: #1f2937;
-            border-radius: 10px;
-        }
-        .screenshot-gallery::-webkit-scrollbar-thumb:hover {
-            background: #3b82f6;
-        }
+    .screenshot-section h2 {
+      text-align: center;
+      margin-bottom: 16px;
+      font-size: 2rem;
+      letter-spacing: -0.02em;
+    }
 
-        .screenshot-item {
-            flex: 0 0 auto;
-            width: 280px;
-            background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
-            border: 4px solid #1f2937;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
-            transition: all 0.3s;
-        }
+    .screenshot-gallery {
+      display: flex;
+      gap: 24px;
+      overflow-x: auto;
+      padding: 20px 0;
+      scroll-behavior: smooth;
+    }
 
-        .screenshot-item:hover {
-            transform: scale(1.02) translateY(-4px);
-            border-color: #3b82f6;
-            box-shadow: var(--glow-shadow);
-        }
+    .screenshot-gallery::-webkit-scrollbar {
+      height: 8px;
+    }
 
-        .screenshot-item img {
-            width: 100%;
-            height: auto;
-            display: block;
-        }
+    .screenshot-gallery::-webkit-scrollbar-track {
+      background: #0b0f19;
+      border-radius: 10px;
+    }
 
-        .tech-section {
-            margin-top: 80px;
-            background: linear-gradient(180deg, #111827 0%, #030712 100%);
-            border: 1px solid var(--card-border);
-            border-radius: 24px;
-            padding: 50px 40px;
-            position: relative;
-        }
+    .screenshot-gallery::-webkit-scrollbar-thumb {
+      background: #1f2937;
+      border-radius: 10px;
+    }
 
-        .tech-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 30px;
-            margin-top: 40px;
-        }
+    .screenshot-gallery::-webkit-scrollbar-thumb:hover {
+      background: #3b82f6;
+    }
 
-        .tech-item {
-            display: flex;
-            align-items: flex-start;
-            gap: 14px;
-        }
+    .screenshot-item {
+      flex: 0 0 auto;
+      width: 280px;
+      background: linear-gradient(180deg, #111827 0%, #0b1220 100%);
+      border: 4px solid #1f2937;
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+      transition: all 0.3s;
+    }
 
-        .tech-item .check-icon {
-            color: #10b981;
-            font-size: 1.2rem;
-            background: rgba(16, 185, 129, 0.1);
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
+    .screenshot-item:hover {
+      transform: scale(1.02) translateY(-4px);
+      border-color: #3b82f6;
+      box-shadow: var(--glow-shadow);
+    }
 
-        .tech-item p strong {
-            color: #ffffff;
-            display: block;
-            margin-bottom: 4px;
-        }
+    .screenshot-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
 
-        .tech-item p {
-            color: var(--text-muted);
-            font-size: 0.95rem;
-        }
+    .tech-section {
+      margin-top: 80px;
+      background: linear-gradient(180deg, #111827 0%, #030712 100%);
+      border: 1px solid var(--card-border);
+      border-radius: 24px;
+      padding: 50px 40px;
+      position: relative;
+    }
 
-        footer {
-            text-align: center;
-            margin-top: 100px;
-            padding: 40px 20px;
-            border-top: 1px solid #111827;
-            color: #6b7280;
-            font-size: 0.9rem;
-        }
+    .tech-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 30px;
+      margin-top: 40px;
+    }
 
-        @keyframes pulseGlow {
-            0%,
-            100% { opacity: 0.9; transform: translateX(-50%) scale(1); }
-            50% { opacity: 0.6; transform: translateX(-50%) scale(1.08); }
-        }
+    .tech-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+    }
 
-        @media (max-width: 768px) {
-            .container {
-                max-width: 100%;
-                padding: 12px;
-            }
+    .tech-item .check-icon {
+      color: #10b981;
+      font-size: 1.2rem;
+      background: rgba(16, 185, 129, 0.1);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
 
-            header {
-                padding-left: 10px;
-                padding-right: 10px;
-            }
+    .tech-item p strong {
+      color: #ffffff;
+      display: block;
+      margin-bottom: 4px;
+    }
 
-            header h1 { font-size: 2.4rem; }
-            header p.tagline { font-size: 1.1rem; }
-            .tech-section { padding: 30px 20px; }
-            .top-announcement { font-size: 0.85rem; padding: 6px 16px; }
-            .quick-highlights { margin-top: 0; }
-            .cta-panel { padding: 16px; }
+    .tech-item p {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
 
-            .badge-container {
-                gap: 12px;
-            }
+    footer {
+      text-align: center;
+      margin-top: 100px;
+      padding: 40px 20px;
+      border-top: 1px solid #111827;
+      color: #6b7280;
+      font-size: 0.9rem;
+    }
 
-            .badge-btn {
-                width: min(100%, 420px);
-                justify-content: center;
-            }
+    @keyframes pulseGlow {
+      0%,
+      100% {
+        opacity: 0.9;
+        transform: translateX(-50%) scale(1);
+      }
+      50% {
+        opacity: 0.6;
+        transform: translateX(-50%) scale(1.08);
+      }
+    }
 
-            .feature-card {
-                padding: 24px;
-            }
+    @media (max-width: 768px) {
+      .container {
+        max-width: 100%;
+        padding: 12px;
+      }
 
-            .screenshot-gallery {
-                margin: 0 -6px;
-                padding: 16px 6px;
-            }
+      header {
+        padding-left: 10px;
+        padding-right: 10px;
+      }
 
-            .screenshot-item {
-                width: min(88vw, 340px);
-            }
-        }
+      header h1 {
+        font-size: 2.4rem;
+      }
 
-        @media (prefers-reduced-motion: reduce) {
-            body::before,
-            .badge-btn,
-            .feature-card,
-            .screenshot-item {
-                animation: none;
-                transition: none;
-            }
-        }
-    </style>
+      header p.tagline {
+        font-size: 1.1rem;
+      }
+
+      .tech-section {
+        padding: 30px 20px;
+      }
+
+      .top-announcement {
+        font-size: 0.85rem;
+        padding: 6px 16px;
+      }
+
+      .quick-highlights {
+        margin-top: 0;
+      }
+
+      .cta-panel {
+        padding: 16px;
+      }
+
+      .badge-container {
+        gap: 12px;
+      }
+
+      .badge-btn {
+        width: min(100%, 420px);
+        justify-content: center;
+      }
+
+      .feature-card {
+        padding: 24px;
+      }
+
+      .screenshot-gallery {
+        margin: 0 -6px;
+        padding: 16px 6px;
+      }
+
+      .screenshot-item {
+        width: min(88vw, 340px);
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before,
+      .badge-btn,
+      .feature-card,
+      .screenshot-item {
+        animation: none;
+        transition: none;
+      }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="container">
-        <!-- Managed dynamically by script safely -->
-        <div class="redirect-notice" id="mobileNotice"></div>
+  <div class="container">
+    <header>
+      <div class="logo-wrapper">
+        <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
+      </div>
+      <h1>Fast, Zero-Lag <span>M3U8 &amp; HLS Media Player</span></h1>
 
-        <header>            
-            <div class="logo-wrapper">
-                <img src="https://play-lh.googleusercontent.com/v9uJk8OwLNJu6ndrmK4QL1MtM3eQDNdutxdwZilUIYp7-R-9pm0TZh7DDeIDnCfz4OFLxMUXGdpvVxGJvOgUPdc=w480-h960-rw" alt="Preet Live Streaming Player Logo" class="app-logo">
-            </div>
-            <h1>Fast, Zero-Lag <span>IPTV Player App</span></h1>
-            
-            <!-- New Premium Sub-header/Banner -->
-            <div class="top-announcement">
-                📺 Stream your personal playlists and network broadcasts seamlessly on Android & iOS.
-            </div>
-			<p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
+      <div class="top-announcement">
+        📺 Stream your personal playlists and network broadcasts seamlessly on Android &amp; iOS.
+      </div>
+      <p class="tagline">Experience robust, zero-lag global playback. A high-performance media engine built seamlessly for lightning-fast HLS, M3U8, and network stream broadcasts.</p>
 
-            <div class="quick-highlights">
-                <span class="highlight-chip">Supports M3U8, HLS & Xtream Playlists</span>
-                <span class="highlight-chip">Zero-Lag Streaming</span>
-                <span class="highlight-chip">No-Login</span>
-                <span class="highlight-chip">No-Registration</span>
-                <span class="highlight-chip">Android + iOS</span>
-            </div>
-	    <div class="badge-container">
-                <!-- Google Play Badge -->
-                <a id="playStoreBtn" href="https://play.google.com/store/apps/details?id=com.arishtech.preetplayer" class="badge-btn">
-                    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px; margin-right:14px;">
-                        <defs>
-                            <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00A0E4"/><stop offset="100%" stop-color="#00799E"/></linearGradient>
-                            <linearGradient id="gR" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF3A44"/><stop offset="100%" stop-color="#E31A24"/></linearGradient>
-                            <linearGradient id="gY" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFC107"/><stop offset="100%" stop-color="#F4B400"/></linearGradient>
-                            <linearGradient id="gG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00E676"/><stop offset="100%" stop-color="#00C853"/></linearGradient>
-                        </defs>
-                        <path d="M52.12 26.17c-4.43 4.67-7 12.01-7 21.1v417.46c0 9.09 2.57 16.43 7 21.1l1.15 1.15L279.44 260.8V251.2L53.27 25.02l-1.15 1.15z" fill="url(#gB)"/>
-                        <path d="M355.22 336.63l-75.78-75.83v-9.6l75.82-75.83 1.19.69 89.69 51c25.6 14.5 25.6 38.33 0 52.87l-89.73 50.99-1.19.71z" fill="url(#gY)"/>
-                        <path d="M53.27 486.98l226.17-226.18 75.83 75.83-65.75 37.36-160.42 91.17c-8.48 4.81-17.43 3.63-23.63-1.63s-12.2-11.45-12.2-26.55z" fill="url(#gR)"/>
-                        <path d="M53.27 25.02c6.2-5.26 15.15-6.44 23.63-1.63l160.42 91.17 65.75 37.36-75.83 75.83L53.27 25.02z" fill="url(#gG)"/>
-                    </svg>
-                    <div class="badge-text">
-                        <span class="small-txt">Get it on</span>
-                        <span class="big-txt">Google Play</span>
-                    </div>
-                </a>
+      <div class="quick-highlights">
+        <span class="highlight-chip">Supports M3U8, HLS &amp; Network Streams</span>
+        <span class="highlight-chip">Zero-Lag Streaming</span>
+        <span class="highlight-chip">No-Login</span>
+        <span class="highlight-chip">No-Registration</span>
+        <span class="highlight-chip">Android + iOS</span>
+      </div>
 
-                <!-- App Store Badge -->
-                <a id="appStoreBtn" href="https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571" class="badge-btn">
-                    <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="#FFFFFF" style="width:32px; height:32px; margin-right:14px;">
-                        <path d="M333.2 32c-17.7 0-37 10.6-48.6 24.5-11.9 14.2-19.8 34.6-17.1 54.8 20.1 0 38.6-11.1 49.7-24.9 11.4-14.1 18.1-33.8 16-54.4z"/>
-                        <path d="M381.9 227.3c-.5-51 41.5-75.7 43.4-76.9-23.9-35.1-61.1-39.8-74.4-40.4-31.7-3.2-62 18.7-78.1 18.7-16 0-41.5-18.4-67.9-17.9-34.6.5-66.5 20.2-84.3 51.1-36 62.5-9.2 154.9 25.9 205.5 17.2 24.8 37.6 52.5 64.3 51.5 25.7-1 35.5-16.6 66.6-16.6 30.9 0 40 16.6 66.8 16.1 26.9-1 45-25 62.1-49.9 19.8-28.9 27.9-56.9 28.4-58.4-.6-.3-54.7-21-55.2-82.8z"/>
-                    </svg>
-                    <div class="badge-text">
-                        <span class="small-txt">Download on the</span>
-                        <span class="big-txt">App Store</span>
-                    </div>
-                </a>
-            </div>
-            <div class="cta-panel">
-                <h3>Download Preet Live Streaming Player</h3>
-                <p>Open your store and start streaming in minutes with smooth playback and powerful playlist support.</p>
-            </div>
-        </header>
+      <div class="badge-container">
+        <!-- Google Play Badge -->
+        <a id="playStoreBtn" href="https://play.google.com/store/apps/details?id=com.arishtech.preetplayer" class="badge-btn">
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" style="width:32px; height:32px; margin-right:14px;">
+            <defs>
+              <linearGradient id="gB" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00A0E4"/><stop offset="100%" stop-color="#00799E"/></linearGradient>
+              <linearGradient id="gR" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FF3A44"/><stop offset="100%" stop-color="#E31A24"/></linearGradient>
+              <linearGradient id="gY" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#FFC107"/><stop offset="100%" stop-color="#F4B400"/></linearGradient>
+              <linearGradient id="gG" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#00E676"/><stop offset="100%" stop-color="#00C853"/></linearGradient>
+            </defs>
+            <path d="M52.12 26.17c-4.43 4.67-7 12.01-7 21.1v417.46c0 9.09 2.57 16.43 7 21.1l1.15 1.15L279.44 260.8V251.2L53.27 25.02l-1.15 1.15z" fill="url(#gB)"/>
+            <path d="M355.22 336.63l-75.78-75.83v-9.6l75.82-75.83 1.19.69 89.69 51c25.6 14.5 25.6 38.33 0 52.87l-89.73 50.99-1.19.71z" fill="url(#gY)"/>
+            <path d="M53.27 486.98l226.17-226.18 75.83 75.83-65.75 37.36-160.42 91.17c-8.48 4.81-17.43 3.63-23.63-1.63s-12.2-11.45-12.2-26.55z" fill="url(#gR)"/>
+            <path d="M53.27 25.02c6.2-5.26 15.15-6.44 23.63-1.63l160.42 91.17 65.75 37.36-75.83 75.83L53.27 25.02z" fill="url(#gG)"/>
+          </svg>
+          <div class="badge-text">
+            <span class="small-txt">Get it on</span>
+            <span class="big-txt">Google Play</span>
+          </div>
+        </a>
 
-        <!-- Dynamic Screenshots Section -->
-        <section class="screenshot-section">
-            <h2>Android Screenshots</h2>
-            <div class="screenshot-gallery">
-                <!-- UPDATE THESE WITH YOUR REAL IMAGE LINKS -->
-                <div class="screenshot-item">
-                    <img src="https://play-lh.googleusercontent.com/3WPK2KehHOjbs38a9GmWUeSm26zwECb1JQMdQgb6xqAjv8fF2W-ARZMLSUK1JUuIjOwco-U-xddikPmAVmwF=w5120-h2880-rw" alt="Preet Player Main UI Interface">
-                </div>
-                <div class="screenshot-item">
-                    <img src="https://play-lh.googleusercontent.com/tS9ZR998o_aezgCraC6DrdWemjaSpZuvlqXOrpyZtrPBajLZux2bbKbK71aPlgvisAWY8FGNa2DUB-QX2icWNE8=w5120-h2880-rw" alt="Live Video Player Screen">
-                </div>
-                <div class="screenshot-item">
-                    <img src="https://play-lh.googleusercontent.com/QieHrBjd6XA0DBrub_3UvHAc7uTVz824CzIkfF2cymcl1M-VrtzRLOW5SxcxAgqOG7sdnSOzqHTpDSdQibOjGw=w5120-h2880-rw" alt="Favorites Management List">
-                </div>
-                <div class="screenshot-item">
-                    <img src="https://play-lh.googleusercontent.com/Zt0yuwFyPN65Oo8sJc5Xfb81v535-6Psn97qlBon9Jod5bhI3L0-fNaKjUaOnAOjh87qwF_UR4TW7k_sk3a13g=w5120-h2880-rw" alt="Dark Mode & Stream Settings Panel">
-                </div>
-            </div>
-        </section>
-		<section class="screenshot-section">
-            <h2>iOS Screenshots</h2>
-            <div class="screenshot-gallery">
-                <!-- UPDATE THESE WITH YOUR REAL IMAGE LINKS -->
-                <div class="screenshot-item">
-                    <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d0/7a/00/d07a00af-ae8c-e67a-1fc9-04cbce3c7f55/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-5.png/300x650bb.webp" alt="Preet Player Main UI Interface">
-                </div>
-                <div class="screenshot-item">
-                    <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/68/35/c8/6835c86e-9f58-7d45-7991-f4ffee46e8a6/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-4.png/300x650bb.webp" alt="Live Video Player Screen">
-                </div>
-                <div class="screenshot-item">
-                    <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d0/7b/94/d07b9490-f8cf-124d-4ca8-4b29ccffb32c/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-6.png/300x650bb.webp" alt="Favorites Management List">
-                </div>
-            </div>
-        </section>
+        <!-- App Store Badge -->
+        <a id="appStoreBtn" href="https://apps.apple.com/us/app/preet-live-streaming-player/id6776121571" class="badge-btn">
+          <svg viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill="#FFFFFF" style="width:32px; height:32px; margin-right:14px;">
+            <path d="M333.2 32c-17.7 0-37 10.6-48.6 24.5-11.9 14.2-19.8 34.6-17.1 54.8 20.1 0 38.6-11.1 49.7-24.9 11.4-14.1 18.1-33.8 16-54.4z"/>
+            <path d="M381.9 227.3c-.5-51 41.5-75.7 43.4-76.9-23.9-35.1-61.1-39.8-74.4-40.4-31.7-3.2-62 18.7-78.1 18.7-16 0-41.5-18.4-67.9-17.9-34.6.5-66.5 20.2-84.3 51.1-36 62.5-9.2 154.9 25.9 205.5 17.2 24.8 37.6 52.5 64.3 51.5 25.7-1 35.5-16.6 66.6-16.6 30.9 0 40 16.6 66.8 16.1 26.9-1 45-25 62.1-49.9 19.8-28.9 27.9-56.9 28.4-58.4-.6-.3-54.7-21-55.2-82.8z"/>
+          </svg>
+          <div class="badge-text">
+            <span class="small-txt">Download on the</span>
+            <span class="big-txt">App Store</span>
+          </div>
+        </a>
+      </div>
 
-        <!-- Features Grid -->
-        <section class="features-section">
-            <h2 class="section-title">Player Features</h2>
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">⚡</div>
-                    <h3>Instant Access Playback</h3>
-                    <p>No sign-ups, accounts, or email credentials needed. Fire up the player, map your server link or layout configuration, and enjoy direct content feeds instantly.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">🌐</div>
-                    <h3>Extensive Playlist Parsing</h3>
-                    <p>Robust structural parsing engine effortlessly indexing heavy, data-extensive playlists containing 9,000+ feeds without a single interface drop.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">⭐</div>
-                    <h3>Fast Favorites Deck</h3>
-                    <p>Organize, save, and sort your regular high-priority media nodes dynamically into a local Quick Access dashboard for instant loadouts.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">⚙️</div>
-                    <h3>Granular Quality Control</h3>
-                    <p>Toggle natively between continuous adaptive bitrate options or fix explicit track choices to match mobile cellular thresholds perfectly.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">📺</div>
-                    <h3>True Picture-In-Picture</h3>
-                    <p>Multitask gracefully with native background rendering support. Keep your favorite live broadcast floating seamlessly above separate workspaces.</p>
-                </div>
-                <div class="feature-card">
-                    <div class="feature-icon-wrapper">🎨</div>
-                    <h3>Adaptive Dark/Light UI</h3>
-                    <p>Designed visually to protect ocular focus. Fluidly transitions between high-contrast light and pure hardware-black AMOLED dark mode environments.</p>
-                </div>
-            </div>
-        </section>
+      <div class="cta-panel">
+        <h3>Download Preet Live Streaming Player</h3>
+        <p>Open your store and start streaming in minutes with smooth playback and powerful playlist support.</p>
+      </div>
+    </header>
 
-        <!-- Deep Tech Infrastructure Breakdown -->
-        <section class="tech-section">
-            <h2 style="text-align: center; font-size: 2rem; font-weight: 700;">Technical Infrastructure Breakdown</h2>
-            <div class="tech-grid">
-                <div class="tech-item">
-                    <div class="check-icon">✓</div>
-                    <p><strong>Auto-Healing Engine</strong> Real-time frame parsing engine instantly re-syncs dropped audio layers and video keyframes instantly during network jitter.</p>
-                </div>
-                <div class="tech-item">
-                    <div class="check-icon">✓</div>
-                    <p><strong>Zero-Lag Token Indexing</strong> Caches heavy data trees on-device to load multi-thousand stream channels smoothly without locking UI loops.</p>
-                </div>
-                <div class="tech-item">
-                    <div class="check-icon">✓</div>
-                    <p><strong>Interactive Control Maps</strong> Intuitive structural gesture controls supporting swift brightness shifts, swift seek lines, and seamless canvas zooming.</p>
-                </div>
-                <div class="tech-item">
-                    <div class="check-icon">✓</div>
-                    <p><strong>Absolute Data Isolation</strong> Complete tracking isolation architecture. Zero cloud user analytical logging, zero external cookies, and transparent device sandboxing.</p>
-                </div>
-            </div>
-        </section>
+    <!-- Android Screenshots Section -->
+    <section class="screenshot-section">
+      <h2>Android Screenshots</h2>
+      <div class="screenshot-gallery">
+        <div class="screenshot-item">
+          <img src="https://play-lh.googleusercontent.com/3WPK2KehHOjbs38a9GmWUeSm26zwECb1JQMdQgb6xqAjv8fF2W-ARZMLSUK1JUuIjOwco-U-xddikPmAVmwF=w5120-h2880-rw" alt="Preet Player Main UI Interface">
+        </div>
+        <div class="screenshot-item">
+          <img src="https://play-lh.googleusercontent.com/tS9ZR998o_aezgCraC6DrdWemjaSpZuvlqXOrpyZtrPBajLZux2bbKbK71aPlgvisAWY8FGNa2DUB-QX2icWNE8=w5120-h2880-rw" alt="Live Video Player Screen">
+        </div>
+        <div class="screenshot-item">
+          <img src="https://play-lh.googleusercontent.com/QieHrBjd6XA0DBrub_3UvHAc7uTVz824CzIkfF2cymcl1M-VrtzRLOW5SxcxAgqOG7sdnSOzqHTpDSdQibOjGw=w5120-h2880-rw" alt="Favorites Management List">
+        </div>
+        <div class="screenshot-item">
+          <img src="https://play-lh.googleusercontent.com/Zt0yuwFyPN65Oo8sJc5Xfb81v535-6Psn97qlBon9Jod5bhI3L0-fNaKjUaOnAOjh87qwF_UR4TW7k_sk3a13g=w5120-h2880-rw" alt="Dark Mode &amp; Stream Settings Panel">
+        </div>
+      </div>
+    </section>
 
-        <footer>
-            <p>&copy; 2026 Arish Technology. Preet Live Streaming Player is an agnostic utility platform designed strictly to play user-provided media assets and does not host or provide content streams.</p>
-        </footer>
-    </div>
+    <!-- iOS Screenshots Section -->
+    <section class="screenshot-section">
+      <h2>iOS Screenshots</h2>
+      <div class="screenshot-gallery">
+        <div class="screenshot-item">
+          <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d0/7a/00/d07a00af-ae8c-e67a-1fc9-04cbce3c7f55/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-5.png/300x650bb.webp" alt="Preet Player Main UI Interface">
+        </div>
+        <div class="screenshot-item">
+          <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource211/v4/68/35/c8/6835c86e-9f58-7d45-7991-f4ffee46e8a6/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-4.png/300x650bb.webp" alt="Live Video Player Screen">
+        </div>
+        <div class="screenshot-item">
+          <img src="https://is1-ssl.mzstatic.com/image/thumb/PurpleSource221/v4/d0/7b/94/d07b9490-f8cf-124d-4ca8-4b29ccffb32c/Gemini_Generated_Image_nyz4uxnyz4uxnyz4-6.png/300x650bb.webp" alt="Favorites Management List">
+        </div>
+      </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section class="features-section">
+      <h2 class="section-title">Player Features</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">⚡</div>
+          <h3>Instant Access Playback</h3>
+          <p>No sign-ups, accounts, or email credentials needed. Fire up the player, map your server link or layout configuration, and enjoy direct content feeds instantly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">🌐</div>
+          <h3>Extensive Playlist Parsing</h3>
+          <p>Robust structural parsing engine effortlessly indexing heavy, data-extensive playlists containing 9,000+ feeds without a single interface drop.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">⭐</div>
+          <h3>Fast Favorites Deck</h3>
+          <p>Organize, save, and sort your regular high-priority media nodes dynamically into a local Quick Access dashboard for instant loadouts.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">⚙️</div>
+          <h3>Granular Quality Control</h3>
+          <p>Toggle natively between continuous adaptive bitrate options or fix explicit track choices to match mobile cellular thresholds perfectly.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">📺</div>
+          <h3>True Picture-In-Picture</h3>
+          <p>Multitask gracefully with native background rendering support. Keep your favorite live broadcast floating seamlessly above separate workspaces.</p>
+        </div>
+        <div class="feature-card">
+          <div class="feature-icon-wrapper">🎨</div>
+          <h3>Adaptive Dark/Light UI</h3>
+          <p>Designed visually to protect ocular focus. Fluidly transitions between high-contrast light and pure hardware-black AMOLED dark mode environments.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Deep Tech Infrastructure Breakdown -->
+    <section class="tech-section">
+      <h2 style="text-align: center; font-size: 2rem; font-weight: 700;">Technical Infrastructure Breakdown</h2>
+      <div class="tech-grid">
+        <div class="tech-item">
+          <div class="check-icon">✓</div>
+          <p><strong>Auto-Healing Engine</strong> Real-time frame parsing engine instantly re-syncs dropped audio layers and video keyframes instantly during network jitter.</p>
+        </div>
+        <div class="tech-item">
+          <div class="check-icon">✓</div>
+          <p><strong>Zero-Lag Token Indexing</strong> Caches heavy data trees on-device to load multi-thousand stream channels smoothly without locking UI loops.</p>
+        </div>
+        <div class="tech-item">
+          <div class="check-icon">✓</div>
+          <p><strong>Interactive Control Maps</strong> Intuitive structural gesture controls supporting swift brightness shifts, swift seek lines, and seamless canvas zooming.</p>
+        </div>
+        <div class="tech-item">
+          <div class="check-icon">✓</div>
+          <p><strong>Absolute Data Isolation</strong> Complete tracking isolation architecture. Zero cloud user analytical logging, zero external cookies, and transparent device sandboxing.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer>
+      <p>&copy; 2026 Arish Technology. Preet Live Streaming Player is an agnostic utility platform designed strictly to play user-provided media assets and does not host or provide content streams.</p>
+    </footer>
+  </div>
 </body>
 </html>
